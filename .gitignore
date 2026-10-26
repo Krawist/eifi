@@ -12,7 +12,7 @@ captures/
 .externalNativeBuild/
 .cxx/
 
-# Signature : ne jamais versionner
+# Signing: never version
 keystore.properties
 *.jks
 *.keystore

@@ -1,4 +1,4 @@
-# Surcharge de la configuration par défaut de detekt (buildUponDefaultConfig = true).
+# Overrides of detekt's default configuration (buildUponDefaultConfig = true).
 naming:
   FunctionNaming:
     ignoreAnnotated: ['Composable']

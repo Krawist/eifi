@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.eifi.core.design.component.PlaceholderScreen
 
-/** Écran vide du mode Payer (EIFI-010). */
+/** Empty screen of the Pay mode (EIFI-010). */
 @Composable
 fun PayScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     PlaceholderScreen(

@@ -1,55 +1,55 @@
 # Eifi
 
-Paiement sans contact pour le Cameroun : on approche ou on scanne, on valide par biométrie, on tape son code secret Orange Money ou MTN MoMo. Une seule app Android, deux modes : **Payer** et **Encaisser**.
+Contactless payment for Cameroon: tap or scan, confirm with biometrics, type your Orange Money or MTN MoMo PIN. A single Android app, two modes: **Pay** and **Collect**.
 
-La documentation est dans [`docs/`](docs/) et le contexte pour Claude Code dans [`CLAUDE.md`](CLAUDE.md).
+The documentation is in [`docs/`](docs/) and the context for Claude Code in [`CLAUDE.md`](CLAUDE.md).
 
-## Prérequis
+## Requirements
 
-- Android Studio récent (compatible AGP 8.13), JDK 17
-- Un téléphone Android 8.0+ (NFC conseillé)
+- A recent Android Studio (compatible with AGP 8.13), JDK 17
+- An Android 8.0+ phone (NFC recommended)
 
-## Démarrer
+## Getting started
 
 ```bash
-./gradlew assembleDebug        # APK debug : app/build/outputs/apk/debug/
-./gradlew installDebug         # installe sur le téléphone branché
+./gradlew assembleDebug        # debug APK: app/build/outputs/apk/debug/
+./gradlew installDebug         # installs on the connected phone
 ```
 
-Vérifications lancées par la CI à chaque pull request :
+Checks run by CI on every pull request:
 
 ```bash
 ./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug
 ```
 
-## Signature
+## Signing
 
-- **debug** : clé de debug locale d'Android Studio, `applicationId` suffixé `.debug` (les deux variantes cohabitent sur le téléphone).
-- **release** : copier `keystore.properties.example` en `keystore.properties` et le compléter. Ce fichier et les `.jks` sont ignorés par git. Sans lui, la release est construite non signée.
+- **debug**: Android Studio's local debug key, `applicationId` suffixed with `.debug` (both variants can be installed side by side on the phone).
+- **release**: copy `keystore.properties.example` to `keystore.properties` and fill it in. This file and the `.jks` files are ignored by git. Without it, the release build is unsigned.
 
-Créer la clé une fois :
+Create the key once:
 
 ```bash
 mkdir -p keystore
 keytool -genkeypair -v -keystore keystore/eifi-release.jks -alias eifi -keyalg RSA -keysize 4096 -validity 10000
 ```
 
-## Premier sync
+## First sync
 
-Les versions de `gradle/libs.versions.toml` ont été fixées sans accès aux dépôts Maven. Si le sync échoue sur une version introuvable ou incompatible (AGP, Kotlin, Compose BOM, ktlint, detekt), ajuster le catalogue : Android Studio propose les versions disponibles.
+The versions in `gradle/libs.versions.toml` were pinned without access to the Maven repositories. If the sync fails on a missing or incompatible version (AGP, Kotlin, Compose BOM, ktlint, detekt), adjust the catalog: Android Studio suggests the available versions.
 
 ## Structure
 
 ```
-app/                  application, assemblage des modes
-feature/onboarding    onboarding commun, choix du mode, accueil
-feature/pay           mode Payer
-feature/collect       mode Encaisser
-core/design           thème Compose et composants
-core/payload          format de l'URL de paiement (Kotlin pur)
-core/nfc              HCE type 4 et lecteur NDEF
-core/ussd             gabarits USSD et lancement sur la bonne SIM
-core/sms              lecture des notifications SMS
-build-logic/          plugins Gradle de convention
-docs/                 cahier des charges, dossier technique, tickets, maquettes
+app/                  application, assembly of the modes
+feature/onboarding    shared onboarding, mode choice, home
+feature/pay           Pay mode
+feature/collect       Collect mode
+core/design           Compose theme and components
+core/payload          payment URL format (pure Kotlin)
+core/nfc              Type 4 HCE and NDEF reader
+core/ussd             USSD templates and launch on the right SIM
+core/sms              SMS notification reading
+build-logic/          Gradle convention plugins
+docs/                 product requirements, technical design, tickets, mockups
 ```

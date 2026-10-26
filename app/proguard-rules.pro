@@ -1,1 +1,1 @@
-# Règles R8 propres à Eifi. Les bibliothèques AndroidX et Compose fournissent les leurs.
+# Eifi-specific R8 rules. The AndroidX and Compose libraries ship their own.

@@ -1,133 +1,133 @@
-# Eifi — Dossier technique v1
+# Eifi — Technical design v1
 
-> Copie de travail du document de référence tenu dans Claude (26 octobre 2026) : https://claude.ai/artifact/UCyVMkH69ju46QPDJ9fKfx. En cas d'écart, le document Claude fait foi.
+> English working copy of the reference document kept in Claude (October 26, 2026): https://claude.ai/artifact/UCyVMkH69ju46QPDJ9fKfx. The reference is written in French; if the two differ, the Claude document prevails.
 
-Ce dossier décrit comment construire Eifi : l'application Android avec ses modes Payer et Encaisser, puis, après le pilote, la page web de secours et le backend. Il précise aussi les choix techniques qui restent ouverts. En cas d'écart avec le cahier des charges, ce document fait foi pour la partie technique.
+This document describes how to build Eifi: the Android app with its Pay and Collect modes, then, after the pilot, the fallback web page and the backend. It also lists the technical choices that remain open. Where it differs from the product requirements, this document prevails for technical matters.
 
-## Principe et architecture
+## Principle and architecture
 
-Eifi ne touche jamais l'argent. Celui qui encaisse crée une session de paiement et la transmet par NFC ou par QR code sous forme d'URL. Le téléphone de celui qui paie compose ensuite le code USSD de son opérateur, et le payeur valide avec son code secret dans l'invite de l'opérateur. L'argent part directement vers le compte de celui qui encaisse. La confirmation vient du SMS de crédit que l'opérateur lui envoie : Eifi le lit et le rapproche de la session ouverte.
+Eifi never touches the money. The collector creates a payment session and passes it on by NFC or QR code as a URL. The payer's phone then dials their operator's USSD code, and the payer confirms with their PIN in the operator's prompt. The money goes directly to the collector's account. Confirmation comes from the credit SMS the operator sends to the collector: Eifi reads it and matches it with the open session.
 
-| Composant | Rôle | Technologie | Pilote |
+| Component | Role | Technology | Pilot |
 | --- | --- | --- | --- |
-| Mode Encaisser | Saisie du montant, émission NFC et QR, lecture des SMS de crédit, historique | Android, Kotlin, Jetpack Compose | Oui |
-| Mode Payer | Lecture NFC et QR, choix du compte et de la SIM, biométrie, USSD, reçu | Android, Kotlin, Jetpack Compose (même app) | Oui |
-| Hébergement statique | App Links (assetlinks.json) et page d'attente | Hébergement de fichiers statiques | Oui |
-| Page web de secours | Paiement sans l'app : code USSD et composeur | HTML rendu par le backend | Non |
-| Backend | Sauvegarde, multi-appareil, configuration distante, notifications | Kotlin, Micronaut 4, PostgreSQL, Redis | Non |
+| Collect mode | Amount entry, NFC and QR emission, reading credit SMS, history | Android, Kotlin, Jetpack Compose | Yes |
+| Pay mode | NFC and QR reading, choice of account and SIM, biometrics, USSD, receipt | Android, Kotlin, Jetpack Compose (same app) | Yes |
+| Static hosting | App Links (assetlinks.json) and holding page | Static file hosting | Yes |
+| Fallback web page | Payment without the app: USSD code and dialer | HTML rendered by the backend | No |
+| Backend | Backup, multiple devices, remote configuration, notifications | Kotlin, Micronaut 4, PostgreSQL, Redis | No |
 
-Déroulé d'un paiement pendant le pilote :
+How a payment goes during the pilot:
 
-1. Celui qui encaisse saisit le montant ; l'app crée une session locale et encode l'URL de paiement.
-2. L'app affiche le QR de l'URL et active l'émulation NFC qui sert la même URL.
-3. Celui qui paie approche son téléphone ou scanne le QR. Avec l'app, le lien s'ouvre dans Eifi ; sans l'app, il s'ouvre dans le navigateur.
-4. Eifi décode la session, propose les comptes compatibles, demande la biométrie et compose le code USSD sur la bonne SIM.
-5. Le payeur saisit son code secret dans l'invite de l'opérateur, qui crédite le compte de celui qui encaisse et lui envoie un SMS.
-6. Le téléphone de celui qui encaisse lit la notification du SMS, la rapproche de la session en attente et affiche « Paiement reçu ».
+1. The collector enters the amount; the app creates a local session and encodes the payment URL.
+2. The app shows the QR code of the URL and enables the NFC emulation that serves the same URL.
+3. The payer taps their phone or scans the QR code. With the app, the link opens in Eifi; without the app, it opens in the browser.
+4. Eifi decodes the session, offers the compatible accounts, asks for biometrics and dials the USSD code on the right SIM.
+5. The payer enters their PIN in the operator's prompt; the operator credits the collector's account and sends them an SMS.
+6. The collector's phone reads the SMS notification, matches it with the pending session and shows "Paiement reçu" (Payment received).
 
-## Une app, deux modes
+## One app, two modes
 
-Eifi est une seule application qui réunit deux modes, Payer et Encaisser. Après un onboarding commun, l'utilisateur choisit par où commencer, puis l'accueil donne accès aux deux. Le « marchand » n'est pas un type de compte : c'est un profil d'encaissement, rempli au premier passage en mode Encaisser. Ce profil indique, pour chaque opérateur, comment recevoir l'argent : avec un code marchand ou avec un numéro de téléphone.
+Eifi is a single app with two modes, Pay and Collect. After a shared onboarding, the user chooses where to start, then the home screen gives access to both. The "merchant" is not an account type: it is a collection profile, filled in the first time Collect mode is used. For each operator, this profile says how to receive the money: with a merchant code or with a phone number.
 
-Le moyen de réception détermine l'opération que lance celui qui paie :
+The receiving method determines the operation the payer launches:
 
-| Moyen de réception | Opération USSD | Frais pour le payeur | Opérateurs possibles |
+| Receiving method | USSD operation | Fees for the payer | Possible operators |
 | --- | --- | --- | --- |
-| Code marchand | Paiement marchand | Aucun (chez Orange Money) | Celui du code marchand |
-| Numéro de téléphone | Transfert entre particuliers | Frais de transfert et taxe de 0,2 % | Même opérateur des deux côtés |
+| Merchant code | Merchant payment | None (at Orange Money) | The merchant code's operator |
+| Phone number | Person-to-person transfer | Transfer fees and 0.2% tax | Same operator on both sides |
 
-Le récapitulatif affiche les frais avant la validation, et l'app ne propose que les comptes compatibles. Chaque type d'opération a son propre gabarit USSD et ses propres formats de SMS de crédit et de débit.
+The summary screen shows the fees before confirmation, and the app only offers compatible accounts. Each operation type has its own USSD template and its own credit and debit SMS formats.
 
-Les permissions sont demandées au moment où elles servent : la lecture des notifications et la désactivation de l'optimisation de batterie au premier encaissement, l'appel téléphonique au premier paiement, l'appareil photo au premier scan. Un utilisateur qui ne fait que payer n'a jamais à autoriser la lecture de ses notifications.
+Permissions are requested when they are needed: notification access and disabling battery optimisation at the first collection, phone calls at the first payment, the camera at the first scan. A user who only pays never has to grant access to their notifications.
 
-## Fonctionnement sans backend pour le pilote
+## Running without a backend for the pilot
 
-Le pilote fonctionne sans serveur applicatif. Les sections Page web de secours et Backend décrivent la cible d'après le pilote.
+The pilot runs without an application server. The Fallback web page and Backend sections describe the post-pilot target.
 
-L'URL de paiement porte toute la session dans son fragment, qui n'est jamais envoyé sur le réseau : `https://pay.[domaine]/p#v1.{données}`. Les données, encodées en base64url, contiennent un identifiant aléatoire, le nom affiché, le montant, le moyen de réception de chaque opérateur, l'expiration et une somme de contrôle.
+The payment URL carries the whole session in its fragment, which is never sent over the network: `https://pay.[domain]/p#v1.{data}`. The data, encoded in base64url, contains a random identifier, the display name, the amount, the receiving method for each operator, the expiry and a checksum.
 
-Le rapprochement entre le SMS de crédit et la session se fait sur le téléphone de celui qui encaisse, avec la règle d'une seule session en attente par montant, garantie localement dans Room. Les gabarits USSD et les parseurs de SMS sont embarqués dans l'app. Il ne reste qu'un hébergement statique, pour publier le fichier `assetlinks.json` des App Links et une page d'attente destinée à ceux qui n'ont pas l'app.
+Matching between the credit SMS and the session happens on the collector's phone, with the rule of a single pending session per amount, enforced locally in Room. USSD templates and SMS parsers are embedded in the app. All that remains is static hosting, to publish the App Links `assetlinks.json` file and a holding page for people without the app.
 
-Le principal risque de ce mode est l'absence de mise à jour à distance : si un opérateur change le format de ses SMS, il faudra publier une nouvelle version. Un fichier de configuration statique et signé, téléchargé depuis le même hébergement, pourra réduire ce risque avant l'arrivée du backend.
+The main risk of this mode is the lack of remote updates: if an operator changes its SMS format, a new version will have to be released. A static, signed configuration file, downloaded from the same hosting, could reduce this risk before the backend arrives.
 
-## NFC : celui qui encaisse émule un tag, celui qui paie lit
+## NFC: the collector emulates a tag, the payer reads
 
-C'est le téléphone de celui qui encaisse qui émule en HCE (Host Card Emulation), et celui du payeur qui lit, car le montant et le moyen de réception partent de celui qui encaisse.
+The collector's phone emulates in HCE (Host Card Emulation) and the payer's phone reads, because the amount and the receiving method come from the collector.
 
-Le téléphone émule un tag NFC Forum de type 4 contenant un enregistrement NDEF de type URI, l'URL de paiement : aucun protocole propriétaire. Un téléphone sans Eifi lit nativement ce tag et ouvre l'URL dans le navigateur, sur Android comme sur les iPhone récents. Avec l'app installée, l'URL est un App Link vérifié et ouvre directement Eifi.
+The phone emulates an NFC Forum Type 4 tag holding an NDEF record of type URI, the payment URL: no proprietary protocol. A phone without Eifi natively reads this tag and opens the URL in the browser, on Android as well as on recent iPhones. With the app installed, the URL is a verified App Link and opens Eifi directly.
 
-Un `HostApduService` répond aux commandes APDU de lecture d'un tag de type 4 :
+A `HostApduService` answers the APDU commands used to read a Type 4 tag:
 
-1. sélection de l'application NDEF (AID `D2760000850101`) ;
-2. sélection et lecture du fichier de capacité (Capability Container) ;
-3. sélection et lecture du fichier NDEF qui contient l'URL.
+1. select the NDEF application (AID `D2760000850101`);
+2. select and read the Capability Container file;
+3. select and read the NDEF file holding the URL.
 
-Le service n'est actif que pendant une session ouverte. L'écran d'attente l'enregistre comme service préféré avec `CardEmulation.setPreferredService` et le retire à la sortie ; l'écran doit rester allumé et déverrouillé pendant l'encaissement. Côté payeur, Eifi lit le tag avec `NfcAdapter.enableReaderMode` (NFC-A et NFC-B) et extrait l'URL du message NDEF. Les tests sur Tecno, Infinix, itel et Samsung font partie du prototype, car le comportement HCE varie selon les fabricants.
+The service is only active during an open session. The waiting screen registers it as the preferred service with `CardEmulation.setPreferredService` and removes it on exit; the screen must stay on and unlocked while collecting. On the payer's side, Eifi reads the tag with `NfcAdapter.enableReaderMode` (NFC-A and NFC-B) and extracts the URL from the NDEF message. Tests on Tecno, Infinix, itel and Samsung are part of the prototype, as HCE behaviour varies between manufacturers.
 
-## QR code et URL de paiement
+## QR code and payment URL
 
-Le QR et le tag NFC portent exactement la même URL. L'URL d'un cas courant doit tenir dans un QR de version 6 au maximum, pour rester facile à scanner sur un écran de milieu de gamme en plein soleil ; c'est pourquoi le nom affiché est limité à 30 caractères.
+The QR code and the NFC tag carry exactly the same URL. The URL of a typical case must fit in a QR code of version 6 at most, so it stays easy to scan on a mid-range screen in full sunlight; this is why the display name is limited to 30 characters.
 
-Le QR est toujours affiché sur l'écran de celui qui encaisse et change à chaque session, ce qui le rend difficile à remplacer par un faux. Le payeur voit le nom et le moyen de réception avant de valider. Une signature des données de session est à étudier pour la version avec backend, où le jeton deviendra un identifiant opaque de 22 caractères résolu côté serveur.
+The QR code is always shown on the collector's screen and changes with each session, which makes it hard to replace with a fake. The payer sees the name and the receiving method before confirming. Signing the session data is to be studied for the backend version, where the token will become an opaque 22-character identifier resolved on the server.
 
-## Application Android
+## Android app
 
-L'app est construite dans un seul dépôt Gradle multi-modules, en Kotlin avec Jetpack Compose. L'architecture suit le flux de données unidirectionnel : ViewModel, état exposé en `StateFlow`, injection par Hilt et coroutines. L'historique est stocké dans Room et les préférences dans DataStore. Les versions visées sont Android 8.0 (API 26) au minimum et la dernière API stable pour la cible.
+The app is built in a single multi-module Gradle repository, in Kotlin with Jetpack Compose. The architecture follows unidirectional data flow: ViewModel, state exposed as `StateFlow`, Hilt injection and coroutines. History is stored in Room and preferences in DataStore. The targeted versions are Android 8.0 (API 26) at minimum and the latest stable API as target.
 
-| Module | Contenu |
+| Module | Content |
 | --- | --- |
-| `:app` | Application unique, navigation et assemblage des modes |
-| `:feature:onboarding` | Onboarding commun, choix du mode, accueil |
-| `:feature:pay` | Écrans du mode Payer |
-| `:feature:collect` | Écrans du mode Encaisser |
-| `:core:design` | Thème Compose, couleurs, Plus Jakarta Sans, composants |
-| `:core:payload` | Encodage et décodage de l'URL de paiement |
-| `:core:nfc` | Service HCE de type 4 et lecteur NDEF |
-| `:core:ussd` | Gabarits USSD, sélection de SIM, lancement de l'appel |
-| `:core:sms` | Écoute des notifications et parseurs de SMS |
+| `:app` | Single application, navigation and assembly of the modes |
+| `:feature:onboarding` | Shared onboarding, mode choice, home |
+| `:feature:pay` | Pay mode screens |
+| `:feature:collect` | Collect mode screens |
+| `:core:design` | Compose theme, colours, Plus Jakarta Sans, components |
+| `:core:payload` | Encoding and decoding of the payment URL |
+| `:core:nfc` | Type 4 HCE service and NDEF reader |
+| `:core:ussd` | USSD templates, SIM selection, call launch |
+| `:core:sms` | Notification listening and SMS parsers |
 
-Le module `:core:network` est reporté avec le backend.
+The `:core:network` module is postponed along with the backend.
 
-### Lancement du USSD et choix de la SIM
+### USSD launch and SIM choice
 
-Le code à composer vient d'un gabarit par opérateur et par type d'opération, embarqué dans l'app, par exemple `{prefixe}*{codeMarchand}*{montant}#` pour un paiement marchand. La syntaxe réelle de chaque opérateur sera établie pendant le prototype.
+The code to dial comes from a template per operator and per operation type, embedded in the app, for example `{prefix}*{merchantCode}*{amount}#` for a merchant payment. The real syntax for each operator will be established during the prototype.
 
-L'app liste les SIM actives avec `SubscriptionManager` (permission `READ_PHONE_STATE`) et reconnaît l'opérateur par son code réseau : MCC 624 pour le Cameroun, codes MNC d'Orange et de MTN à vérifier. Elle retrouve le `PhoneAccountHandle` correspondant et passe l'appel avec `TelecomManager.placeCall` (permission `CALL_PHONE`), en encodant les `#` dans l'URI `tel:`.
+The app lists the active SIMs with `SubscriptionManager` (`READ_PHONE_STATE` permission) and recognises the operator by its network code: MCC 624 for Cameroon, Orange and MTN MNC codes to be checked. It finds the matching `PhoneAccountHandle` and places the call with `TelecomManager.placeCall` (`CALL_PHONE` permission), encoding the `#` characters in the `tel:` URI.
 
-Avant l'appel, une `BiometricPrompt` obligatoire demande l'empreinte, le visage ou le code de déverrouillage (BIOMETRIC_STRONG ou DEVICE_CREDENTIAL). Le code secret Orange Money ou MoMo n'est jamais demandé ni vu par Eifi.
+Before the call, a mandatory `BiometricPrompt` asks for the fingerprint, face or unlock code (BIOMETRIC_STRONG or DEVICE_CREDENTIAL). The Orange Money or MoMo PIN is never requested nor seen by Eifi.
 
-### Lecture des SMS
+### Reading SMS
 
-Chez celui qui encaisse, un `NotificationListenerService`, activé au premier encaissement, filtre les notifications de l'application SMS par défaut dont l'expéditeur correspond à Orange Money ou MTN MoMo. Les parseurs embarqués, un par opérateur et par type d'opération, extraient le montant, le numéro de la contrepartie et la référence. Un SMS d'un expéditeur connu mais non reconnu est enregistré comme « non reconnu », ce qui révèle un changement de format. Le texte brut n'est jamais conservé ; seule une empreinte SHA-256 sert à dédoublonner.
+On the collector's side, a `NotificationListenerService`, enabled at the first collection, filters the notifications of the default SMS app whose sender matches Orange Money or MTN MoMo. The embedded parsers, one per operator and per operation type, extract the amount, the counterparty's number and the reference. An SMS from a known sender that is not recognised is recorded as "unrecognised", which reveals a format change. The raw text is never kept; only a SHA-256 hash is used for deduplication.
 
-Chez le payeur, la même brique peut détecter le SMS de débit si l'option est activée, pour afficher « Débit confirmé » sur le reçu. L'onboarding guide celui qui encaisse vers la désactivation de l'optimisation de batterie, pour éviter les confirmations manquées sur les marques qui ferment les services en arrière-plan.
+On the payer's side, the same component can detect the debit SMS if the option is enabled, to show "Débit confirmé" (Debit confirmed) on the receipt. Onboarding guides the collector to disable battery optimisation, to avoid missed confirmations on brands that kill background services.
 
-## Page web de secours (après le pilote)
+## Fallback web page (after the pilot)
 
-Pendant le pilote, une personne sans l'app arrive sur une simple page d'attente qui l'invite à installer Eifi. Après le pilote, cette page devient la page de secours, rendue côté serveur sans framework JavaScript pour s'afficher vite en 3G. Elle montre le nom de celui qui encaisse, le montant, le compte à rebours, un sélecteur d'opérateur et le code USSD complet. Un lien `tel:` ouvre le composeur sur Android ; sur iPhone, qui bloque ces liens quand ils contiennent `*` ou `#`, un bouton copie le code.
+During the pilot, a person without the app lands on a simple holding page inviting them to install Eifi. After the pilot, this page becomes the fallback page, rendered server-side without a JavaScript framework so it loads fast on 3G. It shows the collector's name, the amount, the countdown, an operator selector and the full USSD code. A `tel:` link opens the dialer on Android; on iPhone, which blocks these links when they contain `*` or `#`, a button copies the code.
 
-## Backend (après le pilote)
+## Backend (after the pilot)
 
-Le backend est un service Kotlin sur Micronaut 4 et Netty, packagé en conteneur. La persistance utilise Micronaut Data JDBC sur PostgreSQL avec des migrations Flyway, et Redis porte les sessions actives et leurs délais d'expiration. L'authentification se fait par jeton JWT (Micronaut Security), après vérification du numéro de téléphone par code SMS. Il apporte la sauvegarde de l'historique, l'usage sur plusieurs appareils, la mise à jour à distance des gabarits USSD et des parseurs, et la page de secours.
+The backend is a Kotlin service on Micronaut 4 and Netty, packaged as a container. Persistence uses Micronaut Data JDBC on PostgreSQL with Flyway migrations, and Redis holds the active sessions and their expiry timeouts. Authentication uses a JWT (Micronaut Security), after verifying the phone number with an SMS code. It brings history backup, use on several devices, remote update of USSD templates and parsers, and the fallback page.
 
 ### API
 
-| Méthode et route | Appelant | Rôle |
+| Method and route | Caller | Role |
 | --- | --- | --- |
-| `POST /v1/auth/otp` et `/v1/auth/verify` | Utilisateur | Connexion par numéro de téléphone et code SMS |
-| `PUT /v1/profile/collect` | Celui qui encaisse | Nom affiché, moyen de réception par opérateur, expéditeurs SMS |
-| `POST /v1/sessions` | Celui qui encaisse | Crée une session ; renvoie jeton, URL et expiration |
-| `POST /v1/sessions/{id}/cancel` | Celui qui encaisse | Annule une session en attente |
-| `POST /v1/sessions/{id}/confirm-manual` | Celui qui encaisse | Confirmation manuelle |
-| `GET /v1/sessions?date=` | Celui qui encaisse | Historique et totaux du jour par opérateur |
-| `POST /v1/sms-events` | Celui qui encaisse | Remonte un SMS de crédit analysé |
-| `GET /v1/config` | App | Gabarits USSD, parseurs SMS, expéditeurs, versions minimales |
-| `WS /v1/events` | Celui qui encaisse | Mises à jour des sessions en temps réel |
-| `GET /p/{token}` | Public | Page de secours (HTML) ou session (JSON) |
+| `POST /v1/auth/otp` and `/v1/auth/verify` | User | Sign-in with phone number and SMS code |
+| `PUT /v1/profile/collect` | Collector | Display name, receiving method per operator, SMS senders |
+| `POST /v1/sessions` | Collector | Creates a session; returns token, URL and expiry |
+| `POST /v1/sessions/{id}/cancel` | Collector | Cancels a pending session |
+| `POST /v1/sessions/{id}/confirm-manual` | Collector | Manual confirmation |
+| `GET /v1/sessions?date=` | Collector | History and daily totals per operator |
+| `POST /v1/sms-events` | Collector | Uploads a parsed credit SMS |
+| `GET /v1/config` | App | USSD templates, SMS parsers, senders, minimum versions |
+| `WS /v1/events` | Collector | Real-time session updates |
+| `GET /p/{token}` | Public | Fallback page (HTML) or session (JSON) |
 
-### Modèle de données
+### Data model
 
-| Table | Colonnes principales |
+| Table | Main columns |
 | --- | --- |
 | `app_user` | id, phone, display_name, created_at |
 | `collect_method` | user_id, operator (OM, MOMO), kind (MERCHANT_CODE, PHONE), value, sms_sender |
@@ -135,51 +135,51 @@ Le backend est un service Kotlin sur Micronaut 4 et Netty, packagé en conteneur
 | `sms_event` | id, user_id, operator, operation_kind, amount, counterpart_masked, operator_ref, received_at, text_hash, parser_version, matched_session_id |
 | `remote_config` | key, version, payload (JSON), active |
 
-Les montants sont des entiers en FCFA. Le numéro de la contrepartie est conservé masqué, sauf les deux derniers chiffres.
+Amounts are integers in FCFA. The counterparty's number is stored masked, except for the last two digits.
 
-### Cycle de vie d'une session et rapprochement
+### Session lifecycle and matching
 
-| Transition | Déclencheur |
+| Transition | Trigger |
 | --- | --- |
-| création → PENDING | Saisie du montant et « Encaisser » |
-| PENDING → CONFIRMED | SMS rapproché, ou confirmation manuelle |
-| PENDING → EXPIRED | Délai écoulé (2 minutes par défaut) |
-| PENDING → CANCELLED | Annulation par celui qui encaisse |
+| creation → PENDING | Amount entered and "Encaisser" tapped |
+| PENDING → CONFIRMED | SMS matched, or manual confirmation |
+| PENDING → EXPIRED | Delay elapsed (2 minutes by default) |
+| PENDING → CANCELLED | Cancelled by the collector |
 
-Les états finaux sont définitifs et chaque transition est idempotente. Une seule session peut être en attente par montant, garanti côté serveur par une clé Redis `pending:{userId}:{amount}` posée avec SETNX. À la réception d'un SMS, on cherche la session PENDING, ou expirée depuis moins de dix minutes, du même montant et créée avant le SMS. Un SMS sans session devient un « paiement non rattaché » visible dans l'historique, et le dédoublonnage se fait sur la référence opérateur et l'empreinte du texte. Pendant le pilote, ces mêmes règles s'appliquent localement dans Room.
+Final states are permanent and each transition is idempotent. Only one session can be pending per amount, enforced on the server by a Redis key `pending:{userId}:{amount}` set with SETNX. When an SMS arrives, we look for the PENDING session, or one that expired less than ten minutes ago, with the same amount and created before the SMS. An SMS without a session becomes an "unmatched payment" visible in the history, and deduplication uses the operator reference and the text hash. During the pilot, the same rules apply locally in Room.
 
-## Sécurité
+## Security
 
-La confirmation d'un paiement ne repose jamais sur ce que montre le téléphone de celui qui paie. Son écran de fin est un reçu dont la mise en page diffère volontairement de l'écran « Paiement reçu » de celui qui encaisse. Il n'affiche « Débit confirmé » que si le SMS de débit de l'opérateur a été détecté ; sinon, il indique « Demande envoyée ».
+Payment confirmation never relies on what the payer's phone shows. Its end screen is a receipt whose layout deliberately differs from the collector's "Paiement reçu" screen. It shows "Débit confirmé" only if the operator's debit SMS was detected; otherwise it says "Demande envoyée" (Request sent).
 
-Le QR est dynamique, de courte durée et affiché uniquement sur l'écran de celui qui encaisse. Eifi ne stocke ni code secret, ni solde, ni identifiant de compte opérateur, et ne conserve jamais le texte brut des SMS. Avec le backend, les échanges passeront en HTTPS avec épinglage de certificat.
+The QR code is dynamic, short-lived and shown only on the collector's screen. Eifi stores no PIN, no balance and no operator account identifier, and never keeps the raw SMS text. With the backend, traffic will go over HTTPS with certificate pinning.
 
-Le principal risque résiduel est un faux SMS envoyé à celui qui encaisse. Il est limité par le filtrage sur les expéditeurs officiels des opérateurs et par la confirmation manuelle en cas de doute, et sera évalué avec les SMS réels collectés pendant le prototype.
+The main residual risk is a fake SMS sent to the collector. It is limited by filtering on the operators' official senders and by manual confirmation in case of doubt, and will be assessed with the real SMS collected during the prototype.
 
-## Charte de design
+## Design guidelines
 
-L'interface suit un style sobre inspiré d'iOS : grands montants en chiffres alignés, titres larges, cartes blanches très arrondies sur fond gris clair. Une variante en dégradé, dessinée sur le canevas, est mise de côté : le pilote utilise uniquement la version unie, pour garder le code simple.
+The interface follows a restrained iOS-inspired style: large amounts with tabular figures, wide titles, very rounded white cards on a light grey background. A gradient variant, drawn on the canvas, is set aside: the pilot uses only the plain version, to keep the code simple.
 
-| Jeton | Valeur | Usage |
+| Token | Value | Usage |
 | --- | --- | --- |
-| primary | `#00DBAD` | Actions principales, validation |
-| on-primary | `#04362B` | Texte et icônes sur primary (le blanc y serait illisible) |
-| accent | `#FEC447` | États en attente, frais, confirmation manuelle |
-| soft | `#DDFDBC` | Fonds doux : bandeau NFC, notes, pastilles opérateurs |
-| background | `#F6F8F7` | Fond des écrans |
-| surface | `#FFFFFF` | Cartes, touches du pavé |
-| ink | `#0E1A17` | Texte principal |
-| muted | `#56665F` | Texte secondaire |
+| primary | `#00DBAD` | Main actions, confirmation |
+| on-primary | `#04362B` | Text and icons on primary (white would be unreadable) |
+| accent | `#FEC447` | Pending states, fees, manual confirmation |
+| soft | `#DDFDBC` | Soft backgrounds: NFC banner, notes, operator pills |
+| background | `#F6F8F7` | Screen background |
+| surface | `#FFFFFF` | Cards, keypad keys |
+| ink | `#0E1A17` | Main text |
+| muted | `#56665F` | Secondary text |
 
-La police est Plus Jakarta Sans (licence OFL), embarquée dans l'app. L'échelle typographique va de 68 px en graisse 800 pour le montant principal à 13 px en graisse 600 pour les étiquettes, avec un corps de texte à 15 px en graisse 500. Les cartes ont un rayon de 22 à 28 px, les boutons de 18 px, et les zones tactiles font au moins 44 px. Le logo n'est pas encore choisi parmi les trois pistes du canevas de design.
+The font is Plus Jakarta Sans (OFL licence), embedded in the app. The type scale goes from 68 px at weight 800 for the main amount down to 13 px at weight 600 for labels, with body text at 15 px weight 500. Cards have a 22 to 28 px radius, buttons 18 px, and touch targets are at least 44 px. The logo has not yet been chosen among the three options on the design canvas.
 
-Les maquettes rendues sont dans [`design/`](design/).
+The rendered mockups are in [`design/`](design/).
 
-## Questions ouvertes
+## Open questions
 
-- Syntaxe USSD en une ligne du paiement marchand et du transfert chez Orange et chez MTN.
-- Barème des frais de transfert de chaque opérateur, et format exact des SMS de crédit et de débit.
-- Codes MNC d'Orange et de MTN au Cameroun, et noms d'expéditeur de leurs SMS.
-- Fiabilité de l'émulation de tag de type 4 sur les modèles courants, et lecture par iPhone en arrière-plan.
-- Nom de domaine de l'URL de paiement et hébergement statique.
-- Choix final du logo.
+- One-line USSD syntax for merchant payment and transfer at Orange and at MTN.
+- Transfer fee schedule of each operator, and exact format of credit and debit SMS.
+- Orange and MTN MNC codes in Cameroon, and the sender names of their SMS.
+- Reliability of Type 4 tag emulation on common models, and background reading by iPhone.
+- Domain name of the payment URL and static hosting.
+- Final logo choice.

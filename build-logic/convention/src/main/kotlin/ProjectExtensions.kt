@@ -23,7 +23,7 @@ internal fun Project.configureKotlinAndroid(extension: CommonExtension<*, *, *, 
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
-        // Sources Kotlin dans src/main/kotlin, comme pour les modules JVM.
+        // Kotlin sources in src/main/kotlin, as for JVM modules.
         sourceSets.configureEach {
             java.srcDir("src/$name/kotlin")
         }

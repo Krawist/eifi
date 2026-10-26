@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.eifi.android.compose)
 }
 
-// Signature release : lue depuis keystore.properties (non versionné). Voir README.
+// Release signing: read from keystore.properties (not versioned). See README.
 val keystoreProperties = Properties().apply {
     val file = rootProject.file("keystore.properties")
     if (file.exists()) file.inputStream().use { load(it) }
@@ -35,7 +35,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            // Signée avec la clé de debug locale d'Android Studio.
+            // Signed with Android Studio's local debug key.
         }
         release {
             isMinifyEnabled = true

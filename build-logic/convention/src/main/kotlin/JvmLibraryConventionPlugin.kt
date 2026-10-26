@@ -5,7 +5,7 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 
-/** Module Kotlin pur, sans Android : logique testable en tests JVM rapides. */
+/** Pure Kotlin module, without Android: logic testable with fast JVM tests. */
 class JvmLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
@@ -19,7 +19,7 @@ class JvmLibraryConventionPlugin : Plugin<Project> {
                 add("testImplementation", libs.findLibrary("junit").get())
                 add("testImplementation", libs.findLibrary("kotlin-test").get())
             }
-            // La CI lance testDebugUnitTest sur tous les modules : alias pour les modules JVM.
+            // CI runs testDebugUnitTest on every module: alias for JVM modules.
             tasks.register("testDebugUnitTest") {
                 group = "verification"
                 dependsOn("test")

@@ -1,334 +1,336 @@
-# Eifi — Tickets mobile v1 (sans backend)
+# Eifi — Mobile tickets v1 (no backend)
 
-> Copie de travail du document de référence tenu dans Claude (26 octobre 2026). En cas d'écart, le document Claude fait foi ; mettre cette copie à jour quand il change.
+> English working copy of the reference document kept in Claude (October 26, 2026). The reference is written in French; if the two differ, the Claude document prevails. Update this copy when it changes.
 
-Ce document découpe en tickets la première version de l'application Android Eifi. Une seule app réunit les modes Payer et Encaisser, et elle fonctionne sans backend : la session de paiement est entièrement contenue dans l'URL transmise par NFC ou QR, le rapprochement entre le SMS de crédit et la session se fait sur le téléphone de celui qui encaisse, et les gabarits USSD et parseurs de SMS sont embarqués. Seul un hébergement statique reste nécessaire pour le domaine de l'URL de paiement.
+This document splits the first version of the Eifi Android app into tickets. A single app brings together the Pay and Collect modes, and it works without a backend: the payment session is entirely contained in the URL passed by NFC or QR code, matching between the credit SMS and the session happens on the collector's phone, and USSD templates and SMS parsers are embedded. Only static hosting is still needed, for the domain of the payment URL.
 
-Tailles indicatives : S pour moins d'une journée, M pour deux ou trois jours, L pour une semaine environ.
+Indicative sizes: S for less than a day, M for two or three days, L for about a week.
 
-## Ordre de réalisation
+User-facing texts are quoted in French, the app's default language, with an English translation in brackets where useful. Screen names match the mockups in `design/`.
 
-Le travail commence par trois explorations sur de vrais téléphones et de vrais comptes (EIFI-001 à 003), qui lèvent les inconnues capables de remettre en cause le produit. Viennent ensuite les fondations, le format de paiement et l'onboarding, dont dépendent les deux modes. Encaisser et Payer avancent alors en parallèle : Encaisser d'abord pour l'émission (NFC et QR), puis Payer pour la lecture et le paiement. La lecture des SMS et l'historique arrivent en dernier, car ils dépendent des formats relevés pendant les explorations.
+## Order of work
 
-## Explorations préalables
+Work starts with three explorations on real phones and real accounts (EIFI-001 to 003), which clear the unknowns that could call the product into question. Next come the foundations, the payment format and the onboarding, on which both modes depend. Collect and Pay then move forward in parallel: Collect first for emission (NFC and QR), then Pay for reading and payment. SMS reading and history come last, as they depend on the formats recorded during the explorations.
 
-### EIFI-001 · Valider le paiement marchand et le transfert USSD en une ligne
+## Preliminary explorations
 
-Composer, depuis une app de test, un code USSD complet de paiement marchand (code marchand et montant), puis de transfert vers un numéro (numéro et montant), chez Orange Money et chez MTN MoMo. Vérifier que l'invite de l'opérateur ne demande plus que le code secret.
+### EIFI-001 · Validate one-line USSD merchant payment and transfer
 
-- La syntaxe exacte en une ligne est documentée pour chaque opérateur et chaque type d'opération, ou son absence est constatée, avec les frais de transfert annoncés par l'opérateur.
-- Le lancement fonctionne avec `TelecomManager.placeCall` sur la SIM choisie d'un téléphone double SIM.
-- Le comportement est noté sur au moins trois marques (Tecno, Infinix, Samsung).
+From a test app, dial a complete USSD code for a merchant payment (merchant code and amount), then for a transfer to a number (number and amount), at Orange Money and at MTN MoMo. Check that the operator's prompt then only asks for the PIN.
 
-Taille : M. Dépendances : comptes de test OM et MoMo, dont un compte marchand par opérateur.
+- The exact one-line syntax is documented for each operator and each operation type, or its absence is recorded, along with the transfer fees announced by the operator.
+- The launch works with `TelecomManager.placeCall` on the chosen SIM of a dual-SIM phone.
+- The behaviour is recorded on at least three brands (Tecno, Infinix, Samsung).
 
-### EIFI-002 · Relever le format des SMS de crédit et de débit
+Size: M. Dependencies: OM and MoMo test accounts, including one merchant account per operator.
 
-Collecter une vingtaine de SMS réels par opérateur : les SMS de crédit et de débit, pour un paiement marchand comme pour un transfert entre particuliers. Le but est d'écrire les premiers parseurs.
+### EIFI-002 · Record the format of credit and debit SMS
 
-- Pour chaque opérateur et chaque type d'opération, l'expéditeur, le format du montant, le numéro de la contrepartie et la référence sont identifiés.
-- Les SMS sont anonymisés et conservés comme jeux de tests.
-- La notification correspondante est bien visible par un `NotificationListenerService` sur les marques testées.
+Collect about twenty real SMS per operator: credit and debit SMS, for a merchant payment as well as for a person-to-person transfer. The goal is to write the first parsers.
 
-Taille : M. Dépendances : EIFI-001.
+- For each operator and each operation type, the sender, the amount format, the counterparty's number and the reference are identified.
+- The SMS are anonymised and kept as test sets.
+- The matching notification is visible to a `NotificationListenerService` on the tested brands.
 
-### EIFI-003 · Valider l'émulation d'un tag NFC de type 4
+Size: M. Dependencies: EIFI-001.
 
-Faire émuler par un Android un tag NFC Forum de type 4 contenant une URL, et vérifier sa lecture par un autre Android avec l'app, par un Android sans l'app et par un iPhone.
+### EIFI-003 · Validate NFC Type 4 tag emulation
 
-- L'URL s'ouvre dans le navigateur sur Android et iPhone sans app installée.
-- La lecture se fait en moins de deux secondes, téléphones dos à dos.
-- Les modèles qui refusent l'émulation ou la lecture sont listés.
+Have an Android phone emulate an NFC Forum Type 4 tag holding a URL, and check that it is read by another Android with the app, by an Android without the app and by an iPhone.
 
-Taille : M. Dépendances : aucune.
+- The URL opens in the browser on Android and iPhone without the app installed.
+- Reading takes less than two seconds, phones back to back.
+- Models that refuse emulation or reading are listed.
 
-## Fondations
+Size: M. Dependencies: none.
 
-### EIFI-010 · Créer le dépôt multi-modules et la CI
+## Foundations
 
-Mettre en place le dépôt Gradle (Kotlin DSL, catalogue de versions) avec les modules `:app`, `:feature:onboarding`, `:feature:pay`, `:feature:collect`, `:core:design`, `:core:payload`, `:core:nfc`, `:core:ussd` et `:core:sms`. Le module `:core:network` est reporté avec le backend.
+### EIFI-010 · Create the multi-module repository and CI
 
-- L'app compile et se lance, avec un écran vide par mode.
-- La CI exécute ktlint, detekt et les tests unitaires à chaque pull request.
-- Les variantes debug et release sont signées séparément.
+Set up the Gradle repository (Kotlin DSL, version catalog) with the `:app`, `:feature:onboarding`, `:feature:pay`, `:feature:collect`, `:core:design`, `:core:payload`, `:core:nfc`, `:core:ussd` and `:core:sms` modules. The `:core:network` module is postponed along with the backend.
 
-Taille : M.
+- The app compiles and launches, with an empty screen per mode.
+- CI runs ktlint, detekt and unit tests on every pull request.
+- Debug and release variants are signed separately.
 
-### EIFI-011 · Implémenter le design system Compose
+Size: M.
 
-Traduire la charte des maquettes en thème Compose : couleurs (#00DBAD, #FEC447, #DDFDBC et leurs encres), police Plus Jakarta Sans embarquée, échelle typographique, rayons et espacements. Composants partagés : bouton principal, bouton secondaire, carte, pastille, pavé numérique et affichage de montant.
+### EIFI-011 · Implement the Compose design system
 
-- Un catalogue de prévisualisations Compose montre chaque composant.
-- Les contrastes de texte atteignent au moins 4,5:1.
-- Le thème suit la version unie des maquettes, sans dégradé.
+Turn the mockups' design guidelines into a Compose theme: colours (#00DBAD, #FEC447, #DDFDBC and their inks), embedded Plus Jakarta Sans font, type scale, radii and spacing. Shared components: primary button, secondary button, card, pill, numeric keypad and amount display.
 
-Taille : L. Dépendances : EIFI-010.
+- A catalogue of Compose previews shows every component.
+- Text contrast reaches at least 4.5:1.
+- The theme follows the plain version of the mockups, without gradient.
 
-### EIFI-012 · Mettre en place la navigation, la persistance et la localisation
+Size: L. Dependencies: EIFI-010.
 
-Installer Hilt, Navigation Compose, Room, DataStore et les ressources en français et en anglais, avec une architecture ViewModel et état en `StateFlow`.
+### EIFI-012 · Set up navigation, persistence and localisation
 
-- L'app a un graphe de navigation par mode : onboarding, Payer et Encaisser.
-- La langue suit celle du téléphone, avec le français par défaut.
+Install Hilt, Navigation Compose, Room, DataStore and French and English resources, with a ViewModel architecture and state in `StateFlow`.
 
-Taille : M. Dépendances : EIFI-010.
+- The app has one navigation graph per mode: onboarding, Pay and Collect.
+- The language follows the phone's, with French by default.
 
-## Format de paiement
+Size: M. Dependencies: EIFI-010.
 
-### EIFI-020 · Spécifier et coder le format de l'URL de paiement
+## Payment format
 
-L'URL porte toute la session dans son fragment, jamais envoyé à un serveur : `https://pay.[domaine]/p#v1.{données}`. Les données, encodées en base64url, contiennent un identifiant de session aléatoire, le nom affiché (30 caractères au plus), le montant, le moyen de réception de chaque opérateur (code marchand ou numéro de téléphone), l'heure d'expiration et une somme de contrôle. Le module `:core:payload` fournit l'encodeur et le décodeur.
+### EIFI-020 · Specify and code the payment URL format
 
-- L'aller-retour encodage puis décodage est couvert par des tests, cas limites compris (nom accentué, un seul opérateur, numéro au lieu d'un code marchand).
-- Une URL expirée, mal formée ou de version inconnue est rejetée avec une erreur explicite.
-- L'URL d'un cas courant tient dans un QR de version 6 au maximum.
+The URL carries the whole session in its fragment, never sent to a server: `https://pay.[domain]/p#v1.{data}`. The data, encoded in base64url, contains a random session identifier, the display name (30 characters at most), the amount, the receiving method for each operator (merchant code or phone number), the expiry time and a checksum. The `:core:payload` module provides the encoder and the decoder.
 
-Taille : M. Dépendances : EIFI-010.
+- The encode-then-decode round trip is covered by tests, including edge cases (accented name, a single operator, a number instead of a merchant code).
+- An expired, malformed or unknown-version URL is rejected with an explicit error.
+- The URL of a typical case fits in a QR code of version 6 at most.
 
-### EIFI-021 · Configurer le domaine statique et les App Links
+Size: M. Dependencies: EIFI-010.
 
-Réserver le domaine, l'héberger sur un service statique et publier le fichier `assetlinks.json`, pour que l'URL de paiement ouvre directement Eifi quand l'app est installée.
+### EIFI-021 · Configure the static domain and App Links
 
-- Une URL de paiement tapée dans le navigateur ouvre Eifi sans boîte de choix.
-- Sans l'app, l'URL affiche une page provisoire qui invite à installer Eifi.
+Register the domain, host it on a static service and publish the `assetlinks.json` file, so that the payment URL opens Eifi directly when the app is installed.
 
-Taille : S. Dépendances : EIFI-020.
+- A payment URL typed in the browser opens Eifi without a chooser dialog.
+- Without the app, the URL shows a temporary page inviting the user to install Eifi.
 
-## Onboarding et accueil
+Size: S. Dependencies: EIFI-020.
 
-### EIFI-030 · Onboarding commun
+## Onboarding and home
 
-Au premier lancement, des écrans présentent Eifi : le geste (approcher ou scanner), Orange Money et MTN MoMo réunis dans une seule app, et le fait qu'Eifi ne détient jamais l'argent ni le code secret. L'utilisateur choisit ensuite par quel mode commencer, Payer ou Encaisser (écrans « Bienvenue » et « Choix du mode »).
+### EIFI-030 · Shared onboarding
 
-- L'onboarding commun ne demande aucune permission.
-- Le mode choisi détermine l'écran ouvert après l'onboarding, sans fermer l'accès à l'autre mode.
-- L'onboarding peut être revu depuis les réglages.
+On first launch, screens introduce Eifi: the gesture (tap or scan), Orange Money and MTN MoMo together in a single app, and the fact that Eifi never holds the money nor the PIN. The user then chooses which mode to start with, Pay or Collect ("Bienvenue" and "Choix du mode" screens).
 
-Taille : M. Dépendances : EIFI-011, EIFI-012.
+- The shared onboarding requests no permission.
+- The chosen mode determines the screen opened after onboarding, without closing access to the other mode.
+- The onboarding can be viewed again from the settings.
 
-### EIFI-031 · Écran d'accueil Payer et Encaisser
+Size: M. Dependencies: EIFI-011, EIFI-012.
 
-L'accueil propose les deux actions : « Payer », mise en avant avec l'état du NFC, et « Encaisser ». Il affiche aussi l'activité récente, qui mélange paiements envoyés et reçus (écran « Accueil »).
+### EIFI-031 · Pay and Collect home screen
 
-- Le premier passage par « Encaisser » ouvre le profil d'encaissement (EIFI-100) s'il n'est pas encore rempli.
-- Quand l'app est ouverte sur l'accueil, approcher un téléphone qui encaisse lance directement le parcours Payer.
+The home screen offers both actions: "Payer" (Pay), highlighted with the NFC status, and "Encaisser" (Collect). It also shows recent activity, mixing payments sent and received ("Accueil" screen).
 
-Taille : M. Dépendances : EIFI-030.
+- The first use of "Encaisser" opens the collection profile (EIFI-100) if it is not filled in yet.
+- When the app is open on the home screen, tapping a collecting phone directly starts the Pay flow.
 
-### EIFI-032 · Permissions demandées au moment où elles servent
+Size: M. Dependencies: EIFI-030.
 
-Chaque permission est demandée juste avant la première action qui en a besoin, avec un écran d'explication : lecture des notifications et optimisation de batterie au premier encaissement, appel téléphonique et état du téléphone au premier paiement, appareil photo au premier scan. Un utilisateur qui ne fait que payer ne voit jamais la demande de lecture des notifications.
+### EIFI-032 · Permissions requested when they are needed
 
-- Un refus ne bloque jamais le parcours : l'app propose une alternative (confirmation manuelle, code USSD à composer soi-même, lecture NFC au lieu du scan).
-- Les réglages montrent l'état de chaque permission et permettent de la modifier.
+Each permission is requested just before the first action that needs it, with an explanation screen: notification access and battery optimisation at the first collection, phone calls and phone state at the first payment, camera at the first scan. A user who only pays never sees the notification access request.
 
-Taille : M. Dépendances : EIFI-030.
+- A refusal never blocks the flow: the app offers an alternative (manual confirmation, USSD code to dial yourself, NFC reading instead of scanning).
+- The settings show the status of each permission and allow changing it.
 
-## Mode Encaisser
+Size: M. Dependencies: EIFI-030.
 
-### EIFI-100 · Profil d'encaissement
+## Collect mode
 
-Au premier passage en mode Encaisser, l'utilisateur saisit le nom affiché à ceux qui le paient, puis le moyen de réception de chaque opérateur : un code marchand ou son numéro de téléphone (au moins un opérateur). L'app lui demande ensuite d'autoriser la lecture des notifications et de désactiver l'optimisation de batterie, en expliquant pourquoi (écrans « Où recevoir l'argent » et « Confirmation automatique »).
+### EIFI-100 · Collection profile
 
-- Les informations sont stockées localement et modifiables dans les réglages.
-- Si la lecture des notifications est refusée, l'app fonctionne en confirmation manuelle et le signale.
-- Le guide d'optimisation de batterie couvre au moins Tecno, Infinix et itel.
+The first time Collect mode is used, the user enters the name shown to those who pay them, then the receiving method for each operator: a merchant code or their phone number (at least one operator). The app then asks them to allow notification access and to disable battery optimisation, explaining why ("Où recevoir l'argent" and "Confirmation automatique" screens).
 
-Taille : M. Dépendances : EIFI-031, EIFI-032.
+- The information is stored locally and can be edited in the settings.
+- If notification access is refused, the app works with manual confirmation and says so.
+- The battery optimisation guide covers at least Tecno, Infinix and itel.
 
-### EIFI-101 · Écran de saisie du montant
+Size: M. Dependencies: EIFI-031, EIFI-032.
 
-Implémenter l'écran « Saisie du montant » : pavé numérique, touche 000, effacement, libellé facultatif, rappel des opérateurs acceptés et bouton « Encaisser ».
+### EIFI-101 · Amount entry screen
 
-- Le montant est un entier en FCFA, de 100 à 2 000 000, et le bouton reste inactif hors de cette plage.
-- Le montant s'affiche avec une espace fine pour les milliers.
+Implement the "Saisie du montant" (amount entry) screen: numeric keypad, 000 key, delete, optional label, reminder of the accepted operators and "Encaisser" button.
 
-Taille : M. Dépendances : EIFI-011.
+- The amount is an integer in FCFA, from 100 to 2,000,000, and the button stays disabled outside this range.
+- The amount is displayed with a thin space as thousands separator.
 
-### EIFI-102 · Créer et gérer la session locale
+Size: M. Dependencies: EIFI-011.
 
-« Encaisser » crée une session locale (identifiant, montant, libellé, création, expiration) au statut PENDING, enregistrée dans Room. Les transitions sont CONFIRMED, EXPIRED et CANCELLED, toutes définitives.
+### EIFI-102 · Create and manage the local session
 
-- Il ne peut exister qu'une session PENDING par montant.
-- Une session expire après deux minutes, même si l'app est en arrière-plan.
-- Les transitions sont couvertes par des tests unitaires.
+"Encaisser" creates a local session (identifier, amount, label, creation, expiry) with status PENDING, saved in Room. The transitions are CONFIRMED, EXPIRED and CANCELLED, all final.
 
-Taille : M. Dépendances : EIFI-020, EIFI-012.
+- There can be only one PENDING session per amount.
+- A session expires after two minutes, even if the app is in the background.
+- The transitions are covered by unit tests.
 
-### EIFI-103 · Afficher le QR code de paiement
+Size: M. Dependencies: EIFI-020, EIFI-012.
 
-Écran « QR et NFC actifs » : QR de l'URL de paiement avec le pictogramme Eifi au centre, montant, compte à rebours et bouton d'annulation.
+### EIFI-103 · Show the payment QR code
 
-- Le QR est lisible par l'appareil photo d'un Android et d'un iPhone à 30 cm.
-- La luminosité passe au maximum pendant l'affichage, puis revient à sa valeur initiale.
-- À l'expiration, l'écran le signale et propose de relancer avec le même montant.
+"QR et NFC actifs" screen: QR code of the payment URL with the Eifi icon in the centre, amount, countdown and cancel button.
 
-Taille : M. Dépendances : EIFI-102.
+- The QR code can be read by the camera of an Android phone and an iPhone at 30 cm.
+- Brightness goes to maximum while it is shown, then returns to its initial value.
+- On expiry, the screen says so and offers to restart with the same amount.
 
-### EIFI-104 · Émettre l'URL par NFC (HCE type 4)
+Size: M. Dependencies: EIFI-102.
 
-Implémenter le `HostApduService` qui émule un tag NFC de type 4 contenant l'URL de paiement en NDEF, d'après les conclusions de EIFI-003. Le service n'est actif que pendant la session.
+### EIFI-104 · Emit the URL over NFC (HCE Type 4)
 
-- Un téléphone qui paie lit l'URL en approchant son dos de celui qui encaisse.
-- Le service ne répond plus après la fin de la session.
-- Si le NFC est absent ou désactivé, l'écran le signale sans bloquer le QR.
+Implement the `HostApduService` that emulates an NFC Type 4 tag holding the payment URL as NDEF, based on the findings of EIFI-003. The service is only active during the session.
 
-Taille : L. Dépendances : EIFI-003, EIFI-102.
+- A paying phone reads the URL by bringing its back close to the collector's phone.
+- The service no longer responds after the session ends.
+- If NFC is missing or disabled, the screen says so without blocking the QR code.
 
-### EIFI-105 · Lire les SMS de crédit
+Size: L. Dependencies: EIFI-003, EIFI-102.
 
-Implémenter le `NotificationListenerService` et les parseurs embarqués issus de EIFI-002, pour les paiements marchands comme pour les transferts reçus. Un SMS reconnu produit un événement local : opérateur, type d'opération, montant, numéro masqué de la contrepartie, référence et heure.
+### EIFI-105 · Read credit SMS
 
-- Les parseurs passent tous les SMS du jeu de tests de EIFI-002.
-- Un SMS d'un expéditeur non configuré est ignoré.
-- Un SMS d'un expéditeur configuré mais non reconnu est enregistré comme « non reconnu ».
-- Le texte brut du SMS n'est pas conservé.
+Implement the `NotificationListenerService` and the embedded parsers from EIFI-002, for merchant payments as well as received transfers. A recognised SMS produces a local event: operator, operation type, amount, masked counterparty number, reference and time.
 
-Taille : L. Dépendances : EIFI-002, EIFI-100.
+- The parsers pass all the SMS of the EIFI-002 test set.
+- An SMS from an unconfigured sender is ignored.
+- An SMS from a configured sender that is not recognised is recorded as "unrecognised".
+- The raw SMS text is not kept.
 
-### EIFI-106 · Rapprocher le SMS de la session
+Size: L. Dependencies: EIFI-002, EIFI-100.
 
-À l'arrivée d'un SMS de crédit, chercher la session PENDING du même montant, ou expirée depuis moins de dix minutes, créée avant le SMS, et la passer en CONFIRMED. Un SMS sans session devient un « paiement non rattaché » dans l'historique.
+### EIFI-106 · Match the SMS with the session
 
-- Le doublon d'un même SMS (même référence) n'est traité qu'une fois.
-- Les cas « session trouvée », « session expirée récemment » et « aucune session » sont couverts par des tests.
+When a credit SMS arrives, look for the PENDING session with the same amount, or one that expired less than ten minutes ago, created before the SMS, and move it to CONFIRMED. An SMS without a session becomes an "unmatched payment" in the history.
 
-Taille : M. Dépendances : EIFI-102, EIFI-105.
+- A duplicate of the same SMS (same reference) is processed only once.
+- The "session found", "recently expired session" and "no session" cases are covered by tests.
 
-### EIFI-107 · Écran « Paiement reçu »
+Size: M. Dependencies: EIFI-102, EIFI-105.
 
-À la confirmation, l'écran d'attente passe à « Paiement reçu » avec un son et une vibration distincts, le montant, l'opérateur, le numéro masqué, la référence et l'heure.
+### EIFI-107 · "Paiement reçu" screen
 
-- La confirmation s'affiche moins de deux secondes après la notification du SMS.
-- Le son et la vibration se déclenchent même en arrière-plan, avec une notification qui rouvre l'écran.
+On confirmation, the waiting screen switches to "Paiement reçu" (Payment received) with a distinct sound and vibration, the amount, the operator, the masked number, the reference and the time.
 
-Taille : M. Dépendances : EIFI-106.
+- The confirmation is shown less than two seconds after the SMS notification.
+- The sound and vibration fire even in the background, with a notification that reopens the screen.
 
-### EIFI-108 · Confirmation manuelle
+Size: M. Dependencies: EIFI-106.
 
-Depuis l'écran d'attente, celui qui encaisse peut confirmer lui-même après avoir vérifié son SMS. La session passe en CONFIRMED avec la source « manuelle ».
+### EIFI-108 · Manual confirmation
 
-- La confirmation manuelle demande une validation explicite en deux gestes.
-- L'historique distingue ces confirmations par un badge jaune « Manuel ».
+From the waiting screen, the collector can confirm themselves after checking their SMS. The session moves to CONFIRMED with the "manual" source.
 
-Taille : S. Dépendances : EIFI-102.
+- Manual confirmation requires an explicit two-step validation.
+- The history marks these confirmations with a yellow "Manuel" (Manual) badge.
 
-### EIFI-109 · Historique du jour
+Size: S. Dependencies: EIFI-102.
 
-Écran « Historique du jour » : total encaissé, totaux et nombre de paiements par opérateur, et liste des transactions avec leur statut (Confirmé, Manuel, Expiré, Non rattaché).
+### EIFI-109 · Today's history
 
-- Les totaux comptent les paiements confirmés et non rattachés.
-- Les jours précédents sont consultables.
+"Historique du jour" (today's history) screen: total collected, totals and number of payments per operator, and list of transactions with their status (Confirmé, Manuel, Expiré, Non rattaché — Confirmed, Manual, Expired, Unmatched).
 
-Taille : M. Dépendances : EIFI-106, EIFI-108.
+- Totals count confirmed and unmatched payments.
+- Previous days can be viewed.
 
-## Mode Payer
+Size: M. Dependencies: EIFI-106, EIFI-108.
 
-### EIFI-200 · Lire l'URL de paiement
+## Pay mode
 
-Recevoir l'URL de trois façons : par le lecteur NFC (`enableReaderMode`) quand l'app est ouverte, par un App Link quand le tag ou le QR est lu hors de l'app, et par un scanner QR intégré.
+### EIFI-200 · Read the payment URL
 
-- Les trois entrées mènent au même écran récapitulatif.
-- Une URL invalide ou expirée affiche un message clair, sans lancer de paiement.
+Receive the URL in three ways: through the NFC reader (`enableReaderMode`) when the app is open, through an App Link when the tag or QR code is read outside the app, and through a built-in QR scanner.
 
-Taille : M. Dépendances : EIFI-020, EIFI-021.
+- All three entry points lead to the same summary screen.
+- An invalid or expired URL shows a clear message, without launching a payment.
 
-### EIFI-201 · Écran récapitulatif
+Size: M. Dependencies: EIFI-020, EIFI-021.
 
-Implémenter l'écran « Récapitulatif » : nom de celui qui encaisse, montant, compte choisi avec le lien « Changer », rappel que le code secret se saisit dans l'invite de l'opérateur, frais éventuels (EIFI-208) et bouton de validation. Le bouton dit « Payer » pour un code marchand et « Envoyer » pour un transfert vers un numéro.
+### EIFI-201 · Summary screen
 
-- Le compte proposé par défaut est le dernier utilisé, s'il est compatible.
-- Le compte à rebours de la session est visible, et le paiement est bloqué après l'expiration.
+Implement the "Récapitulatif" (summary) screen: collector's name, amount, chosen account with the "Changer" (Change) link, reminder that the PIN is entered in the operator's prompt, any fees (EIFI-208) and confirmation button. The button says "Payer" (Pay) for a merchant code and "Envoyer" (Send) for a transfer to a number.
 
-Taille : M. Dépendances : EIFI-011, EIFI-200.
+- The default account is the last one used, if it is compatible.
+- The session countdown is visible, and payment is blocked after expiry.
 
-### EIFI-202 · Choix de l'opérateur et de la SIM
+Size: M. Dependencies: EIFI-011, EIFI-200.
 
-Lister les SIM actives, reconnaître leur opérateur et ne proposer que les combinaisons acceptées par celui qui encaisse (écran « Choix de l'opérateur »).
+### EIFI-202 · Choice of operator and SIM
 
-- Sur un téléphone double SIM, chaque option indique la SIM utilisée.
-- Si aucune SIM ne correspond aux opérateurs du bénéficiaire, l'écran l'explique (un transfert ne fonctionne qu'entre deux comptes du même opérateur).
-- Le choix « Se souvenir » est enregistré localement.
+List the active SIMs, recognise their operator and only offer the combinations accepted by the collector ("Choix de l'opérateur" screen).
 
-Taille : M. Dépendances : EIFI-001, EIFI-201.
+- On a dual-SIM phone, each option shows the SIM used.
+- If no SIM matches the recipient's operators, the screen explains it (a transfer only works between two accounts of the same operator).
+- The "Se souvenir" (Remember) choice is saved locally.
 
-### EIFI-203 · Confirmation biométrique
+Size: M. Dependencies: EIFI-001, EIFI-201.
 
-La validation déclenche une `BiometricPrompt` obligatoire : empreinte, visage ou code de déverrouillage du téléphone.
+### EIFI-203 · Biometric confirmation
 
-- Un échec ou une annulation ramène au récapitulatif sans lancer d'appel.
-- Sur un téléphone sans verrouillage configuré, l'app demande d'en activer un.
+Confirming triggers a mandatory `BiometricPrompt`: fingerprint, face or phone unlock code.
 
-Taille : S. Dépendances : EIFI-201.
+- A failure or cancellation returns to the summary without placing a call.
+- On a phone without a configured screen lock, the app asks the user to set one up.
 
-### EIFI-204 · Lancer le USSD
+Size: S. Dependencies: EIFI-201.
 
-Construire le code depuis le gabarit embarqué de l'opérateur et du type d'opération (paiement marchand ou transfert vers un numéro), et le lancer sur la bonne SIM avec `TelecomManager.placeCall`.
+### EIFI-204 · Launch the USSD code
 
-- Le code composé correspond exactement à la syntaxe validée en EIFI-001.
-- Les permissions `CALL_PHONE` et `READ_PHONE_STATE` sont demandées au premier paiement, avec une explication.
-- Le paiement n'est jamais lancé deux fois pour la même session.
+Build the code from the embedded template of the operator and the operation type (merchant payment or transfer to a number), and launch it on the right SIM with `TelecomManager.placeCall`.
 
-Taille : M. Dépendances : EIFI-001, EIFI-202, EIFI-203.
+- The dialled code matches exactly the syntax validated in EIFI-001.
+- The `CALL_PHONE` and `READ_PHONE_STATE` permissions are requested at the first payment, with an explanation.
+- The payment is never launched twice for the same session.
 
-### EIFI-205 · Écran de fin de paiement
+Size: M. Dependencies: EIFI-001, EIFI-202, EIFI-203.
 
-Quand l'invite USSD se ferme et que l'app reprend la main, afficher l'écran « Paiement effectué » sous forme de reçu. Si la détection du SMS de débit est activée (EIFI-206), il indique « Débit confirmé par votre SMS » ; sinon, « Demande envoyée », avec l'invitation à vérifier le SMS de l'opérateur. Dans les deux cas, il rappelle que celui qui encaisse reçoit sa propre confirmation.
+### EIFI-205 · End-of-payment screen
 
-- L'écran ne reprend pas la mise en page « Paiement reçu » de celui qui encaisse, pour qu'on ne puisse pas les confondre.
-- Le reçu est enregistré dans l'historique local et peut être partagé en image.
+When the USSD prompt closes and the app is back in the foreground, show the "Paiement effectué" (payment done) screen as a receipt. If debit SMS detection is enabled (EIFI-206), it says "Débit confirmé par votre SMS" (Debit confirmed by your SMS); otherwise "Demande envoyée" (Request sent), inviting the user to check the operator's SMS. In both cases, it reminds the user that the collector receives their own confirmation.
 
-Taille : M. Dépendances : EIFI-204.
+- The screen does not reuse the collector's "Paiement reçu" layout, so the two cannot be confused.
+- The receipt is saved in the local history and can be shared as an image.
 
-### EIFI-206 · Détection facultative du SMS de débit
+Size: M. Dependencies: EIFI-204.
 
-Proposer au payeur d'autoriser la lecture des notifications pour confirmer le paiement à partir du SMS de débit de son opérateur. L'option est désactivée par défaut et réutilise `:core:sms` avec les parseurs de débit.
+### EIFI-206 · Optional debit SMS detection
 
-- Le SMS de débit est rattaché au paiement en cours par le montant et l'heure.
-- Sans autorisation, le parcours reste complet grâce à l'état « Demande envoyée ».
+Offer the payer to allow notification access to confirm the payment from their operator's debit SMS. The option is disabled by default and reuses `:core:sms` with the debit parsers.
 
-Taille : M. Dépendances : EIFI-002, EIFI-205.
+- The debit SMS is linked to the current payment by amount and time.
+- Without permission, the flow stays complete thanks to the "Demande envoyée" state.
 
-### EIFI-207 · Historique des paiements envoyés
+Size: M. Dependencies: EIFI-002, EIFI-205.
 
-Liste locale des paiements effectués, avec bénéficiaire, montant, opérateur, date et statut.
+### EIFI-207 · History of payments sent
 
-- Chaque ligne rouvre le reçu correspondant.
+Local list of payments made, with recipient, amount, operator, date and status.
 
-Taille : S. Dépendances : EIFI-205.
+- Each row reopens the matching receipt.
 
-### EIFI-208 · Frais et compatibilité des opérateurs
+Size: S. Dependencies: EIFI-205.
 
-Quand le bénéficiaire reçoit par numéro de téléphone, le paiement est un transfert entre particuliers : il est payant pour celui qui paie et soumis à la taxe de 0,2 %. Le récapitulatif l'annonce avant la biométrie, avec le montant des frais quand il est connu (écran « Payer · Transfert à un ami »). Un transfert ne fonctionne qu'entre deux comptes du même opérateur : l'app ne propose que les comptes compatibles et explique l'absence des autres.
+### EIFI-208 · Operator fees and compatibility
 
-- Un paiement vers un code marchand affiche « Sans frais pour vous ».
-- Un transfert affiche « Frais de transfert à votre charge » avant la validation, avec le barème embarqué issu de EIFI-001.
-- Si aucun compte du payeur n'est compatible avec ceux du bénéficiaire, le paiement est bloqué avec une explication.
+When the recipient receives on a phone number, the payment is a person-to-person transfer: it costs the payer a fee and is subject to the 0.2% tax. The summary announces it before biometrics, with the fee amount when known ("Payer · Transfert à un ami" screen). A transfer only works between two accounts of the same operator: the app only offers compatible accounts and explains why the others are missing.
 
-Taille : M. Dépendances : EIFI-001, EIFI-201, EIFI-202.
+- A payment to a merchant code shows "Sans frais pour vous" (No fees for you).
+- A transfer shows "Frais de transfert à votre charge" (Transfer fees paid by you) before confirmation, with the embedded fee schedule from EIFI-001.
+- If none of the payer's accounts is compatible with the recipient's, the payment is blocked with an explanation.
 
-## Qualité et lancement du pilote
+Size: M. Dependencies: EIFI-001, EIFI-201, EIFI-202.
 
-### EIFI-300 · Tests sur appareils réels
+## Quality and pilot launch
 
-Dérouler les parcours complets, paiement marchand et transfert entre amis, sur une matrice d'au moins six téléphones courants (Tecno, Infinix, itel, Samsung, simple et double SIM), avec les deux opérateurs.
+### EIFI-300 · Tests on real devices
 
-- Le taux de succès et le temps du parcours sont mesurés pour chaque combinaison.
-- Les anomalies propres à un fabricant sont documentées avec leur contournement.
+Run the complete flows, merchant payment and transfer between friends, on a matrix of at least six common phones (Tecno, Infinix, itel, Samsung, single and dual SIM), with both operators.
 
-Taille : L. Dépendances : EIFI-107, EIFI-205, EIFI-208.
+- The success rate and flow duration are measured for each combination.
+- Manufacturer-specific anomalies are documented with their workaround.
 
-### EIFI-301 · Distribution du pilote
+Size: L. Dependencies: EIFI-107, EIFI-205, EIFI-208.
 
-Publier l'APK signé auprès de 10 à 20 commerçants à Yaoundé et de leurs clients, via un canal de test (Firebase App Distribution ou piste de test interne du Play Store), avec un formulaire de retour.
+### EIFI-301 · Pilot distribution
 
-- Chaque commerçant pilote est installé et formé en moins de quinze minutes.
-- Les plantages sont remontés via Crashlytics.
+Publish the signed APK to 10 to 20 merchants in Yaoundé and their customers, through a test channel (Firebase App Distribution or Play Store internal test track), with a feedback form.
 
-Taille : M. Dépendances : EIFI-300.
+- Each pilot merchant is set up and trained in less than fifteen minutes.
+- Crashes are reported through Crashlytics.
 
-## Reporté après le pilote
+Size: M. Dependencies: EIFI-300.
 
-Ces sujets sont volontairement hors de cette première version : le backend (sauvegarde, plusieurs appareils), la mise à jour à distance des gabarits USSD et des parseurs de SMS, la page web de secours complète pour ceux qui n'ont pas l'app, l'app iOS, le paiement par carte et un vrai statut de marchand vérifié. Pour l'instant, un marchand n'est qu'un profil d'encaissement doté d'un code marchand.
+## Postponed until after the pilot
 
-Sans mise à jour à distance, tout changement de format de SMS chez un opérateur demandera une nouvelle version de l'app. C'est le principal risque du fonctionnement sans backend, à surveiller pendant le pilote.
+These topics are deliberately out of this first version: the backend (backup, multiple devices), remote update of USSD templates and SMS parsers, the full fallback web page for people without the app, the iOS app, card payment and a real verified merchant status. For now, a merchant is just a collection profile with a merchant code.
+
+Without remote updates, any change to an operator's SMS format will require a new app version. This is the main risk of running without a backend, to be monitored during the pilot.

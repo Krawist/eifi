@@ -1,7 +1,7 @@
 package com.eifi.core.sms
 
 /**
- * NotificationListenerService et parseurs embarqués des SMS de crédit et de débit (jamais READ_SMS).
+ * NotificationListenerService and embedded parsers of credit and debit SMS (never READ_SMS).
  *
  * TODO(EIFI-105, EIFI-206)
  */

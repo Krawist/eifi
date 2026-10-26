@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Les permissions (NFC, CALL_PHONE, READ_PHONE_STATE, CAMERA, écoute des notifications)
-         arrivent avec les tickets qui en ont besoin, et sont demandées au moment où elles servent (EIFI-032). -->
+    <!-- Permissions (NFC, CALL_PHONE, READ_PHONE_STATE, CAMERA, notification listening) come with the
+         tickets that need them, and are requested when they are needed (EIFI-032). -->
 
     <application
         android:allowBackup="false"

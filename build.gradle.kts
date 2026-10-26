@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-// ktlint s'applique à chaque module ; detekt est configuré une seule fois pour tout le dépôt.
+// ktlint applies to each module; detekt is configured once for the whole repository.
 subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 }
@@ -24,7 +24,7 @@ detekt {
     parallel = true
 }
 
-// detekt 1.23.x embarque son propre compilateur Kotlin 2.0.21 : on empêche Gradle de l'aligner sur la version du projet.
+// detekt 1.23.x ships its own Kotlin 2.0.21 compiler: keep Gradle from aligning it with the project's version.
 configurations.matching { it.name == "detekt" }.configureEach {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.jetbrains.kotlin") {

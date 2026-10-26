@@ -1,4 +1,4 @@
-# Versions fixées hors ligne (sans accès aux dépôts Maven) : à vérifier au premier sync.
+# Versions pinned offline (without access to the Maven repositories): check them at the first sync.
 [versions]
 agp = "8.13.0"
 kotlin = "2.2.20"
@@ -27,7 +27,7 @@ compose-foundation = { module = "androidx.compose.foundation:foundation" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
-# Utilisées par build-logic
+# Used by build-logic
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
@@ -41,7 +41,7 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPlugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 
-# Plugins de convention (build-logic)
+# Convention plugins (build-logic)
 eifi-android-application = { id = "eifi.android.application" }
 eifi-android-library = { id = "eifi.android.library" }
 eifi-android-compose = { id = "eifi.android.compose" }

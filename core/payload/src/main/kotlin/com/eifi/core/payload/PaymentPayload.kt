@@ -1,10 +1,10 @@
 package com.eifi.core.payload
 
 /**
- * Format de l'URL de paiement : `https://pay.<domaine>/p#v1.{données base64url}`.
+ * Payment URL format: `https://pay.<domain>/p#v1.{base64url data}`.
  *
- * TODO(EIFI-020) : modèle complet (identifiant, nom affiché ≤ 30 caractères, montant,
- * moyen de réception par opérateur, expiration, somme de contrôle), encodeur et décodeur.
+ * TODO(EIFI-020): full model (identifier, display name ≤ 30 characters, amount,
+ * receiving method per operator, expiry, checksum), encoder and decoder.
  */
 object PaymentPayload {
     const val VERSION_PREFIX = "v1."

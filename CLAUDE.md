@@ -1,147 +1,143 @@
 # CLAUDE.md — Eifi
 
-Contexte pour Claude Code. Lire ce fichier en entier avant toute tâche, puis le document de `docs/`
-utile au ticket en cours.
+Context for Claude Code. Read this file in full before any task, then the `docs/` document relevant
+to the current ticket.
 
-## Le produit en bref
+## The product in short
 
-Eifi (prononcé « aï-fi ») est une app Android de paiement sans contact pour le Cameroun. Une seule
-app réunit deux modes :
+Eifi (pronounced "eye-fye") is a contactless payment Android app for Cameroon. A single app brings
+together two modes:
 
-- **Encaisser** : on saisit un montant, l'app affiche un QR dynamique et émet la même URL par NFC.
-- **Payer** : on approche son téléphone ou on scanne. L'app montre le bénéficiaire, le montant et
-  les frais éventuels, demande la biométrie, puis lance le code USSD pré-rempli d'Orange Money ou de
-  MTN MoMo sur la bonne SIM. Le payeur tape son code secret dans l'invite de l'opérateur.
+- **Collect** ("Encaisser"): you enter an amount, the app shows a dynamic QR code and emits the
+  same URL over NFC.
+- **Pay** ("Payer"): you tap your phone or scan. The app shows the recipient, the amount and any
+  fees, asks for biometrics, then launches the pre-filled Orange Money or MTN MoMo USSD code on the
+  right SIM. The payer types their PIN in the operator's prompt.
 
-Eifi ne touche jamais l'argent. Le paiement est confirmé chez celui qui encaisse par la lecture du
-SMS de crédit de l'opérateur, jamais par l'écran du payeur.
+Eifi never touches the money. The payment is confirmed on the collector's side by reading the
+operator's credit SMS, never from the payer's screen.
 
-## Documents de référence
+## Reference documents
 
-Les documents tenus dans Claude font foi. Les fichiers de `docs/` en sont des copies de travail du
-26 octobre 2026.
+The documents kept in Claude prevail; they are written in French. The files in `docs/` are English
+working copies from October 26, 2026.
 
-| Document                              | Copie locale                 | Référence                                         |
+| Document                              | Local copy                   | Reference                                         |
 |---------------------------------------|------------------------------|---------------------------------------------------|
-| Cahier des charges (quoi et pourquoi) | `docs/cahier-des-charges.md` | https://claude.ai/artifact/32DZB7Fg15dCH5Payt8w2D |
-| Dossier technique (comment)           | `docs/dossier-technique.md`  | https://claude.ai/artifact/UCyVMkH69ju46QPDJ9fKfx |
-| Tickets mobile v1 (sans backend)      | `docs/tickets.md`            | https://claude.ai/artifact/9ojG4Ba9ksS7V8EAASASRR |
-| Maquettes (canevas)                   | `docs/design/*.png`          | https://claude.ai/artifact/Kdt6ugqJn828TZ2fXQXK2g |
+| Product requirements (what and why)   | `docs/cahier-des-charges.md` | https://claude.ai/artifact/32DZB7Fg15dCH5Payt8w2D |
+| Technical design (how)                | `docs/dossier-technique.md`  | https://claude.ai/artifact/UCyVMkH69ju46QPDJ9fKfx |
+| Mobile tickets v1 (no backend)        | `docs/tickets.md`            | https://claude.ai/artifact/9ojG4Ba9ksS7V8EAASASRR |
+| Mockups (canvas)                      | `docs/design/*.png`          | https://claude.ai/artifact/Kdt6ugqJn828TZ2fXQXK2g |
 
-Avant d'implémenter un écran, ouvrir la maquette correspondante dans `docs/design/` (lire l'image).
-Les crochets `[ ]` dans les maquettes marquent des contenus réels à fournir ; montants et heures
-sont des exemples.
+Before implementing a screen, open the matching mockup in `docs/design/` (read the image). Square
+brackets `[ ]` in the mockups mark real content to be provided; amounts and times are examples.
 
-## Décisions prises (ne pas remettre en cause sans le demander)
+## Decisions taken (do not question them unless asked)
 
-- **Une seule app**, deux modes. Le « marchand » n'est pas un type de compte : c'est un *profil
-  d'encaissement* (nom affiché + pour chaque opérateur un code marchand **ou** un numéro de
-  téléphone).
-- **Pas de backend pour le pilote.** La session voyage dans le fragment de l'URL :
-  `https://pay.<domaine>/p#v1.{base64url}` (id aléatoire, nom ≤ 30 caractères, montant, moyen de
-  réception par opérateur, expiration, somme de contrôle). Le rapprochement SMS ↔ session se fait
-  localement dans Room. Gabarits USSD et parseurs SMS sont embarqués. Seul un hébergement statique
-  sert `assetlinks.json` et une page d'attente.
-- **NFC** : celui qui encaisse émule un tag NFC Forum de type 4 (NDEF URI) avec un
-  `HostApduService`, AID `D2760000850101`. Celui qui paie lit avec `NfcAdapter.enableReaderMode`. Le
-  QR et le NFC portent exactement la même URL.
-- **USSD** : `TelecomManager.placeCall` avec le `PhoneAccountHandle` de la SIM choisie
-  (`CALL_PHONE`, `READ_PHONE_STATE`), `#` encodé en `%23`. La syntaxe réelle par opérateur est
-  inconnue tant que EIFI-001 n'est pas fait : ne jamais l'inventer, la garder en gabarit
-  configurable.
-- **Biométrie obligatoire** (`BiometricPrompt`, BIOMETRIC_STRONG ou DEVICE_CREDENTIAL) avant chaque
-  lancement USSD. Le code secret opérateur n'est jamais demandé ni vu par Eifi.
-- **SMS** : `NotificationListenerService` uniquement, **jamais** `READ_SMS` / `RECEIVE_SMS` (Play
-  Store). Texte brut jamais stocké, seulement montant, numéro masqué, référence et une empreinte
-  SHA-256.
-- **Session** : PENDING → CONFIRMED / EXPIRED / CANCELLED, états finaux définitifs, expiration 2
-  min, une seule session PENDING par montant, rapprochement possible jusqu'à 10 min après
-  expiration, sinon « paiement non rattaché ». Confirmation manuelle possible (badge jaune «
-  Manuel »).
-- **Payer vs Envoyer** : le bouton dit « Payer » pour un code marchand, « Envoyer » pour un
-  transfert vers un numéro. Un transfert coûte des frais + la taxe de 0,2 % au payeur, affichés
-  avant la biométrie, et ne marche qu'entre comptes du même opérateur.
-- **Reçu payeur** : « Débit confirmé » si le SMS de débit est détecté (option désactivée par
-  défaut), sinon « Demande envoyée ». Sa mise en page doit rester différente de l'écran « Paiement
-  reçu » de celui qui encaisse (anti-fraude par capture d'écran).
-- **Permissions demandées au moment où elles servent**, jamais pendant l'onboarding commun ; un
-  refus ne bloque jamais le parcours.
-- **Design** : version **unie** uniquement (la variante en dégradé est abandonnée pour le pilote).
-  Style sobre inspiré d'iOS.
+- **A single app**, two modes. The "merchant" is not an account type: it is a *collection profile*
+  (display name + for each operator a merchant code **or** a phone number).
+- **No backend for the pilot.** The session travels in the URL fragment:
+  `https://pay.<domain>/p#v1.{base64url}` (random id, name ≤ 30 characters, amount, receiving
+  method per operator, expiry, checksum). SMS ↔ session matching happens locally in Room. USSD
+  templates and SMS parsers are embedded. Only static hosting serves `assetlinks.json` and a
+  holding page.
+- **NFC**: the collector emulates an NFC Forum Type 4 tag (NDEF URI) with a `HostApduService`, AID
+  `D2760000850101`. The payer reads with `NfcAdapter.enableReaderMode`. The QR code and NFC carry
+  exactly the same URL.
+- **USSD**: `TelecomManager.placeCall` with the `PhoneAccountHandle` of the chosen SIM
+  (`CALL_PHONE`, `READ_PHONE_STATE`), `#` encoded as `%23`. The real syntax per operator is unknown
+  until EIFI-001 is done: never invent it, keep it as a configurable template.
+- **Mandatory biometrics** (`BiometricPrompt`, BIOMETRIC_STRONG or DEVICE_CREDENTIAL) before each
+  USSD launch. The operator PIN is never requested nor seen by Eifi.
+- **SMS**: `NotificationListenerService` only, **never** `READ_SMS` / `RECEIVE_SMS` (Play Store).
+  Raw text is never stored, only amount, masked number, reference and a SHA-256 hash.
+- **Session**: PENDING → CONFIRMED / EXPIRED / CANCELLED, final states are permanent, 2 min expiry,
+  only one PENDING session per amount, matching possible up to 10 min after expiry, otherwise
+  "unmatched payment". Manual confirmation possible (yellow "Manuel" badge).
+- **Pay vs Send**: the button says "Payer" for a merchant code, "Envoyer" for a transfer to a
+  number. A transfer costs the payer fees + the 0.2% tax, shown before biometrics, and only works
+  between accounts of the same operator.
+- **Payer receipt**: "Débit confirmé" (Debit confirmed) if the debit SMS is detected (option
+  disabled by default), otherwise "Demande envoyée" (Request sent). Its layout must stay different
+  from the collector's "Paiement reçu" (Payment received) screen (screenshot fraud prevention).
+- **Permissions requested when they are needed**, never during the shared onboarding; a refusal
+  never blocks the flow.
+- **Design**: **plain** version only (the gradient variant is dropped for the pilot). Restrained
+  iOS-inspired style.
 
-## Stack et conventions
+## Stack and conventions
 
-- Kotlin, Jetpack Compose, Material 3 thémé. minSdk 26, compile/target 36. JDK 17.
-- Architecture UDF : ViewModel + état en `StateFlow`, coroutines. Hilt, Room, DataStore et
-  Navigation Compose arrivent avec EIFI-012.
-- Gradle Kotlin DSL, catalogue `gradle/libs.versions.toml`, plugins de convention dans
-  `build-logic/` :
+- Kotlin, Jetpack Compose, themed Material 3. minSdk 26, compile/target 36. JDK 17.
+- UDF architecture: ViewModel + state in `StateFlow`, coroutines. Hilt, Room, DataStore and
+  Navigation Compose arrive with EIFI-012.
+- Gradle Kotlin DSL, `gradle/libs.versions.toml` catalog, convention plugins in `build-logic/`:
     - `eifi.android.application`, `eifi.android.library`, `eifi.android.compose`,
-      `eifi.android.feature` (library + compose + `:core:design`), `eifi.jvm.library` (Kotlin pur).
-- Sources Kotlin dans `src/main/kotlin` et `src/test/kotlin`.
-- Accès typés aux modules : `implementation(projects.core.design)`.
-- Logique métier pure (payload, parseurs, rapprochement, gabarits) en Kotlin sans dépendance Android
-  dès que possible, couverte par des tests JVM.
-- Textes visibles : ressources `strings.xml` en français (défaut) **et** anglais (`values-en`).
-  Jamais de texte en dur dans un composable.
-- Montants : entiers en FCFA (`Long`), affichés avec `formatFcfa()` (espace fine U+202F pour les
-  milliers).
-- Qualité : `./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug` doit passer avant de
-  considérer un ticket terminé. Corriger le formatage avec `./gradlew ktlintFormat`.
-- Code et identifiants en anglais ; commentaires, KDoc et messages de commit en anglais.
+      `eifi.android.feature` (library + compose + `:core:design`), `eifi.jvm.library` (pure Kotlin).
+- Kotlin sources in `src/main/kotlin` and `src/test/kotlin`.
+- Type-safe module accessors: `implementation(projects.core.design)`.
+- Pure business logic (payload, parsers, matching, templates) in Kotlin without Android
+  dependencies whenever possible, covered by JVM tests.
+- User-facing texts: `strings.xml` resources in French (default) **and** English (`values-en`).
+  Never hard-coded text in a composable.
+- Amounts: integers in FCFA (`Long`), displayed with `formatFcfa()` (thin space U+202F as
+  thousands separator).
+- Quality: `./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug` must pass before a ticket
+  is considered done. Fix formatting with `./gradlew ktlintFormat`.
+- Everything in English: code, identifiers, comments, KDoc, commit messages and documentation.
+  Only the user-facing French strings stay in French.
 
 ### Modules
 
-| Module                | Contenu                                             | Tickets       |
+| Module                | Content                                             | Tickets       |
 |-----------------------|-----------------------------------------------------|---------------|
-| `:app`                | Application, assemblage des modes, signature        | 010, 012      |
-| `:feature:onboarding` | Onboarding commun, choix du mode, accueil           | 030, 031, 032 |
-| `:feature:pay`        | Écrans du mode Payer                                | 200–208       |
-| `:feature:collect`    | Écrans du mode Encaisser                            | 100–109       |
-| `:core:design`        | Thème, couleurs, typo, composants, formatage        | 011           |
-| `:core:payload`       | Encodage/décodage de l'URL de paiement (Kotlin pur) | 020           |
-| `:core:nfc`           | HCE type 4 et lecteur NDEF                          | 104, 200      |
-| `:core:ussd`          | Gabarits USSD, SIM, lancement de l'appel            | 202, 204      |
-| `:core:sms`           | Écoute des notifications, parseurs SMS              | 105, 206      |
+| `:app`                | Application, assembly of the modes, signing         | 010, 012      |
+| `:feature:onboarding` | Shared onboarding, mode choice, home                | 030, 031, 032 |
+| `:feature:pay`        | Pay mode screens                                    | 200–208       |
+| `:feature:collect`    | Collect mode screens                                | 100–109       |
+| `:core:design`        | Theme, colours, type, components, formatting        | 011           |
+| `:core:payload`       | Payment URL encoding/decoding (pure Kotlin)         | 020           |
+| `:core:nfc`           | Type 4 HCE and NDEF reader                          | 104, 200      |
+| `:core:ussd`          | USSD templates, SIM, call launch                    | 202, 204      |
+| `:core:sms`           | Notification listening, SMS parsers                 | 105, 206      |
 
-`:core:network` est reporté avec le backend.
+`:core:network` is postponed along with the backend.
 
-### Jetons de design (version unie)
+### Design tokens (plain version)
 
-| Jeton      | Valeur    | Usage                                    |
+| Token      | Value     | Usage                                    |
 |------------|-----------|------------------------------------------|
-| primary    | `#00DBAD` | Actions principales                      |
-| on-primary | `#04362B` | Texte sur primary (jamais de blanc)      |
-| accent     | `#FEC447` | Attente, frais, confirmation manuelle    |
-| soft       | `#DDFDBC` | Bandeau NFC, notes, pastilles opérateurs |
-| background | `#F6F8F7` | Fond des écrans                          |
-| surface    | `#FFFFFF` | Cartes, touches du pavé                  |
-| ink        | `#0E1A17` | Texte principal                          |
-| muted      | `#56665F` | Texte secondaire                         |
+| primary    | `#00DBAD` | Main actions                             |
+| on-primary | `#04362B` | Text on primary (never white)            |
+| accent     | `#FEC447` | Waiting, fees, manual confirmation       |
+| soft       | `#DDFDBC` | NFC banner, notes, operator pills        |
+| background | `#F6F8F7` | Screen background                        |
+| surface    | `#FFFFFF` | Cards, keypad keys                       |
+| ink        | `#0E1A17` | Main text                                |
+| muted      | `#56665F` | Secondary text                           |
 
-Police Plus Jakarta Sans (OFL, à embarquer en EIFI-011). Montant 68/800, corps 15/500, étiquettes
-13/600. Rayons : cartes 22 à 28, boutons 18. Zones tactiles ≥ 44 dp. Le logo n'est pas encore
-choisi.
+Plus Jakarta Sans font (OFL, variable font in `core/design/src/main/res/font`). Amount 68/800, body
+15/500, labels 13/600. Radii: cards 22 to 28, buttons 18. Touch targets ≥ 44 dp. The logo has not
+been chosen yet.
 
-## État d'avancement
+## Progress
 
-- [x] **EIFI-010** — squelette multi-modules, CI, signature debug/release séparée. Les versions des
-  dépendances ont été fixées hors ligne : le premier sync peut demander des ajustements (voir
-  README).
-- [ ] **Prochain ticket : EIFI-011** — design system Compose (police embarquée, composants : bouton
-  principal, bouton secondaire, carte, pastille, pavé numérique, affichage de montant ; catalogue de
-  previews ; contraste ≥ 4,5:1).
-- [ ] EIFI-012, puis EIFI-020, puis EIFI-030… (ordre dans `docs/tickets.md`).
-- Explorations EIFI-001 à 003 : faites par Krawist sur de vrais téléphones et comptes. Tant qu'elles
-  ne sont pas faites, gabarits USSD, expéditeurs SMS, codes MNC et barème des frais restent des
-  valeurs à fournir, jamais inventées.
+- [x] **EIFI-010** — multi-module skeleton, CI, separate debug/release signing. Dependency versions
+  were pinned offline: the first sync may need adjustments (see README).
+- [x] **EIFI-011** — Compose design system in `:core:design`: embedded font, tokens `EifiColors` /
+  `EifiSpacing` / `EifiDimens` / `EifiRadius`, components `EifiPrimaryButton`,
+  `EifiSecondaryButton`, `EifiCard`, `EifiPill` (+ `EifiPillTone`), `NumericKeypad`,
+  `AmountDisplay`; catalogue `catalog/DesignSystemCatalog.kt`; contrast checked by
+  `ContrastTest`. Use these components in screens rather than raw Material.
+- [ ] **Next ticket: EIFI-012**, then EIFI-020, then EIFI-030… (order in `docs/tickets.md`).
+- Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
+  USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
+  invented.
 
-Mettre à jour cette section à la fin de chaque ticket.
+Update this section at the end of each ticket.
 
-## Façon de travailler
+## Way of working
 
-- Un ticket à la fois, sur une branche `eifi-0xx-description`, avec des commits petits et lisibles.
-- Relire les critères d'acceptation du ticket dans `docs/tickets.md` avant de coder et les vérifier
-  à la fin.
-- Si un choix produit n'est pas tranché par les documents, poser la question plutôt que de décider
-  seul.
+- One ticket at a time, on an `eifi-0xx-description` branch, with small, readable commits.
+- Reread the ticket's acceptance criteria in `docs/tickets.md` before coding and check them at the
+  end.
+- If a product choice is not settled by the documents, ask rather than decide alone.

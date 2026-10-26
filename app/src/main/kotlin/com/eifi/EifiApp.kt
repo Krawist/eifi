@@ -11,8 +11,8 @@ import com.eifi.feature.onboarding.ModeChoiceScreen
 import com.eifi.feature.pay.PayScreen
 
 /**
- * Assemblage provisoire des modes (EIFI-010). La vraie navigation, avec
- * Navigation Compose et le mode mémorisé dans DataStore, arrive avec EIFI-012.
+ * Temporary assembly of the modes (EIFI-010). The real navigation, with
+ * Navigation Compose and the mode remembered in DataStore, comes with EIFI-012.
  */
 @Composable
 fun EifiApp() {

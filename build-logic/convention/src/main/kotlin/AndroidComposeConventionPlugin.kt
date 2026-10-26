@@ -5,7 +5,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
 
-/** Active Compose sur un module Android (application ou bibliothèque) déjà configuré. */
+/** Enables Compose on an already configured Android module (application or library). */
 class AndroidComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
