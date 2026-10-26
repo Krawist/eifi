@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="eifi_background">#F6F8F7</color>
+    <color name="eifi_primary">#00DBAD</color>
+    <color name="eifi_on_primary">#04362B</color>
+</resources>

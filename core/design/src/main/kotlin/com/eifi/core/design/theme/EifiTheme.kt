@@ -1,0 +1,31 @@
+package com.eifi.core.design.theme
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+
+private val EifiColorScheme = lightColorScheme(
+    primary = EifiColors.Primary,
+    onPrimary = EifiColors.OnPrimary,
+    secondary = EifiColors.Accent,
+    onSecondary = EifiColors.OnAccent,
+    tertiary = EifiColors.Soft,
+    onTertiary = EifiColors.OnSoft,
+    background = EifiColors.Background,
+    onBackground = EifiColors.Ink,
+    surface = EifiColors.Surface,
+    onSurface = EifiColors.Ink,
+    onSurfaceVariant = EifiColors.Muted,
+    outlineVariant = EifiColors.Divider,
+)
+
+/** Thème Eifi, version unie et claire uniquement pour le pilote. */
+@Composable
+fun EifiTheme(content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = EifiColorScheme,
+        typography = EifiTypography,
+        shapes = EifiShapes,
+        content = content,
+    )
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title">Welcome to Eifi</string>
+    <string name="onboarding_subtitle">What would you like to start with?</string>
+    <string name="mode_pay">Pay</string>
+    <string name="mode_collect">Collect</string>
+</resources>
