@@ -1,7 +1,8 @@
 package com.eifi.core.nfc
 
 /**
- * Émulation HCE d'un tag NFC Forum de type 4 (AID D2760000850101) côté Encaisser, et lecture NDEF en reader mode côté Payer.
+ * HCE emulation of an NFC Forum Type 4 tag (AID D2760000850101) on the Collect side,
+ * and NDEF reading in reader mode on the Pay side.
  *
  * TODO(EIFI-104, EIFI-200)
  */

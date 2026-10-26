@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="currency_fcfa" translatable="false">FCFA</string>
+    <string name="keypad_delete">Effacer</string>
+</resources>

@@ -1,14 +1,16 @@
 package com.eifi.core.design.format
 
-/** Espace fine insécable, séparateur des milliers des montants. */
+/** Narrow no-break space, thousands separator of amounts. */
 const val THIN_SPACE: Char = ' '
 
+private const val GROUP_SIZE = 3
+
 /**
- * Formate un montant entier en FCFA avec une espace fine pour les milliers : 2500 → « 2 500 ».
- * Le suffixe « FCFA » est affiché à part, dans un style plus petit.
+ * Formats an integer FCFA amount with a thin space as thousands separator: 2500 → "2 500".
+ * The "FCFA" suffix is displayed separately, in a smaller style.
  */
 fun formatFcfa(amount: Long): String {
     val digits = kotlin.math.abs(amount).toString()
-    val grouped = digits.reversed().chunked(3).joinToString(THIN_SPACE.toString()).reversed()
+    val grouped = digits.reversed().chunked(GROUP_SIZE).joinToString(THIN_SPACE.toString()).reversed()
     return if (amount < 0) "-$grouped" else grouped
 }

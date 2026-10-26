@@ -19,7 +19,7 @@ private val EifiColorScheme = lightColorScheme(
     outlineVariant = EifiColors.Divider,
 )
 
-/** Thème Eifi, version unie et claire uniquement pour le pilote. */
+/** Eifi theme, plain and light version only for the pilot. */
 @Composable
 fun EifiTheme(content: @Composable () -> Unit) {
     MaterialTheme(

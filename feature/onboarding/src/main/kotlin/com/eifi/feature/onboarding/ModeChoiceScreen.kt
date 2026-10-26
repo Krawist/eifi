@@ -21,8 +21,6 @@ import androidx.compose.ui.unit.dp
 import com.eifi.core.design.theme.EifiRadius
 import com.eifi.core.design.theme.EifiTheme
 
-enum class Mode { Pay, Collect }
-
 @Composable
 fun ModeChoiceScreen(onModeChosen: (Mode) -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

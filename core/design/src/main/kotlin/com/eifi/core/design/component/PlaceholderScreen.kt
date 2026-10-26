@@ -3,11 +3,8 @@ package com.eifi.core.design.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -16,10 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.eifi.core.design.theme.EifiRadius
 import com.eifi.core.design.theme.EifiTheme
 
-/** Écran vide provisoire, utilisé tant qu'un mode n'a pas ses vrais écrans. */
+/** Temporary empty screen, used until a mode has its real screens. */
 @Composable
 fun PlaceholderScreen(
     title: String,
@@ -41,13 +37,7 @@ fun PlaceholderScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (actionLabel != null) {
-                Button(
-                    onClick = onAction,
-                    shape = EifiRadius.Button,
-                    modifier = Modifier.fillMaxWidth().height(58.dp),
-                ) {
-                    Text(text = actionLabel, style = MaterialTheme.typography.labelLarge)
-                }
+                EifiPrimaryButton(text = actionLabel, onClick = onAction)
             }
         }
     }

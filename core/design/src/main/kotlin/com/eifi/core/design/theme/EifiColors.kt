@@ -2,7 +2,7 @@ package com.eifi.core.design.theme
 
 import androidx.compose.ui.graphics.Color
 
-/** Jetons de couleur de la charte (version unie). Voir docs/dossier-technique.md, « Charte de design ». */
+/** Colour tokens of the design guidelines (plain version). See docs/dossier-technique.md, "Design guidelines". */
 object EifiColors {
     val Primary = Color(0xFF00DBAD)
     val OnPrimary = Color(0xFF04362B)

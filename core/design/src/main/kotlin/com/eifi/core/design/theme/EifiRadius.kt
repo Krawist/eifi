@@ -4,7 +4,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-/** Rayons : boutons 18, cartes 22 à 28. */
+/** Radii: buttons 18, cards 22 to 28. */
 object EifiRadius {
     val Button = RoundedCornerShape(18.dp)
     val Card = RoundedCornerShape(22.dp)
