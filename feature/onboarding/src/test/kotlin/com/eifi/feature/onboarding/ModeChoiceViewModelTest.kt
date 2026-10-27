@@ -36,6 +36,15 @@ internal class ModeChoiceViewModelTest {
     @Nested
     inner class UiState {
         @Test
+        fun `should select Pay at first`() {
+            // when
+            val viewModel = ModeChoiceViewModel(repository)
+
+            // then
+            viewModel.uiState.value.selectedMode shouldBe AppMode.Pay
+        }
+
+        @Test
         fun `should have no chosen mode at first`() {
             // when
             val viewModel = ModeChoiceViewModel(repository)
@@ -46,14 +55,42 @@ internal class ModeChoiceViewModelTest {
     }
 
     @Nested
-    inner class ChooseMode {
+    inner class Select {
         @Test
-        fun `should save the chosen mode as the start mode`() {
+        fun `should select the mode`() {
             // given
             val viewModel = ModeChoiceViewModel(repository)
 
             // when
-            viewModel.chooseMode(AppMode.Receive)
+            viewModel.select(AppMode.Receive)
+
+            // then
+            viewModel.uiState.value.selectedMode shouldBe AppMode.Receive
+        }
+
+        @Test
+        fun `should not save the mode before it is confirmed`() {
+            // given
+            val viewModel = ModeChoiceViewModel(repository)
+
+            // when
+            viewModel.select(AppMode.Receive)
+
+            // then
+            repository.startMode.value.shouldBeNull()
+        }
+    }
+
+    @Nested
+    inner class Confirm {
+        @Test
+        fun `should save the selected mode as the start mode`() {
+            // given
+            val viewModel = ModeChoiceViewModel(repository)
+            viewModel.select(AppMode.Receive)
+
+            // when
+            viewModel.confirm()
 
             // then
             repository.startMode.value shouldBe AppMode.Receive
@@ -65,7 +102,7 @@ internal class ModeChoiceViewModelTest {
             val viewModel = ModeChoiceViewModel(repository)
 
             // when
-            viewModel.chooseMode(AppMode.Pay)
+            viewModel.confirm()
 
             // then
             viewModel.uiState.value.chosenMode shouldBe AppMode.Pay

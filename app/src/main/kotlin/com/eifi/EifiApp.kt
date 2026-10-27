@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.eifi.core.data.AppMode
 import com.eifi.feature.onboarding.OnboardingGraph
+import com.eifi.feature.onboarding.navigateToModeChoice
 import com.eifi.feature.onboarding.onboardingGraph
 import com.eifi.feature.pay.PayGraph
 import com.eifi.feature.pay.payGraph
@@ -31,6 +32,7 @@ internal fun EifiApp(uiState: MainUiState) {
 private fun EifiNavHost(startMode: AppMode?, navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = startMode?.graph ?: OnboardingGraph) {
         onboardingGraph(
+            navController = navController,
             onModeChosen = { mode ->
                 navController.navigate(mode.graph) {
                     popUpTo(OnboardingGraph) { inclusive = true }
@@ -50,7 +52,7 @@ private val AppMode.graph: Any
 
 /** Back to the mode choice until the home screen exists (EIFI-031). */
 private fun NavHostController.leaveMode(graph: Any) {
-    navigate(OnboardingGraph) {
+    navigateToModeChoice {
         popUpTo(graph) { inclusive = true }
     }
 }

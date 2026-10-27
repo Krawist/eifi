@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="onboarding_title">Welcome to Eifi</string>
-    <string name="onboarding_subtitle">What would you like to start with?</string>
+    <string name="welcome_title">Pay and get paid with a single gesture</string>
+    <string name="welcome_gesture_title">Tap or scan</string>
+    <string name="welcome_gesture_body">The amount is already filled in: all that is left is your PIN.</string>
+    <string name="welcome_operators_title">Orange Money and MTN MoMo</string>
+    <string name="welcome_operators_body">Your accounts together in a single app, to pay or to receive.</string>
+    <string name="welcome_safety_title">Your money stays with your operator</string>
+    <string name="welcome_safety_body">Eifi never holds it and never sees your PIN.</string>
+    <string name="welcome_start">Get started</string>
+
+    <string name="mode_choice_title">What do you want to do with Eifi?</string>
+    <string name="mode_choice_subtitle">You can do both. Choose where to start.</string>
     <string name="mode_pay">Pay</string>
+    <string name="mode_pay_description">At a shop or to a friend, by tapping your phone or scanning their code.</string>
     <string name="mode_receive">Collect</string>
+    <string name="mode_receive_description">Receive payments from your customers or relatives, without typing their number.</string>
+    <string name="mode_choice_continue">Continue</string>
 </resources>

@@ -15,4 +15,8 @@ object EifiColors {
     val Ink = Color(0xFF0E1A17)
     val Muted = Color(0xFF56665F)
     val Divider = Color(0xFFEEF1F0)
+
+    /** Light tints of [Primary] and [Accent], behind icons only (see the onboarding mockups). */
+    val PrimarySoft = Color(0xFFE0F9F2)
+    val AccentSoft = Color(0xFFFFF0CC)
 }

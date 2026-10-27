@@ -2,4 +2,5 @@
 <resources>
     <string name="currency_fcfa" translatable="false">FCFA</string>
     <string name="keypad_delete">Effacer</string>
+    <string name="navigation_back">Retour</string>
 </resources>
