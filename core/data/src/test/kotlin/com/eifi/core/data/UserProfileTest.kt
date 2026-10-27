@@ -24,8 +24,16 @@ internal class UserProfileTest {
         fun `should reject a blank name or a name longer than 30 characters`(name: String) {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                UserProfile(personalName = name, businessName = null)
+                UserProfile(personalName = name, businessName = "Kiosque Ndé")
             } shouldHaveMessage "A name must have 1 to 30 characters"
+        }
+
+        @Test
+        fun `should count a blank name as missing`() {
+            // when & then
+            shouldThrow<IllegalArgumentException> {
+                UserProfile(personalName = " ", businessName = null)
+            } shouldHaveMessage "A personal or business name is required"
         }
     }
 

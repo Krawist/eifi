@@ -9,7 +9,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserProfile(val personalName: String?, val businessName: String?) {
     init {
-        require(!personalName.isNullOrBlank() || !businessName.isNullOrBlank()) { "A personal or business name is required" }
+        require(!personalName.isNullOrBlank() || !businessName.isNullOrBlank()) {
+            "A personal or business name is required"
+        }
         listOfNotNull(personalName, businessName).forEach { name ->
             require(name.isNotBlank() && name.length <= MAX_NAME_LENGTH) {
                 "A name must have 1 to $MAX_NAME_LENGTH characters"
