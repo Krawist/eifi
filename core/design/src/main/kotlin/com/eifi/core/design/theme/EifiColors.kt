@@ -19,4 +19,7 @@ object EifiColors {
     /** Light tints of [Primary] and [Accent], behind icons only (see the onboarding mockups). */
     val PrimarySoft = Color(0xFFE0F9F2)
     val AccentSoft = Color(0xFFFFF0CC)
+
+    /** Light [Primary], for elements laid on a [Primary] card. */
+    val PrimaryLight = Color(0xFF7AEBD3)
 }

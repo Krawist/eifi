@@ -1,7 +1,7 @@
 package com.eifi
 
-import com.eifi.core.data.AppMode
 import com.eifi.core.data.UserPreferencesRepository
+import com.eifi.core.data.UserProfile
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,10 +15,10 @@ import org.junit.jupiter.api.Test
 
 internal class MainViewModelTest {
     private val repository = object : UserPreferencesRepository {
-        override val startMode = MutableStateFlow<AppMode?>(null)
+        override val profile = MutableStateFlow<UserProfile?>(null)
 
-        override suspend fun setStartMode(mode: AppMode) {
-            startMode.value = mode
+        override suspend fun saveProfile(profile: UserProfile) {
+            this.profile.value = profile
         }
     }
 
@@ -35,36 +35,36 @@ internal class MainViewModelTest {
     @Nested
     inner class UiState {
         @Test
-        fun `should open on the onboarding when no mode was chosen`() {
+        fun `should open on the onboarding without profile`() {
             // when
             val viewModel = MainViewModel(repository)
 
             // then
-            viewModel.uiState.value shouldBe MainUiState.Ready(startMode = null)
+            viewModel.uiState.value shouldBe MainUiState.Ready(onboardingCompleted = false)
         }
 
         @Test
-        fun `should open on the remembered mode`() {
+        fun `should open on the home screen once the profile is saved`() {
             // given
-            repository.startMode.value = AppMode.Receive
+            repository.profile.value = UserProfile(personalName = "Paul", businessName = null)
 
             // when
             val viewModel = MainViewModel(repository)
 
             // then
-            viewModel.uiState.value shouldBe MainUiState.Ready(startMode = AppMode.Receive)
+            viewModel.uiState.value shouldBe MainUiState.Ready(onboardingCompleted = true)
         }
 
         @Test
-        fun `should keep the start destination when the mode changes later`() {
+        fun `should keep the start destination when the profile is saved later`() {
             // given
             val viewModel = MainViewModel(repository)
 
             // when
-            repository.startMode.value = AppMode.Pay
+            repository.profile.value = UserProfile(personalName = "Paul", businessName = null)
 
             // then
-            viewModel.uiState.value shouldBe MainUiState.Ready(startMode = null)
+            viewModel.uiState.value shouldBe MainUiState.Ready(onboardingCompleted = false)
         }
     }
 }

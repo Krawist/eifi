@@ -11,6 +11,7 @@ object EifiDimens {
     val KeypadGap = 6.dp
     val PillHeight = 28.dp
     val PillIcon = 14.dp
+    val IconTileSmall = 32.dp
     val IconTile = 40.dp
     val IconTileLarge = 52.dp
     val IconTileHero = 96.dp
@@ -19,4 +20,5 @@ object EifiDimens {
     val PageDotSelected = 22.dp
     val SelectionBorder = 2.dp
     val SelectionBadge = 24.dp
+    val PayCardSpace = 64.dp
 }

@@ -11,36 +11,44 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.eifi.core.data.AppMode
 import com.eifi.feature.onboarding.OnboardingGraph
-import com.eifi.feature.onboarding.navigateToModeChoice
+import com.eifi.feature.onboarding.home.HomeGraph
+import com.eifi.feature.onboarding.home.homeGraph
 import com.eifi.feature.onboarding.onboardingGraph
 import com.eifi.feature.pay.PayGraph
 import com.eifi.feature.pay.payGraph
 import com.eifi.feature.receive.ReceiveGraph
 import com.eifi.feature.receive.receiveGraph
 
-/** Root of the app: one navigation graph per mode, opened on the remembered mode. */
+/** Root of the app: the onboarding on first launch, then the home screen, which opens the two modes. */
 @Composable
 internal fun EifiApp(uiState: MainUiState) {
     when (uiState) {
         // Blank background while the preferences load (a few milliseconds).
         MainUiState.Loading -> Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
-        is MainUiState.Ready -> EifiNavHost(startMode = uiState.startMode)
+        is MainUiState.Ready -> EifiNavHost(onboardingCompleted = uiState.onboardingCompleted)
     }
 }
 
 @Composable
-private fun EifiNavHost(startMode: AppMode?, navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = startMode?.graph ?: OnboardingGraph) {
+private fun EifiNavHost(onboardingCompleted: Boolean, navController: NavHostController = rememberNavController()) {
+    NavHost(navController = navController, startDestination = if (onboardingCompleted) HomeGraph else OnboardingGraph) {
         onboardingGraph(
             navController = navController,
-            onModeChosen = { mode ->
-                navController.navigate(mode.graph) {
-                    popUpTo(OnboardingGraph) { inclusive = true }
+            onCompleted = { mode ->
+                // The chosen mode opens on top of the home screen, which replaces everything before it.
+                navController.navigate(HomeGraph) {
+                    popUpTo(navController.graph.id) { inclusive = true }
                 }
+                navController.navigate(mode.graph)
             },
         )
-        payGraph(onBack = { navController.leaveMode(PayGraph) })
-        receiveGraph(onBack = { navController.leaveMode(ReceiveGraph) })
+        homeGraph(
+            navController = navController,
+            onPay = { navController.navigate(PayGraph) },
+            onReceive = { navController.navigate(ReceiveGraph) },
+        )
+        payGraph(onBack = { navController.popBackStack() })
+        receiveGraph(navController = navController, onBack = { navController.popBackStack() })
     }
 }
 
@@ -49,10 +57,3 @@ private val AppMode.graph: Any
         AppMode.Pay -> PayGraph
         AppMode.Receive -> ReceiveGraph
     }
-
-/** Back to the mode choice until the home screen exists (EIFI-031). */
-private fun NavHostController.leaveMode(graph: Any) {
-    navigateToModeChoice {
-        popUpTo(graph) { inclusive = true }
-    }
-}

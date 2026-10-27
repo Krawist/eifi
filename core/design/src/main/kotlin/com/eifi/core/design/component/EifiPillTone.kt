@@ -11,6 +11,9 @@ enum class EifiPillTone(val container: Color, val content: Color) {
     /** Waiting, fees, manual confirmation. */
     Accent(container = EifiColors.Accent, content = EifiColors.OnAccent),
 
+    /** On a [EifiColors.Primary] card, e.g. the NFC status of the home screen. */
+    OnPrimary(container = EifiColors.PrimaryLight, content = EifiColors.OnPrimary),
+
     /** Neutral information. */
     Neutral(container = EifiColors.Divider, content = EifiColors.Ink),
 }

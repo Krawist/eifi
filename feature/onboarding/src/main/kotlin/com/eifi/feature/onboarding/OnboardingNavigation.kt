@@ -10,6 +10,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.toRoute
 import com.eifi.core.data.AppMode
 import kotlinx.serialization.Serializable
 
@@ -23,8 +24,12 @@ internal data object WelcomeRoute
 @Serializable
 internal data object ModeChoiceRoute
 
-/** Adds the onboarding graph; [onModeChosen] is called once the chosen mode is saved. */
-fun NavGraphBuilder.onboardingGraph(navController: NavController, onModeChosen: (AppMode) -> Unit) {
+/** [mode] is the mode chosen on the previous screen, opened once the names are saved. */
+@Serializable
+internal data class NamesRoute(val mode: AppMode)
+
+/** Adds the onboarding graph; [onCompleted] is called once the profile is saved, with the chosen mode. */
+fun NavGraphBuilder.onboardingGraph(navController: NavController, onCompleted: (AppMode) -> Unit) {
     navigation<OnboardingGraph>(startDestination = WelcomeRoute) {
         composable<WelcomeRoute> {
             WelcomeScreen(onStart = { navController.navigate(ModeChoiceRoute) })
@@ -37,22 +42,34 @@ fun NavGraphBuilder.onboardingGraph(navController: NavController, onModeChosen: 
                 null,
             )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(uiState.chosenMode) {
-                uiState.chosenMode?.let(onModeChosen)
-            }
             ModeChoiceScreen(
                 uiState = uiState,
                 onSelect = viewModel::select,
-                onContinue = viewModel::confirm,
+                onContinue = { navController.navigate(NamesRoute(uiState.selectedMode)) },
                 onBack = navController.previousBackStackEntry?.let { { navController.popBackStack() } },
             )
         }
+        composable<NamesRoute> { entry ->
+            val mode = entry.toRoute<NamesRoute>().mode
+            val viewModel: NamesViewModel = hiltViewModel(
+                checkNotNull(LocalViewModelStoreOwner.current) {
+                    "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+                },
+                null,
+            )
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(uiState.completed) {
+                if (uiState.completed) onCompleted(mode)
+            }
+            NamesScreen(
+                uiState = uiState,
+                onPersonalNameChange = viewModel::onPersonalNameChange,
+                onBusinessNameChange = viewModel::onBusinessNameChange,
+                onFinish = viewModel::finish,
+                onBack = { navController.popBackStack() },
+            )
+        }
     }
-}
-
-/** Opens the mode choice without the welcome screen, e.g. when leaving a mode. */
-fun NavController.navigateToModeChoice(builder: NavOptionsBuilder.() -> Unit = {}) {
-    navigate(ModeChoiceRoute, builder)
 }
 
 /** Replays the whole onboarding, e.g. from the settings (EIFI-032). */

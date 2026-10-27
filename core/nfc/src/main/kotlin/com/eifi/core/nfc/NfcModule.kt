@@ -1,9 +1,20 @@
 package com.eifi.core.nfc
 
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+
 /**
- * HCE emulation of an NFC Forum Type 4 tag (AID D2760000850101) on the Receive side,
- * and NDEF reading in reader mode on the Pay side.
- *
- * TODO(EIFI-104, EIFI-200)
+ * NFC bindings. Still to come: HCE emulation of an NFC Forum Type 4 tag (AID D2760000850101) on the Receive
+ * side (EIFI-104), and the real reader on the Pay side (EIFI-200).
  */
-internal object NfcModule
+@Module
+@InstallIn(SingletonComponent::class)
+internal abstract class NfcModule {
+    @Binds
+    abstract fun bindNfcStatusProvider(impl: AndroidNfcStatusProvider): NfcStatusProvider
+
+    @Binds
+    abstract fun bindNfcPaymentReader(impl: FakeNfcPaymentReader): NfcPaymentReader
+}

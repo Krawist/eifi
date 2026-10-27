@@ -3,4 +3,7 @@
     <string name="receive_title">Collect</string>
     <string name="receive_subtitle">Enter an amount to collect.</string>
     <string name="receive_back">Back</string>
+    <string name="receiving_profile_title">Where to receive the money</string>
+    <string name="receiving_profile_subtitle">The receiving profile is coming soon.</string>
+    <string name="receiving_profile_continue">Continue</string>
 </resources>

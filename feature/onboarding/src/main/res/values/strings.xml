@@ -16,4 +16,38 @@
     <string name="mode_receive">Encaisser</string>
     <string name="mode_receive_description">Recevez des paiements de vos clients ou de vos proches, sans saisir leur numéro.</string>
     <string name="mode_choice_continue">Continuer</string>
+
+    <string name="names_title">Comment vous appeler\u00A0?</string>
+    <string name="names_subtitle">Votre nom, le nom de votre commerce, ou les deux. Si vous avez un commerce, c\'est son nom qui s\'affiche.</string>
+    <string name="names_personal">Votre nom</string>
+    <string name="names_business">Nom de votre commerce</string>
+    <string name="names_finish">Terminer</string>
+
+    <string name="home_wordmark" translatable="false">eifi</string>
+    <string name="home_greeting">Bonjour %1$s</string>
+    <string name="home_greeting_without_name">Bonjour</string>
+    <string name="home_settings">Réglages</string>
+    <string name="home_pay_title">Payer</string>
+    <string name="home_pay_subtitle">Approchez un téléphone Eifi ou scannez son code</string>
+    <string name="home_nfc_ready">NFC prêt</string>
+    <string name="home_nfc_disabled">NFC désactivé</string>
+    <string name="home_nfc_unavailable">Sans NFC</string>
+    <string name="home_receive_title">Encaisser</string>
+    <string name="home_receive_subtitle">Saisissez un montant, l\'autre approche son téléphone</string>
+    <string name="home_activity_title">Activité récente</string>
+    <string name="home_activity_see_all">Tout voir</string>
+    <string name="home_activity_empty">Aucune activité pour l\'instant</string>
+    <string name="home_activity_received">Reçu de %1$s</string>
+    <string name="home_activity_sent">Payé à %1$s</string>
+    <string name="home_activity_details" translatable="false">%1$s · %2$s</string>
+    <string name="home_activity_yesterday">Hier</string>
+    <string name="operator_orange_money" translatable="false">Orange Money</string>
+    <string name="operator_mtn_momo" translatable="false">MTN MoMo</string>
+
+    <string name="history_title">Historique</string>
+    <string name="history_subtitle">L\'historique complet arrive bientôt.</string>
+    <string name="history_back">Retour</string>
+    <string name="settings_title">Réglages</string>
+    <string name="settings_subtitle">Les réglages arrivent bientôt.</string>
+    <string name="settings_replay_introduction">Revoir la présentation</string>
 </resources>

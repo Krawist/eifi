@@ -5,3 +5,7 @@ plugins {
 android {
     namespace = "com.eifi.feature.receive"
 }
+
+dependencies {
+    implementation(projects.core.data)
+}

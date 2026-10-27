@@ -18,7 +18,7 @@ import com.eifi.core.design.component.EifiPrimaryButton
 import com.eifi.core.design.theme.EifiColors
 import com.eifi.core.design.theme.EifiSpacing
 
-/** Steps shown by the page dots: welcome, mode choice, then the receiving profile of EIFI-100. */
+/** Steps shown by the page dots: welcome, mode choice, names. */
 internal const val ONBOARDING_STEPS = 3
 
 /** Scrolling [content], with the page dots and the main button kept at the bottom. */
@@ -28,6 +28,7 @@ internal fun OnboardingLayout(
     buttonLabel: String,
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
+    buttonEnabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(modifier = modifier.fillMaxSize(), color = EifiColors.Background) {
@@ -42,7 +43,7 @@ internal fun OnboardingLayout(
                 current = step,
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = EifiSpacing.XLarge),
             )
-            EifiPrimaryButton(text = buttonLabel, onClick = onButtonClick)
+            EifiPrimaryButton(text = buttonLabel, onClick = onButtonClick, enabled = buttonEnabled)
         }
     }
 }

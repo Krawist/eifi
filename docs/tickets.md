@@ -106,6 +106,8 @@ On first launch, screens introduce Eifi: the gesture (tap or scan), Orange Money
 - The chosen mode determines the screen opened after onboarding, without closing access to the other mode.
 - The onboarding can be viewed again from the settings.
 
+Decided on October 27, 2026: a last step asks for the personal name, the business name, or both (at least one, 30 characters at most). They are kept in DataStore; the home screen greets with the business name first.
+
 Size: M. Dependencies: EIFI-011, EIFI-012.
 
 ### EIFI-031 · Pay and Receive home screen
@@ -114,6 +116,8 @@ The home screen offers both actions: "Payer" (Pay), highlighted with the NFC sta
 
 - The first use of "Encaisser" opens the receiving profile (EIFI-100) if it is not filled in yet.
 - When the app is open on the home screen, tapping a receiving phone directly starts the Pay flow.
+
+Decided on October 27, 2026: once the onboarding is done, the app always opens on the home screen; the chosen mode only opens right after the onboarding. What depends on later tickets goes through fixed interfaces with fake implementations, so that navigation already works: recent activity (`ActivityRepository`, EIFI-102 and EIFI-207), receiving profile (`ReceivingProfileRepository`, EIFI-100), NFC reading (`NfcPaymentReader`, EIFI-200), and placeholder screens for the history and the settings.
 
 Size: M. Dependencies: EIFI-030.
 
