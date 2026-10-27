@@ -13,6 +13,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 defaultConfig.targetSdk = libs.version("targetSdk").toInt()
                 testOptions.unitTests.isReturnDefaultValues = true
             }
+            configureUnitTestDependencies()
         }
     }
 }

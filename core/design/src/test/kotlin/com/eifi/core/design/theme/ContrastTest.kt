@@ -2,34 +2,58 @@ package com.eifi.core.design.theme
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import com.eifi.core.design.component.EifiPillTone
-import kotlin.test.Test
-import kotlin.test.assertTrue
+import io.kotest.matchers.doubles.shouldBeGreaterThanOrEqual
+import org.junit.jupiter.api.Named
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 
-class ContrastTest {
-    @Test
-    fun `every text colour pair reaches 4,5 to 1`() {
-        // given
-        val pairs = mapOf(
-            "ink on background" to (EifiColors.Ink to EifiColors.Background),
-            "ink on surface" to (EifiColors.Ink to EifiColors.Surface),
-            "muted on background" to (EifiColors.Muted to EifiColors.Background),
-            "muted on surface" to (EifiColors.Muted to EifiColors.Surface),
-            "muted on divider (disabled button)" to (EifiColors.Muted to EifiColors.Divider),
-            "on-primary on primary" to (EifiColors.OnPrimary to EifiColors.Primary),
-            "on-primary on background (secondary button)" to (EifiColors.OnPrimary to EifiColors.Background),
-        ) + EifiPillTone.entries.associate { "pill ${it.name}" to (it.content to it.container) }
-
+internal class ContrastTest {
+    /** Colours are passed as ARGB integers, as JUnit cannot inject Compose's inline `Color` class. */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("textColourPairs")
+    fun `should reach a contrast of 4,5 to 1 for every text colour pair`(foreground: Int, background: Int) {
         // when
-        val failing = pairs.mapValues { (_, colors) -> contrast(colors.first, colors.second) }.filterValues { it < 4.5 }
+        val contrast = contrast(Color(foreground), Color(background))
 
         // then
-        assertTrue(failing.isEmpty(), "Contrast below 4.5:1: $failing")
+        contrast shouldBeGreaterThanOrEqual MIN_TEXT_CONTRAST
+    }
+
+    @ParameterizedTest
+    @EnumSource(EifiPillTone::class)
+    fun `should reach a contrast of 4,5 to 1 for every pill tone`(tone: EifiPillTone) {
+        // when
+        val contrast = contrast(tone.content, tone.container)
+
+        // then
+        contrast shouldBeGreaterThanOrEqual MIN_TEXT_CONTRAST
     }
 
     private fun contrast(foreground: Color, background: Color): Double {
         val lighter = maxOf(foreground.luminance(), background.luminance())
         val darker = minOf(foreground.luminance(), background.luminance())
         return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    private companion object {
+        const val MIN_TEXT_CONTRAST = 4.5
+
+        @JvmStatic
+        fun textColourPairs() = listOf(
+            pair("ink on background", EifiColors.Ink, EifiColors.Background),
+            pair("ink on surface", EifiColors.Ink, EifiColors.Surface),
+            pair("muted on background", EifiColors.Muted, EifiColors.Background),
+            pair("muted on surface", EifiColors.Muted, EifiColors.Surface),
+            pair("muted on divider (disabled button)", EifiColors.Muted, EifiColors.Divider),
+            pair("on-primary on primary", EifiColors.OnPrimary, EifiColors.Primary),
+            pair("on-primary on background (secondary button)", EifiColors.OnPrimary, EifiColors.Background),
+        )
+
+        private fun pair(name: String, foreground: Color, background: Color): Arguments =
+            Arguments.of(Named.of(name, foreground.toArgb()), background.toArgb())
     }
 }

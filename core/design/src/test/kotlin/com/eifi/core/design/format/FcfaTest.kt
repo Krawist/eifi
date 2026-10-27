@@ -1,23 +1,42 @@
 package com.eifi.core.design.format
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 
-class FcfaTest {
-    @Test
-    fun `small amounts have no separator`() {
-        assertEquals("0", formatFcfa(0))
-        assertEquals("500", formatFcfa(500))
-    }
+internal class FcfaTest {
+    @Nested
+    inner class FormatFcfa {
+        @ParameterizedTest
+        @CsvSource("0, 0", "500, 500", "999, 999")
+        fun `should not separate amounts below a thousand`(amount: Long, expected: String) {
+            // when
+            val formatted = formatFcfa(amount)
 
-    @Test
-    fun `thousands are separated by a thin space`() {
-        assertEquals("2${THIN_SPACE}500", formatFcfa(2_500))
-        assertEquals("2${THIN_SPACE}000${THIN_SPACE}000", formatFcfa(2_000_000))
-    }
+            // then
+            formatted shouldBe expected
+        }
 
-    @Test
-    fun `negative amount keeps its sign`() {
-        assertEquals("-1${THIN_SPACE}000", formatFcfa(-1_000))
+        /** `|` stands for the thin space, invisible in the source. */
+        @ParameterizedTest
+        @CsvSource("1000, 1|000", "2500, 2|500", "2000000, 2|000|000")
+        fun `should separate thousands with a thin space`(amount: Long, expected: String) {
+            // when
+            val formatted = formatFcfa(amount)
+
+            // then
+            formatted shouldBe expected.replace('|', THIN_SPACE)
+        }
+
+        @Test
+        fun `should keep the sign of a negative amount`() {
+            // when
+            val formatted = formatFcfa(-1_000)
+
+            // then
+            formatted shouldBe "-1${THIN_SPACE}000"
+        }
     }
 }
