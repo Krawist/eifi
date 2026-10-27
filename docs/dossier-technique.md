@@ -2,15 +2,15 @@
 
 > English working copy of the reference document kept in Claude (October 26, 2026): https://claude.ai/artifact/UCyVMkH69ju46QPDJ9fKfx. The reference is written in French; if the two differ, the Claude document prevails.
 
-This document describes how to build Eifi: the Android app with its Pay and Collect modes, then, after the pilot, the fallback web page and the backend. It also lists the technical choices that remain open. Where it differs from the product requirements, this document prevails for technical matters.
+This document describes how to build Eifi: the Android app with its Pay and Receive modes, then, after the pilot, the fallback web page and the backend. It also lists the technical choices that remain open. Where it differs from the product requirements, this document prevails for technical matters.
 
 ## Principle and architecture
 
-Eifi never touches the money. The collector creates a payment session and passes it on by NFC or QR code as a URL. The payer's phone then dials their operator's USSD code, and the payer confirms with their PIN in the operator's prompt. The money goes directly to the collector's account. Confirmation comes from the credit SMS the operator sends to the collector: Eifi reads it and matches it with the open session.
+Eifi never touches the money. The payee creates a payment session and passes it on by NFC or QR code as a URL. The payer's phone then dials their operator's USSD code, and the payer confirms with their PIN in the operator's prompt. The money goes directly to the payee's account. Confirmation comes from the credit SMS the operator sends to the payee: Eifi reads it and matches it with the open session.
 
 | Component | Role | Technology | Pilot |
 | --- | --- | --- | --- |
-| Collect mode | Amount entry, NFC and QR emission, reading credit SMS, history | Android, Kotlin, Jetpack Compose | Yes |
+| Receive mode | Amount entry, NFC and QR emission, reading credit SMS, history | Android, Kotlin, Jetpack Compose | Yes |
 | Pay mode | NFC and QR reading, choice of account and SIM, biometrics, USSD, receipt | Android, Kotlin, Jetpack Compose (same app) | Yes |
 | Static hosting | App Links (assetlinks.json) and holding page | Static file hosting | Yes |
 | Fallback web page | Payment without the app: USSD code and dialer | HTML rendered by the backend | No |
@@ -18,16 +18,16 @@ Eifi never touches the money. The collector creates a payment session and passes
 
 How a payment goes during the pilot:
 
-1. The collector enters the amount; the app creates a local session and encodes the payment URL.
+1. The payee enters the amount; the app creates a local session and encodes the payment URL.
 2. The app shows the QR code of the URL and enables the NFC emulation that serves the same URL.
 3. The payer taps their phone or scans the QR code. With the app, the link opens in Eifi; without the app, it opens in the browser.
 4. Eifi decodes the session, offers the compatible accounts, asks for biometrics and dials the USSD code on the right SIM.
-5. The payer enters their PIN in the operator's prompt; the operator credits the collector's account and sends them an SMS.
-6. The collector's phone reads the SMS notification, matches it with the pending session and shows "Paiement reçu" (Payment received).
+5. The payer enters their PIN in the operator's prompt; the operator credits the payee's account and sends them an SMS.
+6. The payee's phone reads the SMS notification, matches it with the pending session and shows "Paiement reçu" (Payment received).
 
 ## One app, two modes
 
-Eifi is a single app with two modes, Pay and Collect. After a shared onboarding, the user chooses where to start, then the home screen gives access to both. The "merchant" is not an account type: it is a collection profile, filled in the first time Collect mode is used. For each operator, this profile says how to receive the money: with a merchant code or with a phone number.
+Eifi is a single app with two modes, Pay and Receive. After a shared onboarding, the user chooses where to start, then the home screen gives access to both. The "merchant" is not an account type: it is a receiving profile, filled in the first time Receive mode is used. For each operator, this profile says how to receive the money: with a merchant code or with a phone number.
 
 The receiving method determines the operation the payer launches:
 
@@ -38,7 +38,7 @@ The receiving method determines the operation the payer launches:
 
 The summary screen shows the fees before confirmation, and the app only offers compatible accounts. Each operation type has its own USSD template and its own credit and debit SMS formats.
 
-Permissions are requested when they are needed: notification access and disabling battery optimisation at the first collection, phone calls at the first payment, the camera at the first scan. A user who only pays never has to grant access to their notifications.
+Permissions are requested when they are needed: notification access and disabling battery optimisation the first time Receive mode is used, phone calls at the first payment, the camera at the first scan. A user who only pays never has to grant access to their notifications.
 
 ## Running without a backend for the pilot
 
@@ -46,13 +46,13 @@ The pilot runs without an application server. The Fallback web page and Backend 
 
 The payment URL carries the whole session in its fragment, which is never sent over the network: `https://pay.[domain]/p#v1.{data}`. The data, encoded in base64url, contains a random identifier, the display name, the amount, the receiving method for each operator, the expiry and a checksum.
 
-Matching between the credit SMS and the session happens on the collector's phone, with the rule of a single pending session per amount, enforced locally in Room. USSD templates and SMS parsers are embedded in the app. All that remains is static hosting, to publish the App Links `assetlinks.json` file and a holding page for people without the app.
+Matching between the credit SMS and the session happens on the payee's phone, with the rule of a single pending session per amount, enforced locally in Room. USSD templates and SMS parsers are embedded in the app. All that remains is static hosting, to publish the App Links `assetlinks.json` file and a holding page for people without the app.
 
 The main risk of this mode is the lack of remote updates: if an operator changes its SMS format, a new version will have to be released. A static, signed configuration file, downloaded from the same hosting, could reduce this risk before the backend arrives.
 
-## NFC: the collector emulates a tag, the payer reads
+## NFC: the payee emulates a tag, the payer reads
 
-The collector's phone emulates in HCE (Host Card Emulation) and the payer's phone reads, because the amount and the receiving method come from the collector.
+The payee's phone emulates in HCE (Host Card Emulation) and the payer's phone reads, because the amount and the receiving method come from the payee.
 
 The phone emulates an NFC Forum Type 4 tag holding an NDEF record of type URI, the payment URL: no proprietary protocol. A phone without Eifi natively reads this tag and opens the URL in the browser, on Android as well as on recent iPhones. With the app installed, the URL is a verified App Link and opens Eifi directly.
 
@@ -62,13 +62,13 @@ A `HostApduService` answers the APDU commands used to read a Type 4 tag:
 2. select and read the Capability Container file;
 3. select and read the NDEF file holding the URL.
 
-The service is only active during an open session. The waiting screen registers it as the preferred service with `CardEmulation.setPreferredService` and removes it on exit; the screen must stay on and unlocked while collecting. On the payer's side, Eifi reads the tag with `NfcAdapter.enableReaderMode` (NFC-A and NFC-B) and extracts the URL from the NDEF message. Tests on Tecno, Infinix, itel and Samsung are part of the prototype, as HCE behaviour varies between manufacturers.
+The service is only active during an open session. The waiting screen registers it as the preferred service with `CardEmulation.setPreferredService` and removes it on exit; the screen must stay on and unlocked while waiting for the payment. On the payer's side, Eifi reads the tag with `NfcAdapter.enableReaderMode` (NFC-A and NFC-B) and extracts the URL from the NDEF message. Tests on Tecno, Infinix, itel and Samsung are part of the prototype, as HCE behaviour varies between manufacturers.
 
 ## QR code and payment URL
 
 The QR code and the NFC tag carry exactly the same URL. The URL of a typical case must fit in a QR code of version 6 at most, so it stays easy to scan on a mid-range screen in full sunlight; this is why the display name is limited to 30 characters.
 
-The QR code is always shown on the collector's screen and changes with each session, which makes it hard to replace with a fake. The payer sees the name and the receiving method before confirming. Signing the session data is to be studied for the backend version, where the token will become an opaque 22-character identifier resolved on the server.
+The QR code is always shown on the payee's screen and changes with each session, which makes it hard to replace with a fake. The payer sees the name and the receiving method before confirming. Signing the session data is to be studied for the backend version, where the token will become an opaque 22-character identifier resolved on the server.
 
 ## Android app
 
@@ -79,7 +79,7 @@ The app is built in a single multi-module Gradle repository, in Kotlin with Jetp
 | `:app` | Single application, navigation and assembly of the modes |
 | `:feature:onboarding` | Shared onboarding, mode choice, home |
 | `:feature:pay` | Pay mode screens |
-| `:feature:collect` | Collect mode screens |
+| `:feature:receive` | Receive mode screens |
 | `:core:design` | Compose theme, colours, Plus Jakarta Sans, components |
 | `:core:payload` | Encoding and decoding of the payment URL |
 | `:core:nfc` | Type 4 HCE service and NDEF reader |
@@ -98,13 +98,13 @@ Before the call, a mandatory `BiometricPrompt` asks for the fingerprint, face or
 
 ### Reading SMS
 
-On the collector's side, a `NotificationListenerService`, enabled at the first collection, filters the notifications of the default SMS app whose sender matches Orange Money or MTN MoMo. The embedded parsers, one per operator and per operation type, extract the amount, the counterparty's number and the reference. An SMS from a known sender that is not recognised is recorded as "unrecognised", which reveals a format change. The raw text is never kept; only a SHA-256 hash is used for deduplication.
+On the payee's side, a `NotificationListenerService`, enabled the first time Receive mode is used, filters the notifications of the default SMS app whose sender matches Orange Money or MTN MoMo. The embedded parsers, one per operator and per operation type, extract the amount, the counterparty's number and the reference. An SMS from a known sender that is not recognised is recorded as "unrecognised", which reveals a format change. The raw text is never kept; only a SHA-256 hash is used for deduplication.
 
-On the payer's side, the same component can detect the debit SMS if the option is enabled, to show "Débit confirmé" (Debit confirmed) on the receipt. Onboarding guides the collector to disable battery optimisation, to avoid missed confirmations on brands that kill background services.
+On the payer's side, the same component can detect the debit SMS if the option is enabled, to show "Débit confirmé" (Debit confirmed) on the receipt. Onboarding guides the payee to disable battery optimisation, to avoid missed confirmations on brands that kill background services.
 
 ## Fallback web page (after the pilot)
 
-During the pilot, a person without the app lands on a simple holding page inviting them to install Eifi. After the pilot, this page becomes the fallback page, rendered server-side without a JavaScript framework so it loads fast on 3G. It shows the collector's name, the amount, the countdown, an operator selector and the full USSD code. A `tel:` link opens the dialer on Android; on iPhone, which blocks these links when they contain `*` or `#`, a button copies the code.
+During the pilot, a person without the app lands on a simple holding page inviting them to install Eifi. After the pilot, this page becomes the fallback page, rendered server-side without a JavaScript framework so it loads fast on 3G. It shows the payee's name, the amount, the countdown, an operator selector and the full USSD code. A `tel:` link opens the dialer on Android; on iPhone, which blocks these links when they contain `*` or `#`, a button copies the code.
 
 ## Backend (after the pilot)
 
@@ -115,14 +115,14 @@ The backend is a Kotlin service on Micronaut 4 and Netty, packaged as a containe
 | Method and route | Caller | Role |
 | --- | --- | --- |
 | `POST /v1/auth/otp` and `/v1/auth/verify` | User | Sign-in with phone number and SMS code |
-| `PUT /v1/profile/collect` | Collector | Display name, receiving method per operator, SMS senders |
-| `POST /v1/sessions` | Collector | Creates a session; returns token, URL and expiry |
-| `POST /v1/sessions/{id}/cancel` | Collector | Cancels a pending session |
-| `POST /v1/sessions/{id}/confirm-manual` | Collector | Manual confirmation |
-| `GET /v1/sessions?date=` | Collector | History and daily totals per operator |
-| `POST /v1/sms-events` | Collector | Uploads a parsed credit SMS |
+| `PUT /v1/profile/receive` | Payee | Display name, receiving method per operator, SMS senders |
+| `POST /v1/sessions` | Payee | Creates a session; returns token, URL and expiry |
+| `POST /v1/sessions/{id}/cancel` | Payee | Cancels a pending session |
+| `POST /v1/sessions/{id}/confirm-manual` | Payee | Manual confirmation |
+| `GET /v1/sessions?date=` | Payee | History and daily totals per operator |
+| `POST /v1/sms-events` | Payee | Uploads a parsed credit SMS |
 | `GET /v1/config` | App | USSD templates, SMS parsers, senders, minimum versions |
-| `WS /v1/events` | Collector | Real-time session updates |
+| `WS /v1/events` | Payee | Real-time session updates |
 | `GET /p/{token}` | Public | Fallback page (HTML) or session (JSON) |
 
 ### Data model
@@ -130,7 +130,7 @@ The backend is a Kotlin service on Micronaut 4 and Netty, packaged as a containe
 | Table | Main columns |
 | --- | --- |
 | `app_user` | id, phone, display_name, created_at |
-| `collect_method` | user_id, operator (OM, MOMO), kind (MERCHANT_CODE, PHONE), value, sms_sender |
+| `receive_method` | user_id, operator (OM, MOMO), kind (MERCHANT_CODE, PHONE), value, sms_sender |
 | `payment_session` | id, user_id, token, amount, label, status, chosen_operator, created_at, expires_at, confirmed_at, confirmation_source (SMS, MANUAL), sms_event_id |
 | `sms_event` | id, user_id, operator, operation_kind, amount, counterpart_masked, operator_ref, received_at, text_hash, parser_version, matched_session_id |
 | `remote_config` | key, version, payload (JSON), active |
@@ -144,17 +144,17 @@ Amounts are integers in FCFA. The counterparty's number is stored masked, except
 | creation → PENDING | Amount entered and "Encaisser" tapped |
 | PENDING → CONFIRMED | SMS matched, or manual confirmation |
 | PENDING → EXPIRED | Delay elapsed (2 minutes by default) |
-| PENDING → CANCELLED | Cancelled by the collector |
+| PENDING → CANCELLED | Cancelled by the payee |
 
 Final states are permanent and each transition is idempotent. Only one session can be pending per amount, enforced on the server by a Redis key `pending:{userId}:{amount}` set with SETNX. When an SMS arrives, we look for the PENDING session, or one that expired less than ten minutes ago, with the same amount and created before the SMS. An SMS without a session becomes an "unmatched payment" visible in the history, and deduplication uses the operator reference and the text hash. During the pilot, the same rules apply locally in Room.
 
 ## Security
 
-Payment confirmation never relies on what the payer's phone shows. Its end screen is a receipt whose layout deliberately differs from the collector's "Paiement reçu" screen. It shows "Débit confirmé" only if the operator's debit SMS was detected; otherwise it says "Demande envoyée" (Request sent).
+Payment confirmation never relies on what the payer's phone shows. Its end screen is a receipt whose layout deliberately differs from the payee's "Paiement reçu" screen. It shows "Débit confirmé" only if the operator's debit SMS was detected; otherwise it says "Demande envoyée" (Request sent).
 
-The QR code is dynamic, short-lived and shown only on the collector's screen. Eifi stores no PIN, no balance and no operator account identifier, and never keeps the raw SMS text. With the backend, traffic will go over HTTPS with certificate pinning.
+The QR code is dynamic, short-lived and shown only on the payee's screen. Eifi stores no PIN, no balance and no operator account identifier, and never keeps the raw SMS text. With the backend, traffic will go over HTTPS with certificate pinning.
 
-The main residual risk is a fake SMS sent to the collector. It is limited by filtering on the operators' official senders and by manual confirmation in case of doubt, and will be assessed with the real SMS collected during the prototype.
+The main residual risk is a fake SMS sent to the payee. It is limited by filtering on the operators' official senders and by manual confirmation in case of doubt, and will be assessed with the real SMS collected during the prototype.
 
 ## Design guidelines
 

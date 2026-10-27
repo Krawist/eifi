@@ -1,3 +1,3 @@
 package com.eifi.feature.onboarding
 
-enum class Mode { Pay, Collect }
+enum class Mode { Pay, Receive }

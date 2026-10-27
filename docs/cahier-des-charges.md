@@ -4,16 +4,16 @@
 
 ## Context and goals
 
-Eifi (pronounced "eye-fye") is an Android app with two modes, Pay and Collect. The person collecting enters the amount; the person paying taps their phone (NFC) or scans a dynamic QR code, then confirms with their PIN in the USSD prompt of their operator, Orange Money or MTN MoMo. The payment can go to a merchant (merchant code) or to an individual (transfer to their phone number), for example between two friends.
+Eifi (pronounced "eye-fye") is an Android app with two modes, Pay and Receive. The payee enters the amount; the person paying taps their phone (NFC) or scans a dynamic QR code, then confirms with their PIN in the USSD prompt of their operator, Orange Money or MTN MoMo. The payment can go to a merchant (merchant code) or to an individual (transfer to their phone number), for example between two friends.
 
 Today, a merchant payment goes through a printed QR code or a merchant code: it does not contain the amount, which the customer has to type in. On top of that, each operator has its own app.
 
 Product goals:
 
 - Reduce payment to three gestures for the payer: tap or scan, confirm with biometrics, enter their PIN.
-- Bring Orange Money and MTN MoMo together in a single tool, for paying as well as collecting.
-- Never hold the funds: the money goes directly, at the operator, from the payer's account to the collector's.
-- Confirm the payment on the collector's side from the operator's SMS, never from the payer's screen.
+- Bring Orange Money and MTN MoMo together in a single tool, for paying as well as receiving.
+- Never hold the funds: the money goes directly, at the operator, from the payer's account to the payee's.
+- Confirm the payment on the payee's side from the operator's SMS, never from the payer's screen.
 
 ## Scope
 
@@ -21,8 +21,8 @@ The pilot covers face-to-face payment, between a merchant and their customer or 
 
 | In the pilot | Out of the pilot |
 | --- | --- |
-| A single Android app: onboarding and two modes, Pay and Collect | Holding, collecting or paying out funds through the app |
-| Collect: amount entry, NFC and QR emission, reading credit SMS, history | Backend: backup, multiple devices, remote update of templates and parsers |
+| A single Android app: onboarding and two modes, Pay and Receive | Holding, collecting or paying out funds through the app |
+| Receive: amount entry, NFC and QR emission, reading credit SMS, history | Backend: backup, multiple devices, remote update of templates and parsers |
 | Pay: NFC and QR reading, choice of account and SIM, biometrics, USSD launch, receipt | Bank card payment and banking integration |
 | Merchant payment (merchant code) and person-to-person transfer (phone number) | Online and remote payment |
 | Static hosting for App Links and a holding page | Full fallback web page, native iOS app |
@@ -31,12 +31,12 @@ Banks and cards will be studied separately, as they require a licence or an acqu
 
 ## Actors
 
-The priority target remains the small merchant with a mid-range Android smartphone, but any user can collect, for example to receive money from a friend.
+The priority target remains the small merchant with a mid-range Android smartphone, but any user can receive payments, for example to receive money from a friend.
 
 | Actor | Profile | Main expectation |
 | --- | --- | --- |
-| Merchant collecting | Kiosk, shop, street vendor; mid-range Android, often dual SIM; OM and/or MoMo merchant code | Collect quickly, see an unambiguous confirmation, with no fees for their customers |
-| Individual collecting | Receives on their Orange Money or MoMo number, without a merchant code | Receive money from a relative without dictating their number |
+| Merchant receiving payments | Kiosk, shop, street vendor; mid-range Android, often dual SIM; OM and/or MoMo merchant code | Get paid quickly, see an unambiguous confirmation, with no fees for their customers |
+| Individual receiving payments | Receives on their Orange Money or MoMo number, without a merchant code | Receive money from a relative without dictating their number |
 | Payer with the app | Android, OM or MoMo account, NFC depending on the model | Pay without typing anything but their PIN, knowing any fees |
 | Payer without the app | Any phone with a camera or NFC | Be directed to install Eifi (full fallback page after the pilot) |
 | Payer on iPhone | iOS does not allow launching a USSD code containing * or # | After the pilot: fallback page with the code to copy |
@@ -44,7 +44,7 @@ The priority target remains the small merchant with a mid-range Android smartpho
 
 ## Payment flow
 
-1. The collector enters the amount and taps "Encaisser" (Collect).
+1. The payee enters the amount and taps "Encaisser" (Collect).
 2. Eifi creates a local session and shows the dynamic QR code while enabling NFC emission.
 3. The payer taps their phone (NFC) **or** scans the QR code (branch).
 4. Eifi, on the payer's side, shows the recipient's name, the amount and any fees.
@@ -53,9 +53,9 @@ The priority target remains the small merchant with a mid-range Android smartpho
 7. Eifi launches the pre-filled USSD code on the right SIM.
 8. The payer enters their PIN in the operator's prompt.
 9. The operator debits and credits, then sends the SMS.
-10. Eifi, on the collector's side, reads the credit SMS, matches the session and shows "Paiement reçu" (Payment received); the payer sees their receipt.
+10. Eifi, on the payee's side, reads the credit SMS, matches the session and shows "Paiement reçu" (Payment received); the payer sees their receipt.
 
-The payer's two branches meet at the operator's USSD prompt. The money goes directly to the collector, and the app only reads the confirmation. During the pilot, without a backend, matching happens on the collector's phone.
+The payer's two branches meet at the operator's USSD prompt. The money goes directly to the payee, and the app only reads the confirmation. During the pilot, without a backend, matching happens on the payee's phone.
 
 ## Functional requirements
 
@@ -63,22 +63,22 @@ The payer's two branches meet at the operator's USSD prompt. The money goes dire
 
 | ID | Requirement |
 | --- | --- |
-| O1 | Shared onboarding: introduction to Eifi, then choice of the starting mode, Pay or Collect. |
-| O2 | Home screen with both actions, Pay and Collect, and recent activity (payments sent and received). |
+| O1 | Shared onboarding: introduction to Eifi, then choice of the starting mode, Pay or Receive. |
+| O2 | Home screen with both actions, Pay and Receive, and recent activity (payments sent and received). |
 | O3 | Each permission is requested when it is needed, never during the shared onboarding. A refusal never blocks the flow. |
 
-### Collect mode
+### Receive mode
 
 | ID | Requirement |
 | --- | --- |
-| M1 | Collection profile, filled in the first time Collect mode is used: display name and, for each operator, a merchant code or a receiving number. |
+| M1 | Receiving profile, filled in the first time Receive mode is used: display name and, for each operator, a merchant code or a receiving number. |
 | M2 | Numeric keypad to enter the amount in FCFA, with an optional label. |
 | M3 | Creation of a payment session: the dynamic QR code is shown and NFC emission is enabled at the same time. |
 | M4 | Automatic session expiry after a configurable delay (2 minutes by default). |
 | M5 | Only one pending session per amount at any given time, to remove ambiguity during matching. |
 | M6 | Automatic confirmation by reading the credit SMS notification, with a distinct sound and vibration. |
 | M7 | Manual confirmation is possible when automatic reading is disabled or fails. |
-| M8 | History of the day's collections and totals per operator. |
+| M8 | History of the day's received payments and totals per operator. |
 
 ### Pay mode
 
@@ -91,7 +91,7 @@ The payer's two branches meet at the operator's USSD prompt. The money goes dire
 | C5 | Mandatory biometric confirmation before launching the USSD code (fingerprint, face or phone unlock code). |
 | C6 | Local history of initiated payments. |
 | C7 | For a transfer to a number, the fees charged to the payer are shown before confirmation; only accounts with the same operator as the recipient are offered. |
-| C8 | End-of-payment screen as a receipt: "Débit confirmé" (Debit confirmed) if the debit SMS is detected (option disabled by default), otherwise "Demande envoyée" (Request sent). Its layout differs from the collector's "Paiement reçu" screen. |
+| C8 | End-of-payment screen as a receipt: "Débit confirmé" (Debit confirmed) if the debit SMS is detected (option disabled by default), otherwise "Demande envoyée" (Request sent). Its layout differs from the payee's "Paiement reçu" screen. |
 
 ### Fallback web page (after the pilot)
 
@@ -105,13 +105,13 @@ The payer's two branches meet at the operator's USSD prompt. The money goes dire
 
 The app is built in native Kotlin for Android. The pilot works without a backend; the Kotlin backend with Micronaut will come later.
 
-**NFC transport.** The collector's phone emulates in HCE (`HostApduService`) an NFC Forum Type 4 tag holding the payment URL as NDEF; the payer reads it in reader mode (`NfcAdapter.enableReaderMode`). A phone without Eifi natively reads this tag and opens the URL in the browser. The payload is identical to the QR code's.
+**NFC transport.** The payee's phone emulates in HCE (`HostApduService`) an NFC Forum Type 4 tag holding the payment URL as NDEF; the payer reads it in reader mode (`NfcAdapter.enableReaderMode`). A phone without Eifi natively reads this tag and opens the URL in the browser. The payload is identical to the QR code's.
 
 **Payload.** The QR code and NFC carry a URL of the form `https://pay.<domain>/p#v1.{data}`. Without a backend, the fragment, never sent over the network, carries the whole session encoded in base64url: random identifier, display name, amount, receiving method for each operator (merchant code or number), expiry and checksum.
 
 **USSD launch.** The app builds the code from the operator's embedded template and the operation type (merchant payment or transfer to a number). It launches it on the right SIM with `TelecomManager.placeCall` and a `PhoneAccountHandle`, which requires `CALL_PHONE`; `#` characters are encoded as `%23`. The exact syntax for each operator is still to be confirmed (see Risks).
 
-**Confirmation on the collector's side.** A `NotificationListenerService`, enabled at the first collection, reads Orange and MTN SMS notifications. Embedded parsers, one per operator and per operation type, extract the amount, the counterparty's number and the reference. Matching with the pending session happens on the phone. The `READ_SMS` and `RECEIVE_SMS` permissions are ruled out because of Play Store restrictions.
+**Confirmation on the payee's side.** A `NotificationListenerService`, enabled the first time Receive mode is used, reads Orange and MTN SMS notifications. Embedded parsers, one per operator and per operation type, extract the amount, the counterparty's number and the reference. Matching with the pending session happens on the phone. The `READ_SMS` and `RECEIVE_SMS` permissions are ruled out because of Play Store restrictions.
 
 **Backend (after the pilot).** A Micronaut service with PostgreSQL and Redis will handle backup, multiple devices and remote update of USSD templates and parsers. Details are in the technical design document.
 
@@ -119,12 +119,12 @@ The app is built in native Kotlin for Android. The pilot works without a backend
 
 ## Security and fraud prevention
 
-The core rule is: a payment is only confirmed from the SMS received by the collector, never from what the payer shows.
+The core rule is: a payment is only confirmed from the SMS received by the payee, never from what the payer shows.
 
 | Threat | Measure |
 | --- | --- |
 | Fake "payment successful" screenshot | The confirmation is shown only on the merchant's phone, with a distinct signal; the payer's end screen is a receipt, designed so it cannot be confused with the "Paiement reçu" screen. |
-| Forged or re-stuck QR code (redirect to another merchant code) | QR code shown on the collector's screen and renewed at each session, short-lived; name and receiving method shown to the payer before any confirmation. Signing the data is to be studied. |
+| Forged or re-stuck QR code (redirect to another merchant code) | QR code shown on the payee's screen and renewed at each session, short-lived; name and receiving method shown to the payer before any confirmation. Signing the data is to be studied. |
 | Replay of an old session | 2-minute expiry and a terminal state that cannot be reused. |
 | Matching ambiguity (two identical payments) | Only one pending session per amount; manual confirmation remains as a fallback. |
 | Change in the operators' SMS format | Versioned parsers updated remotely, with automatic fallback to manual confirmation. |
@@ -179,6 +179,6 @@ The project moves forward in three phases, and each phase starts only if the pre
 
 1. **Validation prototype.** A bare app to generate a QR code, launch the USSD code (merchant payment and transfer) and read SMS notifications, tested on a dual-SIM Tecno phone with real OM and MoMo merchant accounts.
    - Exit criterion: one successful real payment per operator and per operation type, without typing the amount manually, and one correctly parsed credit SMS.
-2. **Pilot without a backend.** The complete Eifi app (onboarding, Pay, Collect), without a backend, deployed with 10 to 20 merchants in Yaoundé, with APK distribution outside the Play Store.
+2. **Pilot without a backend.** The complete Eifi app (onboarding, Pay, Receive), without a backend, deployed with 10 to 20 merchants in Yaoundé, with APK distribution outside the Play Store.
    - Exit criterion: payment time shorter than the current channel, and a measured automatic confirmation rate.
 3. **Public launch and improvements.** Play Store release, backend (backup, multiple devices, remote update), full fallback web page, then study of the iOS app and of card payment through a licensed partner.

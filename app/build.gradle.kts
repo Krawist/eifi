@@ -54,7 +54,7 @@ dependencies {
     implementation(projects.core.design)
     implementation(projects.feature.onboarding)
     implementation(projects.feature.pay)
-    implementation(projects.feature.collect)
+    implementation(projects.feature.receive)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

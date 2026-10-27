@@ -5,10 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.eifi.feature.collect.CollectScreen
 import com.eifi.feature.onboarding.Mode
 import com.eifi.feature.onboarding.ModeChoiceScreen
 import com.eifi.feature.pay.PayScreen
+import com.eifi.feature.receive.ReceiveScreen
 
 /**
  * Temporary assembly of the modes (EIFI-010). The real navigation, with
@@ -20,6 +20,6 @@ fun EifiApp() {
     when (mode) {
         null -> ModeChoiceScreen(onModeChosen = { mode = it })
         Mode.Pay -> PayScreen(onBack = { mode = null })
-        Mode.Collect -> CollectScreen(onBack = { mode = null })
+        Mode.Receive -> ReceiveScreen(onBack = { mode = null })
     }
 }

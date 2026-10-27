@@ -1,6 +1,6 @@
 # Eifi
 
-Contactless payment for Cameroon: tap or scan, confirm with biometrics, type your Orange Money or MTN MoMo PIN. A single Android app, two modes: **Pay** and **Collect**.
+Contactless payment for Cameroon: tap or scan, confirm with biometrics, type your Orange Money or MTN MoMo PIN. A single Android app, two modes: **Pay** and **Receive**.
 
 The documentation is in [`docs/`](docs/) and the context for Claude Code in [`CLAUDE.md`](CLAUDE.md).
 
@@ -44,7 +44,7 @@ The versions in `gradle/libs.versions.toml` were pinned without access to the Ma
 app/                  application, assembly of the modes
 feature/onboarding    shared onboarding, mode choice, home
 feature/pay           Pay mode
-feature/collect       Collect mode
+feature/receive       Receive mode
 core/design           Compose theme and components
 core/payload          payment URL format (pure Kotlin)
 core/nfc              Type 4 HCE and NDEF reader

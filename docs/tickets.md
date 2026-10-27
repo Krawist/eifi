@@ -2,7 +2,7 @@
 
 > English working copy of the reference document kept in Claude (October 26, 2026). The reference is written in French; if the two differ, the Claude document prevails. Update this copy when it changes.
 
-This document splits the first version of the Eifi Android app into tickets. A single app brings together the Pay and Collect modes, and it works without a backend: the payment session is entirely contained in the URL passed by NFC or QR code, matching between the credit SMS and the session happens on the collector's phone, and USSD templates and SMS parsers are embedded. Only static hosting is still needed, for the domain of the payment URL.
+This document splits the first version of the Eifi Android app into tickets. A single app brings together the Pay and Receive modes, and it works without a backend: the payment session is entirely contained in the URL passed by NFC or QR code, matching between the credit SMS and the session happens on the payee's phone, and USSD templates and SMS parsers are embedded. Only static hosting is still needed, for the domain of the payment URL.
 
 Indicative sizes: S for less than a day, M for two or three days, L for about a week.
 
@@ -10,7 +10,7 @@ User-facing texts are quoted in French, the app's default language, with an Engl
 
 ## Order of work
 
-Work starts with three explorations on real phones and real accounts (EIFI-001 to 003), which clear the unknowns that could call the product into question. Next come the foundations, the payment format and the onboarding, on which both modes depend. Collect and Pay then move forward in parallel: Collect first for emission (NFC and QR), then Pay for reading and payment. SMS reading and history come last, as they depend on the formats recorded during the explorations.
+Work starts with three explorations on real phones and real accounts (EIFI-001 to 003), which clear the unknowns that could call the product into question. Next come the foundations, the payment format and the onboarding, on which both modes depend. Receive and Pay then move forward in parallel: Receive first for emission (NFC and QR), then Pay for reading and payment. SMS reading and history come last, as they depend on the formats recorded during the explorations.
 
 ## Preliminary explorations
 
@@ -48,7 +48,7 @@ Size: M. Dependencies: none.
 
 ### EIFI-010 · Create the multi-module repository and CI
 
-Set up the Gradle repository (Kotlin DSL, version catalog) with the `:app`, `:feature:onboarding`, `:feature:pay`, `:feature:collect`, `:core:design`, `:core:payload`, `:core:nfc`, `:core:ussd` and `:core:sms` modules. The `:core:network` module is postponed along with the backend.
+Set up the Gradle repository (Kotlin DSL, version catalog) with the `:app`, `:feature:onboarding`, `:feature:pay`, `:feature:receive`, `:core:design`, `:core:payload`, `:core:nfc`, `:core:ussd` and `:core:sms` modules. The `:core:network` module is postponed along with the backend.
 
 - The app compiles and launches, with an empty screen per mode.
 - CI runs ktlint, detekt and unit tests on every pull request.
@@ -70,7 +70,7 @@ Size: L. Dependencies: EIFI-010.
 
 Install Hilt, Navigation Compose, Room, DataStore and French and English resources, with a ViewModel architecture and state in `StateFlow`.
 
-- The app has one navigation graph per mode: onboarding, Pay and Collect.
+- The app has one navigation graph per mode: onboarding, Pay and Receive.
 - The language follows the phone's, with French by default.
 
 Size: M. Dependencies: EIFI-010.
@@ -100,7 +100,7 @@ Size: S. Dependencies: EIFI-020.
 
 ### EIFI-030 · Shared onboarding
 
-On first launch, screens introduce Eifi: the gesture (tap or scan), Orange Money and MTN MoMo together in a single app, and the fact that Eifi never holds the money nor the PIN. The user then chooses which mode to start with, Pay or Collect ("Bienvenue" and "Choix du mode" screens).
+On first launch, screens introduce Eifi: the gesture (tap or scan), Orange Money and MTN MoMo together in a single app, and the fact that Eifi never holds the money nor the PIN. The user then chooses which mode to start with, Pay or Receive ("Bienvenue" and "Choix du mode" screens).
 
 - The shared onboarding requests no permission.
 - The chosen mode determines the screen opened after onboarding, without closing access to the other mode.
@@ -108,29 +108,29 @@ On first launch, screens introduce Eifi: the gesture (tap or scan), Orange Money
 
 Size: M. Dependencies: EIFI-011, EIFI-012.
 
-### EIFI-031 · Pay and Collect home screen
+### EIFI-031 · Pay and Receive home screen
 
 The home screen offers both actions: "Payer" (Pay), highlighted with the NFC status, and "Encaisser" (Collect). It also shows recent activity, mixing payments sent and received ("Accueil" screen).
 
-- The first use of "Encaisser" opens the collection profile (EIFI-100) if it is not filled in yet.
-- When the app is open on the home screen, tapping a collecting phone directly starts the Pay flow.
+- The first use of "Encaisser" opens the receiving profile (EIFI-100) if it is not filled in yet.
+- When the app is open on the home screen, tapping a receiving phone directly starts the Pay flow.
 
 Size: M. Dependencies: EIFI-030.
 
 ### EIFI-032 · Permissions requested when they are needed
 
-Each permission is requested just before the first action that needs it, with an explanation screen: notification access and battery optimisation at the first collection, phone calls and phone state at the first payment, camera at the first scan. A user who only pays never sees the notification access request.
+Each permission is requested just before the first action that needs it, with an explanation screen: notification access and battery optimisation the first time Receive mode is used, phone calls and phone state at the first payment, camera at the first scan. A user who only pays never sees the notification access request.
 
 - A refusal never blocks the flow: the app offers an alternative (manual confirmation, USSD code to dial yourself, NFC reading instead of scanning).
 - The settings show the status of each permission and allow changing it.
 
 Size: M. Dependencies: EIFI-030.
 
-## Collect mode
+## Receive mode
 
-### EIFI-100 · Collection profile
+### EIFI-100 · Receiving profile
 
-The first time Collect mode is used, the user enters the name shown to those who pay them, then the receiving method for each operator: a merchant code or their phone number (at least one operator). The app then asks them to allow notification access and to disable battery optimisation, explaining why ("Où recevoir l'argent" and "Confirmation automatique" screens).
+The first time Receive mode is used, the user enters the name shown to those who pay them, then the receiving method for each operator: a merchant code or their phone number (at least one operator). The app then asks them to allow notification access and to disable battery optimisation, explaining why ("Où recevoir l'argent" and "Confirmation automatique" screens).
 
 - The information is stored locally and can be edited in the settings.
 - If notification access is refused, the app works with manual confirmation and says so.
@@ -171,7 +171,7 @@ Size: M. Dependencies: EIFI-102.
 
 Implement the `HostApduService` that emulates an NFC Type 4 tag holding the payment URL as NDEF, based on the findings of EIFI-003. The service is only active during the session.
 
-- A paying phone reads the URL by bringing its back close to the collector's phone.
+- A paying phone reads the URL by bringing its back close to the payee's phone.
 - The service no longer responds after the session ends.
 - If NFC is missing or disabled, the screen says so without blocking the QR code.
 
@@ -208,7 +208,7 @@ Size: M. Dependencies: EIFI-106.
 
 ### EIFI-108 · Manual confirmation
 
-From the waiting screen, the collector can confirm themselves after checking their SMS. The session moves to CONFIRMED with the "manual" source.
+From the waiting screen, the payee can confirm themselves after checking their SMS. The session moves to CONFIRMED with the "manual" source.
 
 - Manual confirmation requires an explicit two-step validation.
 - The history marks these confirmations with a yellow "Manuel" (Manual) badge.
@@ -217,7 +217,7 @@ Size: S. Dependencies: EIFI-102.
 
 ### EIFI-109 · Today's history
 
-"Historique du jour" (today's history) screen: total collected, totals and number of payments per operator, and list of transactions with their status (Confirmé, Manuel, Expiré, Non rattaché — Confirmed, Manual, Expired, Unmatched).
+"Historique du jour" (today's history) screen: total received, totals and number of payments per operator, and list of transactions with their status (Confirmé, Manuel, Expiré, Non rattaché — Confirmed, Manual, Expired, Unmatched).
 
 - Totals count confirmed and unmatched payments.
 - Previous days can be viewed.
@@ -237,7 +237,7 @@ Size: M. Dependencies: EIFI-020, EIFI-021.
 
 ### EIFI-201 · Summary screen
 
-Implement the "Récapitulatif" (summary) screen: collector's name, amount, chosen account with the "Changer" (Change) link, reminder that the PIN is entered in the operator's prompt, any fees (EIFI-208) and confirmation button. The button says "Payer" (Pay) for a merchant code and "Envoyer" (Send) for a transfer to a number.
+Implement the "Récapitulatif" (summary) screen: payee's name, amount, chosen account with the "Changer" (Change) link, reminder that the PIN is entered in the operator's prompt, any fees (EIFI-208) and confirmation button. The button says "Payer" (Pay) for a merchant code and "Envoyer" (Send) for a transfer to a number.
 
 - The default account is the last one used, if it is compatible.
 - The session countdown is visible, and payment is blocked after expiry.
@@ -246,7 +246,7 @@ Size: M. Dependencies: EIFI-011, EIFI-200.
 
 ### EIFI-202 · Choice of operator and SIM
 
-List the active SIMs, recognise their operator and only offer the combinations accepted by the collector ("Choix de l'opérateur" screen).
+List the active SIMs, recognise their operator and only offer the combinations accepted by the payee ("Choix de l'opérateur" screen).
 
 - On a dual-SIM phone, each option shows the SIM used.
 - If no SIM matches the recipient's operators, the screen explains it (a transfer only works between two accounts of the same operator).
@@ -275,9 +275,9 @@ Size: M. Dependencies: EIFI-001, EIFI-202, EIFI-203.
 
 ### EIFI-205 · End-of-payment screen
 
-When the USSD prompt closes and the app is back in the foreground, show the "Paiement effectué" (payment done) screen as a receipt. If debit SMS detection is enabled (EIFI-206), it says "Débit confirmé par votre SMS" (Debit confirmed by your SMS); otherwise "Demande envoyée" (Request sent), inviting the user to check the operator's SMS. In both cases, it reminds the user that the collector receives their own confirmation.
+When the USSD prompt closes and the app is back in the foreground, show the "Paiement effectué" (payment done) screen as a receipt. If debit SMS detection is enabled (EIFI-206), it says "Débit confirmé par votre SMS" (Debit confirmed by your SMS); otherwise "Demande envoyée" (Request sent), inviting the user to check the operator's SMS. In both cases, it reminds the user that the payee receives their own confirmation.
 
-- The screen does not reuse the collector's "Paiement reçu" layout, so the two cannot be confused.
+- The screen does not reuse the payee's "Paiement reçu" layout, so the two cannot be confused.
 - The receipt is saved in the local history and can be shared as an image.
 
 Size: M. Dependencies: EIFI-204.
@@ -331,6 +331,6 @@ Size: M. Dependencies: EIFI-300.
 
 ## Postponed until after the pilot
 
-These topics are deliberately out of this first version: the backend (backup, multiple devices), remote update of USSD templates and SMS parsers, the full fallback web page for people without the app, the iOS app, card payment and a real verified merchant status. For now, a merchant is just a collection profile with a merchant code.
+These topics are deliberately out of this first version: the backend (backup, multiple devices), remote update of USSD templates and SMS parsers, the full fallback web page for people without the app, the iOS app, card payment and a real verified merchant status. For now, a merchant is just a receiving profile with a merchant code.
 
 Without remote updates, any change to an operator's SMS format will require a new app version. This is the main risk of running without a backend, to be monitored during the pilot.

@@ -3,5 +3,5 @@ plugins {
 }
 
 android {
-    namespace = "com.eifi.feature.collect"
+    namespace = "com.eifi.feature.receive"
 }

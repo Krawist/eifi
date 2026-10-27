@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="receive_title">Collect</string>
+    <string name="receive_subtitle">Enter an amount to collect.</string>
+    <string name="receive_back">Back</string>
+</resources>

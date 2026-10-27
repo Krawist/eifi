@@ -3,5 +3,5 @@
     <string name="onboarding_title">Bienvenue sur Eifi</string>
     <string name="onboarding_subtitle">Par quoi voulez-vous commencer ?</string>
     <string name="mode_pay">Payer</string>
-    <string name="mode_collect">Encaisser</string>
+    <string name="mode_receive">Encaisser</string>
 </resources>

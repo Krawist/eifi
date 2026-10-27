@@ -44,11 +44,11 @@ fun ModeChoiceScreen(onModeChosen: (Mode) -> Unit, modifier: Modifier = Modifier
                 Text(stringResource(R.string.mode_pay), style = MaterialTheme.typography.labelLarge)
             }
             FilledTonalButton(
-                onClick = { onModeChosen(Mode.Collect) },
+                onClick = { onModeChosen(Mode.Receive) },
                 shape = EifiRadius.Button,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
             ) {
-                Text(stringResource(R.string.mode_collect), style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.mode_receive), style = MaterialTheme.typography.labelLarge)
             }
         }
     }

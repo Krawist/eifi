@@ -8,13 +8,13 @@ to the current ticket.
 Eifi (pronounced "eye-fye") is a contactless payment Android app for Cameroon. A single app brings
 together two modes:
 
-- **Collect** ("Encaisser"): you enter an amount, the app shows a dynamic QR code and emits the
+- **Receive** ("Encaisser", "Collect" in the English UI): you enter an amount, the app shows a dynamic QR code and emits the
   same URL over NFC.
 - **Pay** ("Payer"): you tap your phone or scan. The app shows the recipient, the amount and any
   fees, asks for biometrics, then launches the pre-filled Orange Money or MTN MoMo USSD code on the
   right SIM. The payer types their PIN in the operator's prompt.
 
-Eifi never touches the money. The payment is confirmed on the collector's side by reading the
+Eifi never touches the money. The payment is confirmed on the payee's side by reading the
 operator's credit SMS, never from the payer's screen.
 
 ## Reference documents
@@ -34,14 +34,14 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
 
 ## Decisions taken (do not question them unless asked)
 
-- **A single app**, two modes. The "merchant" is not an account type: it is a *collection profile*
+- **A single app**, two modes. The "merchant" is not an account type: it is a *receiving profile*
   (display name + for each operator a merchant code **or** a phone number).
 - **No backend for the pilot.** The session travels in the URL fragment:
   `https://pay.<domain>/p#v1.{base64url}` (random id, name ≤ 30 characters, amount, receiving
   method per operator, expiry, checksum). SMS ↔ session matching happens locally in Room. USSD
   templates and SMS parsers are embedded. Only static hosting serves `assetlinks.json` and a
   holding page.
-- **NFC**: the collector emulates an NFC Forum Type 4 tag (NDEF URI) with a `HostApduService`, AID
+- **NFC**: the payee emulates an NFC Forum Type 4 tag (NDEF URI) with a `HostApduService`, AID
   `D2760000850101`. The payer reads with `NfcAdapter.enableReaderMode`. The QR code and NFC carry
   exactly the same URL.
 - **USSD**: `TelecomManager.placeCall` with the `PhoneAccountHandle` of the chosen SIM
@@ -59,7 +59,7 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
   between accounts of the same operator.
 - **Payer receipt**: "Débit confirmé" (Debit confirmed) if the debit SMS is detected (option
   disabled by default), otherwise "Demande envoyée" (Request sent). Its layout must stay different
-  from the collector's "Paiement reçu" (Payment received) screen (screenshot fraud prevention).
+  from the payee's "Paiement reçu" (Payment received) screen (screenshot fraud prevention).
 - **Permissions requested when they are needed**, never during the shared onboarding; a refusal
   never blocks the flow.
 - **Design**: **plain** version only (the gradient variant is dropped for the pilot). Restrained
@@ -83,6 +83,8 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
   thousands separator).
 - Quality: `./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug` must pass before a ticket
   is considered done. Fix formatting with `./gradlew ktlintFormat`.
+- Naming: the two modes are `Pay` and `Receive` in code and documentation, and the person who gets
+  the money is the *payee*. The UI keeps « Encaisser » in French and "Collect" in English.
 - Everything in English: code, identifiers, comments, KDoc, commit messages and documentation.
   Only the user-facing French strings stay in French.
 
@@ -93,7 +95,7 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
 | `:app`                | Application, assembly of the modes, signing         | 010, 012      |
 | `:feature:onboarding` | Shared onboarding, mode choice, home                | 030, 031, 032 |
 | `:feature:pay`        | Pay mode screens                                    | 200–208       |
-| `:feature:collect`    | Collect mode screens                                | 100–109       |
+| `:feature:receive`    | Receive mode screens                                | 100–109       |
 | `:core:design`        | Theme, colours, type, components, formatting        | 011           |
 | `:core:payload`       | Payment URL encoding/decoding (pure Kotlin)         | 020           |
 | `:core:nfc`           | Type 4 HCE and NDEF reader                          | 104, 200      |

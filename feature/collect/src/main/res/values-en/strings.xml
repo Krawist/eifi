@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="collect_title">Collect</string>
-    <string name="collect_subtitle">Enter an amount to collect.</string>
-    <string name="collect_back">Back</string>
-</resources>

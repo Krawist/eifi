@@ -28,7 +28,7 @@ rootProject.name = "eifi"
 include(":app")
 include(":feature:onboarding")
 include(":feature:pay")
-include(":feature:collect")
+include(":feature:receive")
 include(":core:design")
 include(":core:payload")
 include(":core:nfc")
