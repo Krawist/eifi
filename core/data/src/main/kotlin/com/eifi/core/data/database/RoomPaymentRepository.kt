@@ -43,6 +43,8 @@ internal class RoomPaymentRepository @Inject constructor(
 
     override fun getByIdAsFlow(id: String): Flow<Payment?> = dao.getByIdAsFlow(id).map { it?.toPayment() }
 
+    override fun getAllAsFlow(): Flow<List<Payment>> = dao.getAllAsFlow().map { rows -> rows.map { it.toPayment() } }
+
     override suspend fun cancel(id: String) = transition(id) {
         paymentService.cancel(payment = it, at = clock.instant())
     }

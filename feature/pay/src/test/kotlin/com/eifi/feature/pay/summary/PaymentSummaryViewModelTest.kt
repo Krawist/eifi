@@ -108,6 +108,8 @@ internal class PaymentSummaryViewModelTest {
 
                 override fun getByIdAsFlow(id: String) = error("Not used")
 
+                override fun getAllAsFlow() = error("Not used")
+
                 override suspend fun cancel(id: String) = error("Not used")
 
                 override suspend fun confirm(id: String, source: ConfirmationSource) = error("Not used")

@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="history_back">Back</string>
-    <string name="history_subtitle">The full history is coming soon.</string>
+    <string name="history_date_pattern">EEEE, MMMM d</string>
+    <string name="history_empty">No payment yet.</string>
+    <string name="history_received">Collection</string>
+    <string name="history_sent">Payment sent</string>
+    <string name="history_status_cancelled">Cancelled</string>
+    <string name="history_status_confirmed">Confirmed</string>
+    <string name="history_status_debit_confirmed">Debit confirmed</string>
+    <string name="history_status_expired">Expired</string>
+    <string name="history_status_manual">Manual</string>
+    <string name="history_status_request_sent">Request sent</string>
+    <string name="history_status_waiting">Waiting</string>
     <string name="history_title">History</string>
+    <string name="history_today">Today</string>
     <string name="home_activity_empty">No activity yet</string>
     <string name="home_activity_received">Received from %1$s</string>
     <string name="home_activity_see_all">See all</string>

@@ -59,6 +59,8 @@ internal class AmountEntryViewModelTest {
 
         override fun getByIdAsFlow(id: String) = emptyFlow<Payment?>()
 
+        override fun getAllAsFlow() = emptyFlow<List<Payment>>()
+
         override suspend fun cancel(id: String) = Unit
 
         override suspend fun confirm(id: String, source: ConfirmationSource) = Unit

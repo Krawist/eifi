@@ -12,6 +12,7 @@ import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -40,6 +41,8 @@ internal class ReceiptViewModelTest {
                 override suspend fun openSent(payment: Payment) = error("Not used")
 
                 override fun getByIdAsFlow(id: String) = stored.map { it?.takeIf { payment -> payment.id == id } }
+
+                override fun getAllAsFlow() = emptyFlow<List<Payment>>()
 
                 override suspend fun cancel(id: String) = error("Not used")
 

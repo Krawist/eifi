@@ -37,10 +37,13 @@ internal interface PaymentDao {
     @Query("SELECT COUNT(*) FROM payment")
     suspend fun count(): Int
 
-    /** Stores as EXPIRED the PENDING payments whose expiry has passed, ended at their expiry. */
+    /**
+     * Stores as EXPIRED the PENDING received payments whose expiry has passed, ended at their expiry. A sent payment
+     * stays PENDING: its request was sent, whatever the expiry of the payee's code.
+     */
     @Query(
         "UPDATE payment SET status = 'Expired', endedAt = expiresAt " +
-            "WHERE status = 'Pending' AND expiresAt <= :now",
+            "WHERE type = 'Received' AND status = 'Pending' AND expiresAt <= :now",
     )
     suspend fun expireOverdue(now: Long)
 }

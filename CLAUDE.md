@@ -165,7 +165,6 @@ been chosen yet.
 - [x] **EIFI-031** — home screen (`feature/onboarding/.../home`): greeting (business name first, names
   asked at the end of the onboarding), Pay card with the real NFC status, Receive card, recent
   activity. The app always opens on the home screen once `UserPreferencesRepository.profile` is set.
-  Fakes to replace: `FakeActivityRepository` (EIFI-102, 207), `FakeNfcPaymentReader` (EIFI-200); placeholder screens for history and settings.
   Receive mode starts on `ReceiveEntryRoute`, which opens the receiving profile until it is filled in.
 - [x] **EIFI-032** — permissions in `:core:permission`: `PermissionChecker`, `PermissionStep`
   (explanation → system dialog or settings → result on return), `PermissionSettingsRow`. Asked once
@@ -233,8 +232,21 @@ been chosen yet.
   Eifi after the launch (`ReceiptOnReturn`), or with "Voir le reçu". The sent payment keeps its payee and operator
   (`Payment.counterpartyName`, `Payment.operator`, database version 2 with an auto-migration). "Partager le reçu" shares
   the receipt as a PNG (graphics layer, `FileProvider` `${applicationId}.receipts`).
-- [ ] **Next ticket: EIFI-206** (needs the debit SMS of EIFI-002), else EIFI-207… Transfers need their USSD syntax
-  and fees (EIFI-001); EIFI-105 and EIFI-106 wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
+- [x] **Pilot fixes** (October 27, 2026), tickets in `docs/tickets.md`:
+  - EIFI-014: a long press on the keypad's delete key clears the amount (`NumericKeypad.onClear`).
+  - EIFI-015: `DatabaseSeeder` (started by `EifiApplication`) fills the empty tables at each start: USSD codes
+    (`ussd_config`, `RoomUssdConfigRepository`) and sample payments (`SeedData`, to remove after the pilot). No more
+    fake repositories: the home activity comes from Room (`RoomActivityRepository`).
+  - EIFI-110: the receiving profile keeps the number and the merchant code of an operator while switching; only the
+    selected one is saved.
+  - EIFI-111: the amount screen turns operators on or off for one payment (toast, at least one stays on), stored in
+    `Payment.acceptedOperators` and applied to the URL by `PaymentService.toPaymentRequest`. Database version 3.
+  - EIFI-112: "Encaisser" always opens a new payment; the one pending for the same amount is cancelled.
+  - EIFI-209: "Payer" opens the scanner (camera step first); the scanner also reads NFC. The Pay entry buttons are gone.
+  - EIFI-207: "Historique" lists the payments received and sent by day with their status; a sent one opens its receipt.
+  - `expireOverdue` only expires received payments: a sent one stays "Demande envoyée".
+- [ ] **Next ticket: EIFI-108** (manual confirmation) or EIFI-206 once the debit SMS are known. Transfers need their
+  USSD syntax and fees (EIFI-001); EIFI-105, 106, 109 wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   transfer USSD templates, SMS senders and the fee schedule remain values to be provided, never
   invented.

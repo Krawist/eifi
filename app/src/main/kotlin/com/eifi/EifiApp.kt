@@ -15,10 +15,12 @@ import com.eifi.core.data.AppMode
 import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.feature.onboarding.OnboardingGraph
 import com.eifi.feature.onboarding.home.HomeGraph
+import com.eifi.feature.onboarding.home.HomeGraphActions
 import com.eifi.feature.onboarding.home.homeGraph
 import com.eifi.feature.onboarding.onboardingGraph
 import com.eifi.feature.pay.PayGraph
 import com.eifi.feature.pay.navigateToPaymentSummary
+import com.eifi.feature.pay.navigateToReceipt
 import com.eifi.feature.pay.payGraph
 import com.eifi.feature.receive.ReceiveGraph
 import com.eifi.feature.receive.navigateToReceivingProfile
@@ -77,10 +79,13 @@ private fun EifiNavHost(
         )
         homeGraph(
             navController = navController,
-            onPay = { navController.navigate(PayGraph) },
-            onPaymentUrl = { navController.navigateToPaymentSummary(it) },
-            onReceive = { navController.navigate(ReceiveGraph) },
-            onEditReceivingProfile = { navController.navigateToReceivingProfile() },
+            actions = HomeGraphActions(
+                onPay = { navController.navigate(PayGraph) },
+                onPaymentUrl = { navController.navigateToPaymentSummary(it) },
+                onReceive = { navController.navigate(ReceiveGraph) },
+                onOpenReceipt = { navController.navigateToReceipt(it) },
+                onEditReceivingProfile = { navController.navigateToReceivingProfile() },
+            ),
         )
         payGraph(navController = navController, onBack = { navController.popBackStack() })
         receiveGraph(navController = navController, onBack = { navController.popBackStack() })

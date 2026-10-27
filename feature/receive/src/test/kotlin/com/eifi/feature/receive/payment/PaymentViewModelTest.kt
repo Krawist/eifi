@@ -24,6 +24,7 @@ import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -80,6 +81,8 @@ internal class PaymentViewModelTest {
         override suspend fun openSent(payment: Payment) = false
 
         override fun getByIdAsFlow(id: String) = stored.map { it.takeIf { payment -> payment.id == id } }
+
+        override fun getAllAsFlow() = emptyFlow<List<Payment>>()
 
         override suspend fun cancel(id: String) {
             stored.value = paymentService.cancel(payment = stored.value, at = clock.instant())

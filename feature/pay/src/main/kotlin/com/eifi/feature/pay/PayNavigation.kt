@@ -116,6 +116,11 @@ fun NavGraphBuilder.payGraph(navController: NavController, onBack: () -> Unit) {
     }
 }
 
+/** Opens the receipt of the sent payment [paymentId], e.g. from the history (EIFI-207). */
+fun NavController.navigateToReceipt(paymentId: String) {
+    navigate(ReceiptRoute(paymentId))
+}
+
 /** Opens the summary of the payment [url], read outside the Pay graph (home screen, App Link). */
 fun NavController.navigateToPaymentSummary(url: String) {
     navigate(PaymentSummaryRoute(url)) { launchSingleTop = true }

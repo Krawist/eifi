@@ -2,7 +2,6 @@ package com.eifi.feature.onboarding.home
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -10,8 +9,8 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.eifi.core.design.component.PlaceholderScreen
-import com.eifi.feature.onboarding.R
+import com.eifi.feature.onboarding.history.HistoryScreen
+import com.eifi.feature.onboarding.history.HistoryViewModel
 import com.eifi.feature.onboarding.navigateToOnboarding
 import com.eifi.feature.onboarding.settings.SettingsScreen
 import kotlinx.serialization.Serializable
@@ -29,17 +28,8 @@ internal data object ActivityHistoryRoute
 @Serializable
 internal data object SettingsRoute
 
-/**
- * Adds the home graph; [onPay] and [onReceive] open the modes, [onPaymentUrl] the summary of a payment read by NFC,
- * [onEditReceivingProfile] the receiving profile.
- */
-fun NavGraphBuilder.homeGraph(
-    navController: NavController,
-    onPay: () -> Unit,
-    onPaymentUrl: (String) -> Unit,
-    onReceive: () -> Unit,
-    onEditReceivingProfile: () -> Unit,
-) {
+/** Adds the home graph; [actions] open what lies outside it. */
+fun NavGraphBuilder.homeGraph(navController: NavController, actions: HomeGraphActions) {
     navigation<HomeGraph>(startDestination = HomeRoute) {
         composable<HomeRoute> {
             val viewModel: HomeViewModel = hiltViewModel(
@@ -50,28 +40,33 @@ fun NavGraphBuilder.homeGraph(
             )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             LaunchedEffect(viewModel) {
-                viewModel.paymentUrls.collect(onPaymentUrl)
+                viewModel.paymentUrls.collect(actions.onPaymentUrl)
             }
             HomeScreen(
                 uiState = uiState,
-                onPay = onPay,
-                onReceive = onReceive,
+                onPay = actions.onPay,
+                onReceive = actions.onReceive,
                 onSeeAllActivity = { navController.navigate(ActivityHistoryRoute) },
                 onOpenSettings = { navController.navigate(SettingsRoute) },
             )
         }
-        // TODO(EIFI-109, EIFI-207): history of payments received and sent.
         composable<ActivityHistoryRoute> {
-            PlaceholderScreen(
-                title = stringResource(R.string.history_title),
-                subtitle = stringResource(R.string.history_subtitle),
-                actionLabel = stringResource(R.string.history_back),
-                onAction = { navController.popBackStack() },
+            val viewModel: HistoryViewModel = hiltViewModel(
+                checkNotNull(LocalViewModelStoreOwner.current) {
+                    "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+                },
+                null,
             )
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            uiState?.let {
+                HistoryScreen(uiState = it, onOpenReceipt = actions.onOpenReceipt, onBack = {
+                    navController.popBackStack()
+                })
+            }
         }
         composable<SettingsRoute> {
             SettingsScreen(
-                onEditReceivingProfile = onEditReceivingProfile,
+                onEditReceivingProfile = actions.onEditReceivingProfile,
                 onReplayIntroduction = { navController.navigateToOnboarding() },
                 onBack = { navController.popBackStack() },
             )

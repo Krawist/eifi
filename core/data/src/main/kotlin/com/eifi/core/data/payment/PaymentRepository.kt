@@ -19,6 +19,9 @@ interface PaymentRepository {
 
     fun getByIdAsFlow(id: String): Flow<Payment?>
 
+    /** Every payment, received and sent, latest first. */
+    fun getAllAsFlow(): Flow<List<Payment>>
+
     suspend fun cancel(id: String)
 
     suspend fun confirm(id: String, source: ConfirmationSource)
