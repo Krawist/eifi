@@ -1,8 +1,11 @@
 package com.eifi.feature.pay.summary
 
+import com.eifi.core.data.AppPermission
 import com.eifi.core.data.PayingAccountChoice
 import com.eifi.core.data.PayingAccountRepository
+import com.eifi.core.data.PermissionRequestHistory
 import com.eifi.core.payload.Operator
+import com.eifi.core.permission.PermissionChecker
 import com.eifi.core.ussd.SimCard
 import com.eifi.core.ussd.SimCardRepository
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -21,6 +24,14 @@ internal class PayingAccountServiceTest {
             override val choice = MutableStateFlow<PayingAccountChoice?>(null)
 
             override suspend fun saveChoice(choice: PayingAccountChoice) = Unit
+        },
+        permissionChecker = object : PermissionChecker {
+            override fun isGranted(permission: AppPermission) = true
+        },
+        permissionRequestHistory = object : PermissionRequestHistory {
+            override suspend fun wasRequested(permission: AppPermission) = false
+
+            override suspend fun markRequested(permission: AppPermission) = Unit
         },
     )
 

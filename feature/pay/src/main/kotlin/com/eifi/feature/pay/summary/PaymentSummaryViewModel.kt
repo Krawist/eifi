@@ -5,11 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eifi.core.data.AppPermission
 import com.eifi.core.data.PayingAccountChoice
-import com.eifi.core.data.PermissionRequestHistory
 import com.eifi.core.payload.PaymentRequest
 import com.eifi.core.payload.PaymentUrlCodec
 import com.eifi.core.payload.PaymentUrlDecodingResult
-import com.eifi.core.permission.PermissionChecker
+import com.eifi.core.ussd.OperatorUssdConfig
 import com.eifi.core.ussd.SimCard
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
@@ -29,16 +28,15 @@ import kotlinx.coroutines.launch
 /**
  * Summary of the payment URL read by NFC, the scanner or an App Link, decoded once when the summary opens: the
  * payer's account among their SIMs (the phone calls permission is asked once, at the first summary), a countdown
- * refreshed every second, and the confirmation through the biometric prompt, refused once the code has expired or
- * without compatible account.
+ * refreshed every second, the confirmation through the biometric prompt, refused once the code has expired, without
+ * compatible account or without known USSD code, then the launch of the USSD code, once per session.
  */
 @HiltViewModel
 internal class PaymentSummaryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     paymentUrlCodec: PaymentUrlCodec,
     private val payingAccountService: PayingAccountService,
-    private val permissionChecker: PermissionChecker,
-    private val permissionRequestHistory: PermissionRequestHistory,
+    private val paymentLaunchService: PaymentLaunchService,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -50,6 +48,7 @@ internal class PaymentSummaryViewModel @Inject constructor(
      * @property choosingAccount whether "Choisissez votre compte" shows.
      * @property rememberChoice whether the account is offered first on the next payments.
      * @property confirmationStep where the confirmation stands.
+     * @property launchOutcome what launching the USSD code did, `null` until it is launched.
      * @property permissionChecked whether the phone calls permission was checked, so that the summary does not show
      * before its permission step.
      */
@@ -59,7 +58,21 @@ internal class PaymentSummaryViewModel @Inject constructor(
         val choosingAccount: Boolean = false,
         val rememberChoice: Boolean = true,
         val confirmationStep: ConfirmationStep = ConfirmationStep.None,
+        val launchOutcome: LaunchOutcome? = null,
         val permissionChecked: Boolean = false,
+    )
+
+    /**
+     * What the payer's accounts and their USSD codes come from.
+     *
+     * @property choice the remembered account, `null` until one is.
+     * @property sims the payer's SIMs, `null` while unknown.
+     * @property ussdConfigs the USSD codes of the supported operators.
+     */
+    private data class Payer(
+        val choice: PayingAccountChoice?,
+        val sims: List<SimCard>?,
+        val ussdConfigs: List<OperatorUssdConfig>,
     )
 
     private val decoded = paymentUrlCodec.decode(checkNotNull(savedStateHandle[PAYMENT_URL]) { "No payment URL" })
@@ -68,6 +81,9 @@ internal class PaymentSummaryViewModel @Inject constructor(
 
     /** The payer's SIMs, `null` while unknown. */
     private val sims = MutableStateFlow(payingAccountService.simCards())
+
+    /** What the accounts and their USSD codes come from. */
+    private val payer = combine(payingAccountService.choice, sims, paymentLaunchService.ussdConfigs, ::Payer)
 
     private val ticks = flow {
         while (true) {
@@ -78,14 +94,9 @@ internal class PaymentSummaryViewModel @Inject constructor(
 
     /** `null` while the phone calls permission is checked and the remembered account loads. */
     val uiState: StateFlow<PaymentSummaryUiState?> = when (decoded) {
-        is PaymentUrlDecodingResult.Valid -> combine(
-            interaction,
-            payingAccountService.choice,
-            sims,
-            ticks,
-        ) { interaction, choice, sims, now ->
+        is PaymentUrlDecodingResult.Valid -> combine(interaction, payer, ticks) { interaction, payer, now ->
             if (interaction.permissionChecked) {
-                ready(request = decoded.request, interaction = interaction, choice = choice, sims = sims, now = now)
+                ready(request = decoded.request, interaction = interaction, payer = payer, now = now)
             } else {
                 null
             }
@@ -102,9 +113,10 @@ internal class PaymentSummaryViewModel @Inject constructor(
     init {
         if (decoded is PaymentUrlDecodingResult.Valid) {
             viewModelScope.launch {
-                val permission = AppPermission.PhoneCalls
-                val ask = !permissionChecker.isGranted(permission) && !permissionRequestHistory.wasRequested(permission)
-                interaction.update { it.copy(activePermission = permission.takeIf { ask }, permissionChecked = true) }
+                val ask = payingAccountService.shouldAskPhoneCalls()
+                interaction.update {
+                    it.copy(activePermission = AppPermission.PhoneCalls.takeIf { ask }, permissionChecked = true)
+                }
             }
         }
     }
@@ -112,7 +124,7 @@ internal class PaymentSummaryViewModel @Inject constructor(
     /** The phone calls permission was explained and asked: lists the SIMs if granted. */
     fun onPermissionDone(granted: Boolean) {
         viewModelScope.launch {
-            permissionRequestHistory.markRequested(AppPermission.PhoneCalls)
+            payingAccountService.onPhoneCallsAsked()
             if (granted) sims.value = payingAccountService.simCards()
             interaction.update { it.copy(activePermission = null) }
         }
@@ -134,33 +146,32 @@ internal class PaymentSummaryViewModel @Inject constructor(
         if (remember) viewModelScope.launch { payingAccountService.remember(account) }
     }
 
-    /** Asks for the biometric prompt while the code is valid and an account is compatible. */
+    /** Asks for the biometric prompt while the code is valid, an account is compatible and its USSD code known. */
     fun confirm() {
         val state = uiState.value as? PaymentSummaryUiState.Ready ?: return
-        if (state.account == null) return
+        if (state.account == null || !state.ussdAvailable || state.launchOutcome != null) return
         interaction.update { it.copy(confirmationStep = ConfirmationStep.Authenticating) }
     }
 
-    /** The payer is authenticated: remembers the account unless they opted out. */
+    /** The payer is authenticated: launches the USSD code, and remembers the account unless they opted out. */
     fun onAuthenticated() {
         val state = (uiState.value as? PaymentSummaryUiState.Ready)
             ?.takeIf { it.confirmationStep == ConfirmationStep.Authenticating } ?: return
         val account = state.account ?: return
+        val request = (decoded as PaymentUrlDecodingResult.Valid).request
         interaction.update { it.copy(confirmationStep = ConfirmationStep.Authenticated) }
-        // TODO(EIFI-204): the USSD code on the SIM of the account.
-        if (state.rememberChoice) viewModelScope.launch { payingAccountService.remember(account) }
+        viewModelScope.launch {
+            if (state.rememberChoice) payingAccountService.remember(account)
+            val outcome = paymentLaunchService.launch(request = request, account = account)
+            interaction.update { it.copy(launchOutcome = outcome) }
+        }
     }
 
     /** The prompt was cancelled or failed: back to the summary, nothing launched. */
     fun onAuthenticationCancelled() {
         interaction.update {
-            if (it.confirmationStep ==
-                ConfirmationStep.Authenticating
-            ) {
-                it.copy(confirmationStep = ConfirmationStep.None)
-            } else {
-                it
-            }
+            val cancelled = it.confirmationStep == ConfirmationStep.Authenticating
+            if (cancelled) it.copy(confirmationStep = ConfirmationStep.None) else it
         }
     }
 
@@ -178,14 +189,13 @@ internal class PaymentSummaryViewModel @Inject constructor(
     private fun ready(
         request: PaymentRequest,
         interaction: Interaction,
-        choice: PayingAccountChoice?,
-        sims: List<SimCard>?,
+        payer: Payer,
         now: Instant,
     ): PaymentSummaryUiState {
         if (!now.isBefore(request.expiresAt)) return PaymentSummaryUiState.Expired
-        val accounts = payingAccountService.accounts(payeeOperators = request.receivingMethods.keys, sims = sims)
+        val accounts = payingAccountService.accounts(payeeOperators = request.receivingMethods.keys, sims = payer.sims)
         val account = interaction.chosenAccount?.takeIf { it in accounts }
-            ?: payingAccountService.defaultAccount(accounts = accounts, choice = choice)
+            ?: payingAccountService.defaultAccount(accounts = accounts, choice = payer.choice)
         return PaymentSummaryUiState.Ready(
             displayName = request.displayName,
             amount = request.amount,
@@ -195,11 +205,14 @@ internal class PaymentSummaryViewModel @Inject constructor(
             receivingMethod = request.receivingMethods.getValue(
                 account?.operator ?: request.receivingMethods.keys.first(),
             ),
+            ussdAvailable = account != null &&
+                paymentLaunchService.isAvailable(request = request, account = account, configs = payer.ussdConfigs),
             remainingSeconds = Duration.between(now, request.expiresAt).seconds,
             activePermission = interaction.activePermission,
             choosingAccount = interaction.choosingAccount,
             rememberChoice = interaction.rememberChoice,
             confirmationStep = interaction.confirmationStep,
+            launchOutcome = interaction.launchOutcome,
         )
     }
 

@@ -215,6 +215,7 @@ private fun AccountChoiceScreenPreview() {
                 accounts = accounts,
                 account = accounts.first(),
                 receivingMethod = ReceivingMethod.MerchantCode("482913"),
+                ussdAvailable = true,
                 remainingSeconds = 102,
             ),
             onChoose = { _, _ -> },

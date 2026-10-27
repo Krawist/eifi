@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.eifi.core.design.R as DesignR
 import com.eifi.core.design.component.AmountDisplay
+import com.eifi.core.design.component.EifiCard
 import com.eifi.core.design.component.EifiCloseButton
 import com.eifi.core.design.component.EifiIconTile
 import com.eifi.core.design.component.EifiPill
@@ -134,22 +136,38 @@ private fun Summary(
                     )
                 }
             }
-            if (uiState.account != null) {
-                if (uiState.confirmationStep == ConfirmationStep.Authenticated) {
-                    Text(
-                        text = stringResource(R.string.summary_authenticated),
-                        modifier = Modifier.fillMaxWidth().padding(bottom = EifiSpacing.Medium),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                EifiPrimaryButton(
-                    text = stringResource(methodUi.action, formatFcfa(uiState.amount)),
-                    onClick = actions.onConfirm,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            uiState.account?.let { BottomAction(uiState = uiState, account = it, onConfirm = actions.onConfirm) }
+        }
+    }
+}
+
+/**
+ * The confirmation button; once launched, what the launch did; without known USSD code, why the payment is not
+ * offered.
+ */
+@Composable
+private fun BottomAction(uiState: PaymentSummaryUiState.Ready, account: PayingAccount, onConfirm: () -> Unit) {
+    val operatorName = stringResource(account.operator.displayName)
+    val message = when {
+        !uiState.ussdAvailable -> stringResource(R.string.summary_unavailable, operatorName)
+        uiState.launchOutcome == LaunchOutcome.Called -> stringResource(R.string.launch_called, operatorName)
+        uiState.launchOutcome == LaunchOutcome.DialerOpened -> stringResource(R.string.launch_dialer_opened)
+        uiState.launchOutcome == LaunchOutcome.AlreadyLaunched -> stringResource(R.string.launch_already_launched)
+        else -> null
+    }
+    if (message == null) {
+        EifiPrimaryButton(
+            text = stringResource(ReceivingMethodUi.of(uiState.receivingMethod).action, formatFcfa(uiState.amount)),
+            onClick = onConfirm,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    } else {
+        EifiCard(
+            modifier = Modifier.fillMaxWidth(),
+            color = if (uiState.launchOutcome == LaunchOutcome.Called) EifiColors.Soft else EifiColors.AccentSoft,
+            contentPadding = PaddingValues(EifiSpacing.Large),
+        ) {
+            Text(text = message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
         }
     }
 }
@@ -232,6 +250,7 @@ private fun PaymentSummaryScreenPreview() {
                 accounts = listOf(account),
                 account = account,
                 receivingMethod = ReceivingMethod.MerchantCode("482913"),
+                ussdAvailable = true,
                 remainingSeconds = 102,
             ),
             actions = PaymentSummaryActions(),
@@ -251,6 +270,7 @@ private fun PaymentSummaryScreenNoAccountPreview() {
                 accounts = emptyList(),
                 account = null,
                 receivingMethod = ReceivingMethod.PhoneNumber("+237670123456"),
+                ussdAvailable = false,
                 remainingSeconds = 102,
             ),
             actions = PaymentSummaryActions(),

@@ -10,4 +10,5 @@ android {
 dependencies {
     api(projects.core.payload)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.kotlinx.coroutines.core)
 }

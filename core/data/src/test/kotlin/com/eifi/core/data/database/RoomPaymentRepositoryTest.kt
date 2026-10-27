@@ -116,6 +116,50 @@ internal class RoomPaymentRepositoryTest {
     }
 
     @Nested
+    inner class OpenSent {
+        @Test
+        fun `should store the sent payment`() = runTest {
+            // given
+            val payment = Payment(
+                id = "0a1b2c3d4e5f",
+                type = TransactionType.Sent,
+                amount = 2_500,
+                label = null,
+                createdAt = now,
+                expiresAt = now.plusSeconds(120),
+            )
+
+            // when
+            val opened = repository.openSent(payment)
+
+            // then
+            opened shouldBe true
+            stored("0a1b2c3d4e5f") shouldBe payment
+        }
+
+        @Test
+        fun `should refuse a payment already sent`() = runTest {
+            // given
+            val payment = Payment(
+                id = "0a1b2c3d4e5f",
+                type = TransactionType.Sent,
+                amount = 2_500,
+                label = null,
+                createdAt = now,
+                expiresAt = now.plusSeconds(120),
+            )
+            repository.openSent(payment)
+
+            // when
+            val opened = repository.openSent(payment.copy(createdAt = now.plusSeconds(10)))
+
+            // then
+            opened shouldBe false
+            stored("0a1b2c3d4e5f") shouldBe payment
+        }
+    }
+
+    @Nested
     inner class Cancel {
         @Test
         fun `should store the cancellation`() = runTest {

@@ -5,13 +5,21 @@ import com.eifi.core.data.AppPermission
 import com.eifi.core.data.PayingAccountChoice
 import com.eifi.core.data.PayingAccountRepository
 import com.eifi.core.data.PermissionRequestHistory
+import com.eifi.core.data.payment.ConfirmationSource
+import com.eifi.core.data.payment.Payment
+import com.eifi.core.data.payment.PaymentRepository
+import com.eifi.core.data.payment.PaymentService
 import com.eifi.core.payload.Operator
 import com.eifi.core.payload.PaymentRequest
 import com.eifi.core.payload.PaymentUrlCodec
 import com.eifi.core.payload.ReceivingMethod
 import com.eifi.core.permission.PermissionChecker
+import com.eifi.core.ussd.OperatorUssdConfig
 import com.eifi.core.ussd.SimCard
 import com.eifi.core.ussd.SimCardRepository
+import com.eifi.core.ussd.UssdConfigRepository
+import com.eifi.core.ussd.UssdLauncher
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import java.time.Clock
@@ -21,6 +29,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -65,6 +74,12 @@ internal class PaymentSummaryViewModelTest {
 
     private val requestedPermissions = mutableSetOf<AppPermission>()
 
+    /** Ids of the sent payments stored. */
+    private val sentPayments = mutableSetOf<String>()
+
+    /** Codes called, with the subscription id of their SIM. */
+    private val calls = mutableListOf<Pair<String, Int?>>()
+
     private fun viewModel(url: String) = PaymentSummaryViewModel(
         savedStateHandle = SavedStateHandle(mapOf(PaymentSummaryViewModel.PAYMENT_URL to url)),
         paymentUrlCodec = codec,
@@ -73,17 +88,58 @@ internal class PaymentSummaryViewModelTest {
                 override fun activeSimCards() = sims
             },
             payingAccountRepository = payingAccounts,
-        ),
-        permissionChecker = object : PermissionChecker {
-            override fun isGranted(permission: AppPermission) = phoneCallsGranted
-        },
-        permissionRequestHistory = object : PermissionRequestHistory {
-            override suspend fun wasRequested(permission: AppPermission) = permission in requestedPermissions
+            permissionChecker = object : PermissionChecker {
+                override fun isGranted(permission: AppPermission) = phoneCallsGranted
+            },
+            permissionRequestHistory = object : PermissionRequestHistory {
+                override suspend fun wasRequested(permission: AppPermission) = permission in requestedPermissions
 
-            override suspend fun markRequested(permission: AppPermission) {
-                requestedPermissions += permission
-            }
-        },
+                override suspend fun markRequested(permission: AppPermission) {
+                    requestedPermissions += permission
+                }
+            },
+        ),
+        paymentLaunchService = PaymentLaunchService(
+            paymentRepository = object : PaymentRepository {
+                override suspend fun openReceived(amount: Long, label: String?) = error("Not used")
+
+                override suspend fun openSent(payment: Payment) = sentPayments.add(payment.id)
+
+                override fun getByIdAsFlow(id: String) = error("Not used")
+
+                override suspend fun cancel(id: String) = error("Not used")
+
+                override suspend fun confirm(id: String, source: ConfirmationSource) = error("Not used")
+
+                override suspend fun expireOverdue() = error("Not used")
+            },
+            paymentService = PaymentService(),
+            ussdConfigRepository = object : UssdConfigRepository {
+                override val configs = flowOf(
+                    listOf(
+                        OperatorUssdConfig(
+                            operator = Operator.OrangeMoney,
+                            merchantPayment = "#150*47*{code}*{amount}#",
+                            transfer = null,
+                        ),
+                        OperatorUssdConfig(
+                            operator = Operator.MtnMomo,
+                            merchantPayment = "*126*2*{code}*{amount}#",
+                            transfer = null,
+                        ),
+                    ),
+                )
+            },
+            ussdLauncher = object : UssdLauncher {
+                override fun call(code: String, subscriptionId: Int?): Boolean {
+                    calls += code to subscriptionId
+                    return true
+                }
+
+                override fun dial(code: String) = error("Not used")
+            },
+            clock = clock,
+        ),
         clock = clock,
     )
 
@@ -142,6 +198,7 @@ internal class PaymentSummaryViewModelTest {
                 accounts = listOf(account),
                 account = account,
                 receivingMethod = ReceivingMethod.MerchantCode("482913"),
+                ussdAvailable = true,
                 remainingSeconds = 102,
             )
         }
@@ -422,6 +479,22 @@ internal class PaymentSummaryViewModelTest {
         }
 
         @Test
+        fun `should not ask for the biometric prompt without known USSD code`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 0, operator = Operator.OrangeMoney))
+            val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.PhoneNumber("+237690123456"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+
+            // when
+            viewModel.confirm()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).confirmationStep shouldBe ConfirmationStep.None
+        }
+
+        @Test
         fun `should not ask for the biometric prompt once the code has expired`() = runTest(dispatcher) {
             // given
             sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
@@ -441,6 +514,46 @@ internal class PaymentSummaryViewModelTest {
 
     @Nested
     inner class OnAuthenticated {
+        @Test
+        fun `should call the USSD code on the SIM of the account`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.OrangeMoney))
+            val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            viewModel.confirm()
+            runCurrent()
+
+            // when
+            viewModel.onAuthenticated()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).launchOutcome shouldBe LaunchOutcome.Called
+            calls shouldBe listOf("#150*47*482913*2500#" to 2)
+        }
+
+        @Test
+        fun `should not launch a session already launched`() = runTest(dispatcher) {
+            // given
+            sentPayments += "0a1b2c3d4e5f"
+            sims = listOf(sim(slotIndex = 1, operator = Operator.OrangeMoney))
+            val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            viewModel.confirm()
+            runCurrent()
+
+            // when
+            viewModel.onAuthenticated()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).launchOutcome shouldBe
+                LaunchOutcome.AlreadyLaunched
+            calls.shouldBeEmpty()
+        }
+
         @Test
         fun `should confirm the payment`() = runTest(dispatcher) {
             // given

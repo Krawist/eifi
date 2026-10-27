@@ -304,6 +304,8 @@ Build the code from the embedded template of the operator and the operation type
 - The `CALL_PHONE` and `READ_PHONE_STATE` permissions are requested at the first payment, with an explanation.
 - The payment is never launched twice for the same session.
 
+Decided on October 27, 2026: merchant payment templates validated by Krawist, `#150*47*{code}*{amount}#` at Orange Money and `*126*2*{code}*{amount}#` at MTN MoMo; the transfer templates come later, and until then a transfer is shown but not offered. The phone calls permission is asked at the first summary (EIFI-202); refused, the dialer opens with the code typed. The sent payment is stored before the call, under the id of the request, so that a session is never launched twice from the same phone.
+
 Size: M. Dependencies: EIFI-001, EIFI-202, EIFI-203.
 
 ### EIFI-205 · End-of-payment screen

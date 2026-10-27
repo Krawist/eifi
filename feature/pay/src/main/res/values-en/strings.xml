@@ -6,6 +6,9 @@
     <string name="account_choice_subtitle">Only the accounts %1$s accepts are offered.</string>
     <string name="account_choice_title">Choose your account</string>
     <string name="account_sim">SIM %1$d · %2$s</string>
+    <string name="launch_already_launched">This payment was already launched from this phone. Ask for a new code if needed.</string>
+    <string name="launch_called">Code launched. Type your secret code in the %1$s prompt.</string>
+    <string name="launch_dialer_opened">Without the call permission, tap Call in the dialer, then type your secret code.</string>
     <string name="pay_action_pay">Pay</string>
     <string name="pay_action_scan">Scan a QR code</string>
     <string name="pay_back">Back</string>
@@ -20,7 +23,6 @@
     <string name="screen_lock_title">Protect your phone</string>
     <string name="summary_account_change">Change</string>
     <string name="summary_account_sim">%1$s · SIM %2$d</string>
-    <string name="summary_authenticated">Confirmed. The USSD code will be launched here.</string>
     <string name="summary_back">Back</string>
     <string name="summary_expired_body">Ask the person collecting to show a new code.</string>
     <string name="summary_expired_title">This code has expired</string>
@@ -42,6 +44,7 @@
     <string name="summary_transfer_fees_detail">%1$s fees and the 0.2%% tax are added to the amount.</string>
     <string name="summary_transfer_title">Send</string>
     <string name="summary_transfer_with">Send with</string>
+    <string name="summary_unavailable">This payment with %1$s is not available in Eifi yet.</string>
     <string name="summary_update_body">This payment comes from a newer version of Eifi. Update the app to pay.</string>
     <string name="summary_update_title">Update needed</string>
 </resources>

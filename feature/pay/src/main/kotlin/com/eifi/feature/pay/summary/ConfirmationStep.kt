@@ -11,6 +11,6 @@ internal enum class ConfirmationStep {
     /** The phone has no screen lock: the payer must set one up before paying. */
     ScreenLockNeeded,
 
-    /** The payer is authenticated; the USSD code comes with EIFI-204. */
+    /** The payer is authenticated: the USSD code is launched. */
     Authenticated,
 }

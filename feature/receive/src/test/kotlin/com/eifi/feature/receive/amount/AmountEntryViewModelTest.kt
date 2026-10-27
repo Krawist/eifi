@@ -53,6 +53,8 @@ internal class AmountEntryViewModelTest {
             )
         }
 
+        override suspend fun openSent(payment: Payment) = false
+
         override fun getByIdAsFlow(id: String) = emptyFlow<Payment?>()
 
         override suspend fun cancel(id: String) = Unit

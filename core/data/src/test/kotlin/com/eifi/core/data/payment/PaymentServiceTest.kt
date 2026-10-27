@@ -67,6 +67,34 @@ internal class PaymentServiceTest {
     }
 
     @Nested
+    inner class NewSent {
+        @Test
+        fun `should open a pending sent payment with the id and expiry of the request`() {
+            // given
+            val request = PaymentRequest(
+                id = "0a1b2c3d4e5f",
+                displayName = "Kiosque Ndé",
+                amount = 2_500,
+                receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913")),
+                expiresAt = expiresAt,
+            )
+
+            // when
+            val payment = service.newSent(request = request, at = createdAt)
+
+            // then
+            payment shouldBe Payment(
+                id = "0a1b2c3d4e5f",
+                type = TransactionType.Sent,
+                amount = 2_500,
+                label = null,
+                createdAt = createdAt,
+                expiresAt = expiresAt,
+            )
+        }
+    }
+
+    @Nested
     inner class ToPaymentRequest {
         @Test
         fun `should carry the payment and the receiving profile`() {

@@ -6,6 +6,9 @@
     <string name="account_choice_subtitle">Seuls les comptes acceptés par %1$s sont proposés.</string>
     <string name="account_choice_title">Choisissez votre compte</string>
     <string name="account_sim">SIM %1$d · %2$s</string>
+    <string name="launch_already_launched">Ce paiement a déjà été lancé depuis ce téléphone. Demandez un nouveau code si besoin.</string>
+    <string name="launch_called">Code lancé. Saisissez votre code secret dans l\'invite %1$s.</string>
+    <string name="launch_dialer_opened">Sans autorisation d\'appel, appuyez sur Appeler dans le composeur, puis saisissez votre code secret.</string>
     <string name="operator_mtn_momo" translatable="false">MTN MoMo</string>
     <string name="operator_mtn_momo_short" translatable="false">MoMo</string>
     <string name="operator_orange_money" translatable="false">Orange Money</string>
@@ -24,7 +27,6 @@
     <string name="screen_lock_title">Protégez votre téléphone</string>
     <string name="summary_account_change">Changer</string>
     <string name="summary_account_sim">%1$s · SIM %2$d</string>
-    <string name="summary_authenticated">Confirmé. Le code USSD sera lancé ici.</string>
     <string name="summary_back">Retour</string>
     <string name="summary_expired_body">Demandez à celui qui encaisse d\'afficher un nouveau code.</string>
     <string name="summary_expired_title">Ce code a expiré</string>
@@ -46,6 +48,7 @@
     <string name="summary_transfer_fees_detail">Les frais %1$s et la taxe de 0,2 %% s\'ajoutent au montant.</string>
     <string name="summary_transfer_title">Envoyer</string>
     <string name="summary_transfer_with">Envoyer avec</string>
+    <string name="summary_unavailable">Ce paiement avec %1$s n\'est pas encore disponible dans Eifi.</string>
     <string name="summary_update_body">Ce paiement vient d\'une version plus récente d\'Eifi. Mettez l\'application à jour pour payer.</string>
     <string name="summary_update_title">Mise à jour nécessaire</string>
 </resources>

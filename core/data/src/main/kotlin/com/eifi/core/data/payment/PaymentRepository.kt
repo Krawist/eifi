@@ -7,6 +7,12 @@ interface PaymentRepository {
     /** A new PENDING received payment of [amount], or the one already pending for this amount, whatever its label. */
     suspend fun openReceived(amount: Long, label: String?): Payment
 
+    /**
+     * Stores the sent [payment] (see [PaymentService.newSent]) before its USSD code is launched; `false` when a payment
+     * with its id is already stored, so that a session is never paid twice.
+     */
+    suspend fun openSent(payment: Payment): Boolean
+
     fun getByIdAsFlow(id: String): Flow<Payment?>
 
     suspend fun cancel(id: String)

@@ -220,10 +220,17 @@ been chosen yet.
   allowed there), `MainActivity` is a `FragmentActivity` for it. `ConfirmationStep` in the summary: cancelled or failed
   → back to the summary; no screen lock → `ScreenLockNeededScreen` (security settings); authenticated → the account
   is remembered and a placeholder line waits for the USSD code (EIFI-204).
-- [ ] **Next ticket: EIFI-204**, then EIFI-205… EIFI-204 needs the USSD syntax of EIFI-001; EIFI-105 and EIFI-106
-  wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
+- [x] **EIFI-204** — USSD launch: `OperatorUssdConfig` (one template per operation) from `UssdConfigRepository`
+  (`FakeUssdConfigRepository` until the codes are stored locally and fetched from the backend; validated by Krawist:
+  merchant payment OM `#150*47*{code}*{amount}#`, MoMo `*126*2*{code}*{amount}#`; transfers still empty, so not
+  offered), filled by `UssdCodeService` in `:core:ussd`,
+  `TelecomUssdLauncher` (`placeCall` on the `PhoneAccountHandle` of the SIM, `tel:` URI with `%23`; dialer when
+  `CALL_PHONE` is refused). `PaymentLaunchService` stores the sent payment first (`PaymentRepository.openSent`, same id as
+  the request): a session is never launched twice. The summary shows the `LaunchOutcome`.
+- [ ] **Next ticket: EIFI-205**, then EIFI-206… Transfers need their USSD syntax and fees (EIFI-001); EIFI-105 and
+  EIFI-106 wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
-  USSD templates, SMS senders and the fee schedule remain values to be provided, never
+  transfer USSD templates, SMS senders and the fee schedule remain values to be provided, never
   invented.
 
 Update this section at the end of each ticket.

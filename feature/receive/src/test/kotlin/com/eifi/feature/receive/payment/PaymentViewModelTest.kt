@@ -77,6 +77,8 @@ internal class PaymentViewModelTest {
             return stored.value.copy(id = "a1b2c3d4e5f6")
         }
 
+        override suspend fun openSent(payment: Payment) = false
+
         override fun getByIdAsFlow(id: String) = stored.map { it.takeIf { payment -> payment.id == id } }
 
         override suspend fun cancel(id: String) {

@@ -17,11 +17,13 @@ internal sealed interface PaymentSummaryUiState {
      * `null` when no account is compatible, which blocks the payment.
      * @property receivingMethod where the money goes with [account], or with the payee's first operator when there
      * is no account: decides between "Payer" and "Envoyer".
+     * @property ussdAvailable whether the USSD code of [account] is known; otherwise the payment is not offered.
      * @property remainingSeconds time left before the payee's code expires.
      * @property activePermission the permission being explained, `null` when none is.
      * @property choosingAccount whether the "Choisissez votre compte" screen shows.
      * @property rememberChoice whether the account is offered first on the next payments.
      * @property confirmationStep where the confirmation stands: biometric prompt, missing screen lock, authenticated.
+     * @property launchOutcome what launching the USSD code did, `null` until it is launched.
      */
     data class Ready(
         val displayName: String,
@@ -30,11 +32,13 @@ internal sealed interface PaymentSummaryUiState {
         val accounts: List<PayingAccount>,
         val account: PayingAccount?,
         val receivingMethod: ReceivingMethod,
+        val ussdAvailable: Boolean,
         val remainingSeconds: Long,
         val activePermission: AppPermission? = null,
         val choosingAccount: Boolean = false,
         val rememberChoice: Boolean = true,
         val confirmationStep: ConfirmationStep = ConfirmationStep.None,
+        val launchOutcome: LaunchOutcome? = null,
     ) : PaymentSummaryUiState
 
     /** The payee's code has expired, before or while the summary shows: they must show a new one. */

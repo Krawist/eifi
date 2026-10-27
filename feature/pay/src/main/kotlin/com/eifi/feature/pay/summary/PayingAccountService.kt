@@ -1,8 +1,11 @@
 package com.eifi.feature.pay.summary
 
+import com.eifi.core.data.AppPermission
 import com.eifi.core.data.PayingAccountChoice
 import com.eifi.core.data.PayingAccountRepository
+import com.eifi.core.data.PermissionRequestHistory
 import com.eifi.core.payload.Operator
+import com.eifi.core.permission.PermissionChecker
 import com.eifi.core.ussd.SimCard
 import com.eifi.core.ussd.SimCardRepository
 import javax.inject.Inject
@@ -15,9 +18,20 @@ import kotlinx.coroutines.flow.Flow
 internal class PayingAccountService @Inject constructor(
     private val simCardRepository: SimCardRepository,
     private val payingAccountRepository: PayingAccountRepository,
+    private val permissionChecker: PermissionChecker,
+    private val permissionRequestHistory: PermissionRequestHistory,
 ) {
     /** The remembered account, `null` until one is. */
     val choice: Flow<PayingAccountChoice?> = payingAccountRepository.choice
+
+    /** Whether to ask for the phone calls permission, needed to list the SIMs: once, if it is not granted. */
+    suspend fun shouldAskPhoneCalls(): Boolean = !permissionChecker.isGranted(AppPermission.PhoneCalls) &&
+        !permissionRequestHistory.wasRequested(AppPermission.PhoneCalls)
+
+    /** The phone calls permission was asked: it is not asked again. */
+    suspend fun onPhoneCallsAsked() {
+        permissionRequestHistory.markRequested(AppPermission.PhoneCalls)
+    }
 
     /** The SIMs of the phone, `null` without the phone calls permission. */
     fun simCards(): List<SimCard>? = simCardRepository.activeSimCards()

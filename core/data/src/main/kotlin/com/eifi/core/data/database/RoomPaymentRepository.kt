@@ -32,6 +32,12 @@ internal class RoomPaymentRepository @Inject constructor(
             }
     }
 
+    override suspend fun openSent(payment: Payment): Boolean = inTransaction {
+        val stored = dao.getById(payment.id) != null
+        if (!stored) dao.insert(PaymentEntity.of(payment))
+        !stored
+    }
+
     override fun getByIdAsFlow(id: String): Flow<Payment?> = dao.getByIdAsFlow(id).map { it?.toPayment() }
 
     override suspend fun cancel(id: String) = transition(id) {

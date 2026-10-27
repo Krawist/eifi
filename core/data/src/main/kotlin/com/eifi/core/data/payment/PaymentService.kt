@@ -30,6 +30,16 @@ class PaymentService @Inject constructor() {
         )
     }
 
+    /** A new PENDING sent payment of [request], paid at [at]; it keeps the id of the request, see [Payment.id]. */
+    fun newSent(request: PaymentRequest, at: Instant): Payment = Payment(
+        id = request.id,
+        type = TransactionType.Sent,
+        amount = request.amount,
+        label = null,
+        createdAt = at,
+        expiresAt = request.expiresAt,
+    )
+
     /** The request carried by the payment URL of a received [payment], to be paid to [profile]. */
     fun toPaymentRequest(payment: Payment, profile: ReceivingProfile): PaymentRequest = PaymentRequest(
         id = payment.id,
