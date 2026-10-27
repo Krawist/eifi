@@ -13,6 +13,7 @@ import androidx.navigation.compose.navigation
 import com.eifi.core.design.component.PlaceholderScreen
 import com.eifi.feature.onboarding.R
 import com.eifi.feature.onboarding.navigateToOnboarding
+import com.eifi.feature.onboarding.settings.SettingsScreen
 import kotlinx.serialization.Serializable
 
 /** Navigation graph of the home screen, with the screens it opens besides the modes. */
@@ -60,13 +61,10 @@ fun NavGraphBuilder.homeGraph(navController: NavController, onPay: () -> Unit, o
                 onAction = { navController.popBackStack() },
             )
         }
-        // TODO(EIFI-032): settings, with the permissions and the receiving profile.
         composable<SettingsRoute> {
-            PlaceholderScreen(
-                title = stringResource(R.string.settings_title),
-                subtitle = stringResource(R.string.settings_subtitle),
-                actionLabel = stringResource(R.string.settings_replay_introduction),
-                onAction = { navController.navigateToOnboarding() },
+            SettingsScreen(
+                onReplayIntroduction = { navController.navigateToOnboarding() },
+                onBack = { navController.popBackStack() },
             )
         }
     }

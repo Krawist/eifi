@@ -128,6 +128,8 @@ Each permission is requested just before the first action that needs it, with an
 - A refusal never blocks the flow: the app offers an alternative (manual confirmation, USSD code to dial yourself, NFC reading instead of scanning).
 - The settings show the status of each permission and allow changing it.
 
+Decided on October 27, 2026: battery optimisation goes through the system list (no `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, restricted by the Play Store). Each permission is asked once (`PermissionRequestHistory`): after a refusal, the alternative is offered directly and the settings allow changing it. The battery exemption is only asked once notification access is granted. Until EIFI-200 and EIFI-204, the phone and camera steps sit on the Pay placeholder ("Payer", "Scanner un QR code").
+
 Size: M. Dependencies: EIFI-030.
 
 ## Receive mode

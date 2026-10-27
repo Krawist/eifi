@@ -11,6 +11,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.eifi.core.design.component.PlaceholderScreen
+import com.eifi.core.permission.PermissionStep
 import kotlinx.serialization.Serializable
 
 /** Navigation graph of the Receive mode. */
@@ -23,6 +24,10 @@ internal data object ReceiveEntryRoute
 
 @Serializable
 internal data object ReceivingProfileRoute
+
+/** Notification access and battery optimisation, asked the first time the mode is used (EIFI-032). */
+@Serializable
+internal data object ReceivePermissionsRoute
 
 @Serializable
 internal data object ReceiveRoute
@@ -40,7 +45,7 @@ fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Uni
             val profileConfigured by viewModel.profileConfigured.collectAsStateWithLifecycle()
             LaunchedEffect(profileConfigured) {
                 val configured = profileConfigured ?: return@LaunchedEffect
-                navController.navigate(if (configured) ReceiveRoute else ReceivingProfileRoute) {
+                navController.navigate(if (configured) ReceivePermissionsRoute else ReceivingProfileRoute) {
                     popUpTo(ReceiveEntryRoute) { inclusive = true }
                 }
             }
@@ -52,11 +57,33 @@ fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Uni
                 subtitle = stringResource(R.string.receiving_profile_subtitle),
                 actionLabel = stringResource(R.string.receiving_profile_continue),
                 onAction = {
-                    navController.navigate(ReceiveRoute) {
+                    navController.navigate(ReceivePermissionsRoute) {
                         popUpTo(ReceivingProfileRoute) { inclusive = true }
                     }
                 },
             )
+        }
+        composable<ReceivePermissionsRoute> {
+            val viewModel: ReceivePermissionsViewModel = hiltViewModel(
+                checkNotNull(LocalViewModelStoreOwner.current) {
+                    "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+                },
+                null,
+            )
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            when (val state = uiState) {
+                ReceivePermissionsUiState.Loading -> Unit
+                is ReceivePermissionsUiState.Asking -> PermissionStep(
+                    permission = state.permission,
+                    onDone = { granted -> viewModel.onStepDone(state.permission, granted) },
+                    onBack = onBack,
+                )
+                ReceivePermissionsUiState.Done -> LaunchedEffect(Unit) {
+                    navController.navigate(ReceiveRoute) {
+                        popUpTo(ReceivePermissionsRoute) { inclusive = true }
+                    }
+                }
+            }
         }
         composable<ReceiveRoute> { ReceiveScreen(onBack = onBack) }
     }

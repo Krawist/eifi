@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.builtins.nullable
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -19,7 +20,11 @@ internal class DataStoreUserPreferencesRepositoryTest(@TempDir private val folde
     private val file = File(folder, "user_profile.json")
 
     private val repository = DataStoreUserPreferencesRepository(
-        userProfileDataStore(scope = scope.backgroundScope) { file },
+        jsonDataStore(
+            serializer = UserProfile.serializer().nullable,
+            defaultValue = null,
+            scope = scope.backgroundScope,
+        ) { file },
     )
 
     @Nested

@@ -21,4 +21,5 @@ object EifiDimens {
     val SelectionBorder = 2.dp
     val SelectionBadge = 24.dp
     val PayCardSpace = 64.dp
+    val PointIcon = 18.dp
 }

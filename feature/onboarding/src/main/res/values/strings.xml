@@ -35,8 +35,8 @@
     <string name="names_title">Comment vous appeler\u00A0?</string>
     <string name="operator_mtn_momo" translatable="false">MTN MoMo</string>
     <string name="operator_orange_money" translatable="false">Orange Money</string>
+    <string name="settings_permissions">Autorisations</string>
     <string name="settings_replay_introduction">Revoir la présentation</string>
-    <string name="settings_subtitle">Les réglages arrivent bientôt.</string>
     <string name="settings_title">Réglages</string>
     <string name="welcome_gesture_body">Le montant est déjà rempli : il ne reste que votre code secret.</string>
     <string name="welcome_gesture_title">Approchez ou scannez</string>

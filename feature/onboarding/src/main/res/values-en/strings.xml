@@ -31,8 +31,8 @@
     <string name="names_personal">Your name</string>
     <string name="names_subtitle">Your name, your business name, or both. If you have a business, its name is shown.</string>
     <string name="names_title">What should we call you?</string>
+    <string name="settings_permissions">Permissions</string>
     <string name="settings_replay_introduction">View the introduction again</string>
-    <string name="settings_subtitle">Settings are coming soon.</string>
     <string name="settings_title">Settings</string>
     <string name="welcome_gesture_body">The amount is already filled in: all that is left is your PIN.</string>
     <string name="welcome_gesture_title">Tap or scan</string>

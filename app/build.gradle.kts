@@ -61,6 +61,7 @@ android {
 dependencies {
     implementation(projects.core.design)
     implementation(projects.core.data)
+    implementation(projects.core.sms)
     implementation(projects.feature.onboarding)
     implementation(projects.feature.pay)
     implementation(projects.feature.receive)

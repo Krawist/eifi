@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="receive_back">Retour</string>
+    <string name="receive_confirmation_automatic">Confirmation automatique par le SMS de l\'opérateur.</string>
+    <string name="receive_confirmation_manual">Confirmation manuelle\u00A0: vérifiez le SMS de l\'opérateur vous-même.</string>
     <string name="receive_subtitle">Saisissez un montant pour encaisser.</string>
     <string name="receive_title">Encaisser</string>
     <string name="receiving_profile_continue">Continuer</string>

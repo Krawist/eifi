@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="permission_battery_allow">Ouvrir les réglages</string>
+    <string name="permission_battery_body">Sinon, certains téléphones arrêtent Eifi et des paiements ne sont pas confirmés.</string>
+    <string name="permission_battery_later">Plus tard</string>
+    <string name="permission_battery_point_list">Dans la liste, choisissez Eifi puis « Ne pas optimiser ».</string>
+    <string name="permission_battery_point_usage">Eifi consomme très peu de batterie.</string>
+    <string name="permission_battery_title">Gardez Eifi actif en arrière-plan</string>
+    <string name="permission_camera_allow">Autoriser</string>
+    <string name="permission_camera_body">L\'appareil photo sert uniquement à lire le QR code affiché par celui qui encaisse.</string>
+    <string name="permission_camera_later">Plus tard, j\'approcherai mon téléphone</string>
+    <string name="permission_camera_point_nfc">Sans appareil photo, approchez simplement les téléphones.</string>
+    <string name="permission_camera_point_photos">Aucune photo n\'est enregistrée.</string>
+    <string name="permission_camera_title">Scannez le code de paiement</string>
+    <string name="permission_change">Modifier</string>
+    <string name="permission_name_battery">Fonctionnement en arrière-plan</string>
+    <string name="permission_name_camera">Appareil photo</string>
+    <string name="permission_name_notification">Confirmation automatique</string>
+    <string name="permission_name_phone">Appels téléphoniques</string>
+    <string name="permission_notification_allow">Autoriser</string>
+    <string name="permission_notification_body">Eifi lit les SMS de crédit d\'Orange Money et de MTN MoMo pour vous annoncer chaque paiement reçu.</string>
+    <string name="permission_notification_later">Plus tard, je confirmerai moi-même</string>
+    <string name="permission_notification_point_local">Rien ne quitte votre téléphone.</string>
+    <string name="permission_notification_point_operator">Seuls les SMS de votre opérateur sont lus.</string>
+    <string name="permission_notification_received">Paiement reçu · %1$s FCFA</string>
+    <string name="permission_notification_sms_sender">SMS Orange Money</string>
+    <string name="permission_notification_sms_text">Vous avez reçu %1$s FCFA…</string>
+    <string name="permission_notification_title">Confirmez vos paiements automatiquement</string>
+    <string name="permission_phone_allow">Autoriser</string>
+    <string name="permission_phone_body">Eifi compose pour vous le code Orange Money ou MTN MoMo, sur la bonne carte SIM.</string>
+    <string name="permission_phone_later">Plus tard, je composerai le code moi-même</string>
+    <string name="permission_phone_point_calls">Eifi ne passe aucun autre appel.</string>
+    <string name="permission_phone_point_pin">Vous tapez votre code secret dans l\'invite de l\'opérateur, jamais dans Eifi.</string>
+    <string name="permission_phone_title">Lancez le paiement en un geste</string>
+    <string name="permission_point_revocable">Vous pouvez le modifier à tout moment dans les réglages.</string>
+    <string name="permission_status_denied">Non autorisé</string>
+    <string name="permission_status_granted">Autorisé</string>
+</resources>

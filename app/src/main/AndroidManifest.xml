@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Permissions (NFC, CALL_PHONE, READ_PHONE_STATE, CAMERA, notification listening) come with the
-         tickets that need them, and are requested when they are needed (EIFI-032). -->
+    <!-- Requested just before the first action that needs them (EIFI-032). The notification listener and its
+         permission are declared by :core:sms; NFC comes with EIFI-104 and EIFI-200. -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Neither is required: without them the app offers its alternatives (USSD code to dial, NFC). -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:name=".EifiApplication"

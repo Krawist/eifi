@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Names given in the onboarding: a personal name, a business name, or both. Blank names are not allowed.
- * Stored as JSON (see [UserProfileSerializer]): a new property needs a default value.
+ * Stored as JSON (see [JsonSerializer]): a new property needs a default value.
  */
 @Serializable
 data class UserProfile(val personalName: String?, val businessName: String?) {

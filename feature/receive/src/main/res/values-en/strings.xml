@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="receive_back">Back</string>
+    <string name="receive_confirmation_automatic">Automatic confirmation by the operator\'s SMS.</string>
+    <string name="receive_confirmation_manual">Manual confirmation: check the operator\'s SMS yourself.</string>
     <string name="receive_subtitle">Enter an amount to collect.</string>
     <string name="receive_title">Collect</string>
     <string name="receiving_profile_continue">Continue</string>

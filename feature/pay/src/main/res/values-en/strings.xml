@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="pay_action_pay">Pay</string>
+    <string name="pay_action_scan">Scan a QR code</string>
     <string name="pay_back">Back</string>
+    <string name="pay_outcome_dial_yourself">Without the call permission, you will dial the USSD code shown yourself.</string>
+    <string name="pay_outcome_scanner_ready">The scanner will open here.</string>
+    <string name="pay_outcome_use_nfc">Without the camera, bring your phone close to the payee\'s.</string>
+    <string name="pay_outcome_ussd_ready">The USSD code will be launched here.</string>
     <string name="pay_subtitle">Tap or scan to pay.</string>
     <string name="pay_title">Pay</string>
 </resources>

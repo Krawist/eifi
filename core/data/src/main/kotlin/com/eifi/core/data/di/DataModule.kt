@@ -4,13 +4,16 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.dataStoreFile
 import com.eifi.core.data.ActivityRepository
+import com.eifi.core.data.AppPermission
+import com.eifi.core.data.DataStorePermissionRequestHistory
 import com.eifi.core.data.DataStoreUserPreferencesRepository
+import com.eifi.core.data.PermissionRequestHistory
 import com.eifi.core.data.ReceivingProfileRepository
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
 import com.eifi.core.data.fake.FakeActivityRepository
 import com.eifi.core.data.fake.FakeReceivingProfileRepository
-import com.eifi.core.data.userProfileDataStore
+import com.eifi.core.data.jsonDataStore
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -19,12 +22,17 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import java.time.Clock
 import javax.inject.Singleton
+import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.builtins.nullable
 
 @Module
 @InstallIn(SingletonComponent::class)
 internal abstract class DataModule {
     @Binds
     abstract fun bindUserPreferencesRepository(impl: DataStoreUserPreferencesRepository): UserPreferencesRepository
+
+    @Binds
+    abstract fun bindPermissionRequestHistory(impl: DataStorePermissionRequestHistory): PermissionRequestHistory
 
     @Binds
     abstract fun bindActivityRepository(impl: FakeActivityRepository): ActivityRepository
@@ -36,7 +44,16 @@ internal abstract class DataModule {
         @Provides
         @Singleton
         fun provideUserProfileStore(@ApplicationContext context: Context): DataStore<UserProfile?> =
-            userProfileDataStore { context.dataStoreFile("user_profile.json") }
+            jsonDataStore(serializer = UserProfile.serializer().nullable, defaultValue = null) {
+                context.dataStoreFile("user_profile.json")
+            }
+
+        @Provides
+        @Singleton
+        fun providePermissionRequestStore(@ApplicationContext context: Context): DataStore<Set<AppPermission>> =
+            jsonDataStore(serializer = SetSerializer(AppPermission.serializer()), defaultValue = emptySet()) {
+                context.dataStoreFile("permission_requests.json")
+            }
 
         @Provides
         fun provideClock(): Clock = Clock.systemDefaultZone()

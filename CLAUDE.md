@@ -107,6 +107,7 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
 | `:feature:receive`    | Receive mode screens                                | 100–109       |
 | `:core:design`        | Theme, colours, type, components, formatting        | 011           |
 | `:core:data`          | DataStore preferences, Room database (from 102)     | 012, 102      |
+| `:core:permission`    | Permission status, explanation screens, `PermissionStep` | 032      |
 | `:core:payload`       | Payment URL encoding/decoding (pure Kotlin)         | 020           |
 | `:core:nfc`           | Type 4 HCE and NDEF reader                          | 104, 200      |
 | `:core:ussd`          | USSD templates, SIM, call launch                    | 202, 204      |
@@ -158,7 +159,12 @@ been chosen yet.
   Fakes to replace: `FakeActivityRepository` (EIFI-102, 207), `FakeReceivingProfileRepository`
   (EIFI-100), `FakeNfcPaymentReader` (EIFI-200); placeholder screens for history and settings.
   Receive mode starts on `ReceiveEntryRoute`, which opens the receiving profile until it is filled in.
-- [ ] **Next ticket: EIFI-032**, then EIFI-100… (order in `docs/tickets.md`).
+- [x] **EIFI-032** — permissions in `:core:permission`: `PermissionChecker`, `PermissionStep`
+  (explanation → system dialog or settings → result on return), `PermissionSettingsRow`. Asked once
+  (`PermissionRequestHistory`, JSON store). Receive: notification access, then battery (system list),
+  after the receiving profile. Pay placeholder: phone calls before "Payer", camera before "Scanner".
+  Settings screen with the status of each permission. Empty `EifiNotificationListener` in `:core:sms`.
+- [ ] **Next ticket: EIFI-100**, then EIFI-101… (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
   invented.
