@@ -142,8 +142,8 @@ example `{prefix}*{merchantCode}*{amount}#` for a merchant payment. The real syn
 operator will be established during the prototype.
 
 The app lists the active SIMs with `SubscriptionManager` (`READ_PHONE_STATE` permission) and
-recognises the operator by its network code: MCC 624 for Cameroon, Orange and MTN MNC codes to be
-checked. It finds the matching `PhoneAccountHandle` and places the call with
+recognises the operator by its network code: MCC 624 for Cameroon, MNC 01 for MTN and 02 for Orange
+(ITU E.212 list, October 27, 2026). It finds the matching `PhoneAccountHandle` and places the call with
 `TelecomManager.placeCall` (`CALL_PHONE` permission), encoding the `#` characters in the `tel:` URI.
 
 Before the call, a mandatory `BiometricPrompt` asks for the fingerprint, face or unlock code
@@ -265,7 +265,7 @@ The rendered mockups are in [`design/`](design/).
 
 - One-line USSD syntax for merchant payment and transfer at Orange and at MTN.
 - Transfer fee schedule of each operator, and exact format of credit and debit SMS.
-- Orange and MTN MNC codes in Cameroon, and the sender names of their SMS.
+- Sender names of the Orange and MTN SMS.
 - Reliability of Type 4 tag emulation on common models, and background reading by iPhone.
 - Domain name of the payment URL and static hosting.
 - Final logo choice.

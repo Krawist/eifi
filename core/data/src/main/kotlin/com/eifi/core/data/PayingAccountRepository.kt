@@ -1,12 +1,11 @@
 package com.eifi.core.data
 
-import com.eifi.core.payload.Operator
 import kotlinx.coroutines.flow.Flow
 
-/** The payer's account used for the last payment, offered first on the next summary (EIFI-201). */
+/** The payer's remembered account, offered first on the next summaries (EIFI-201, EIFI-202). */
 interface PayingAccountRepository {
-    /** `null` until the first payment. */
-    val lastOperator: Flow<Operator?>
+    /** `null` until an account is remembered. */
+    val choice: Flow<PayingAccountChoice?>
 
-    suspend fun saveLastOperator(operator: Operator)
+    suspend fun saveChoice(choice: PayingAccountChoice)
 }

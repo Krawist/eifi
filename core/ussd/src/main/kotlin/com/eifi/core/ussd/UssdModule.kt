@@ -1,9 +1,14 @@
 package com.eifi.core.ussd
 
-/**
- * Embedded USSD templates per operator and operation type, SIM selection
- * and launch with TelecomManager.placeCall.
- *
- * TODO(EIFI-202, EIFI-204)
- */
-internal object UssdModule
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+
+/** SIM and USSD bindings. TODO(EIFI-204): embedded USSD templates and launch with `TelecomManager.placeCall`. */
+@Module
+@InstallIn(SingletonComponent::class)
+internal abstract class UssdModule {
+    @Binds
+    abstract fun bindSimCardRepository(impl: AndroidSimCardRepository): SimCardRepository
+}

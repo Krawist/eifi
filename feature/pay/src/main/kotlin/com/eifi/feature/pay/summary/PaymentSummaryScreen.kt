@@ -1,5 +1,6 @@
 package com.eifi.feature.pay.summary
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,10 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -41,69 +38,71 @@ import com.eifi.core.design.theme.EifiColors
 import com.eifi.core.design.theme.EifiDimens
 import com.eifi.core.design.theme.EifiSpacing
 import com.eifi.core.design.theme.EifiTheme
+import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.core.payload.Operator
 import com.eifi.core.payload.ReceivingMethod
+import com.eifi.core.permission.PermissionStep
+import com.eifi.core.ussd.SimCard
 import com.eifi.feature.pay.R
 import com.eifi.feature.pay.displayName
 
 /**
  * "Récapitulatif": the payee, the amount, the payer's account, the fees and the confirmation, while the payee's
- * code is valid; otherwise why the URL cannot be paid.
+ * code is valid, after the phone calls permission step the first time; "Choisissez votre compte" on "Changer";
+ * otherwise why the URL cannot be paid.
  */
 @Composable
 internal fun PaymentSummaryScreen(
     uiState: PaymentSummaryUiState,
-    onSelectOperator: (Operator) -> Unit,
-    onConfirm: () -> Unit,
-    onClose: () -> Unit,
+    actions: PaymentSummaryActions,
     modifier: Modifier = Modifier,
 ) {
     when (uiState) {
-        is PaymentSummaryUiState.Ready -> Summary(
-            uiState = uiState,
-            onSelectOperator = onSelectOperator,
-            onConfirm = onConfirm,
-            onClose = onClose,
-            modifier = modifier,
-        )
-        PaymentSummaryUiState.Expired -> Problem(
-            title = R.string.summary_expired_title,
-            body = R.string.summary_expired_body,
-            onClose = onClose,
-            modifier = modifier,
-        )
-        PaymentSummaryUiState.UpdateNeeded -> Problem(
-            title = R.string.summary_update_title,
-            body = R.string.summary_update_body,
-            onClose = onClose,
-            modifier = modifier,
-        )
-        PaymentSummaryUiState.Invalid -> Problem(
-            title = R.string.summary_invalid_title,
-            body = R.string.summary_invalid_body,
-            onClose = onClose,
-            modifier = modifier,
-        )
+        is PaymentSummaryUiState.Ready -> uiState.activePermission?.let {
+            PermissionStep(
+                permission = it,
+                onDone = actions.onPermissionDone,
+                modifier = modifier,
+                onBack = actions.onClose,
+            )
+        } ?: AnimatedContent(
+            targetState = uiState.choosingAccount,
+            transitionSpec = { EifiTransitions.step(forward = targetState) },
+            label = "account choice",
+        ) { choosingAccount ->
+            if (choosingAccount) {
+                AccountChoiceScreen(
+                    uiState = uiState,
+                    onChoose = actions.onChooseAccount,
+                    onBack = actions.onCloseAccountChoice,
+                    modifier = modifier,
+                )
+            } else {
+                Summary(uiState = uiState, actions = actions, modifier = modifier)
+            }
+        }
+        PaymentSummaryUiState.Expired ->
+            Problem(R.string.summary_expired_title, R.string.summary_expired_body, actions.onClose, modifier)
+        PaymentSummaryUiState.UpdateNeeded ->
+            Problem(R.string.summary_update_title, R.string.summary_update_body, actions.onClose, modifier)
+        PaymentSummaryUiState.Invalid ->
+            Problem(R.string.summary_invalid_title, R.string.summary_invalid_body, actions.onClose, modifier)
     }
 }
 
 @Composable
 private fun Summary(
     uiState: PaymentSummaryUiState.Ready,
-    onSelectOperator: (Operator) -> Unit,
-    onConfirm: () -> Unit,
-    onClose: () -> Unit,
+    actions: PaymentSummaryActions,
     modifier: Modifier = Modifier,
 ) {
     val methodUi = ReceivingMethodUi.of(uiState.receivingMethod)
-    val operatorName = stringResource(uiState.operator.displayName)
-    var choosingAccount by rememberSaveable { mutableStateOf(false) }
     Surface(modifier = modifier.fillMaxSize(), color = EifiColors.Background) {
         Column(modifier = Modifier.safeDrawingPadding().padding(EifiSpacing.Gutter)) {
             TopBar(
                 title = stringResource(methodUi.title),
                 remainingSeconds = uiState.remainingSeconds,
-                onClose = onClose,
+                onClose = actions.onClose,
             )
             Column(
                 modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
@@ -111,43 +110,44 @@ private fun Summary(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Payee(uiState = uiState, methodUi = methodUi)
-                AccountCard(
-                    label = stringResource(methodUi.accountLabel),
-                    operator = uiState.operator,
-                    onChange = if (uiState.operators.size > 1) ({ choosingAccount = true }) else null,
-                )
-                Fees(methodUi = methodUi, operatorName = operatorName)
-                Note(
-                    icon = DesignR.drawable.ic_eifi_shield,
-                    text = stringResource(R.string.summary_pin_reminder, operatorName),
+                if (uiState.account == null) {
+                    NoAccountCard(displayName = uiState.displayName, payeeOperators = uiState.payeeOperators)
+                } else {
+                    AccountDetails(
+                        account = uiState.account,
+                        methodUi = methodUi,
+                        onChange = actions.onChangeAccount.takeIf { uiState.accounts.size > 1 },
+                    )
+                }
+            }
+            if (uiState.account != null) {
+                if (uiState.confirmed) {
+                    Text(
+                        text = stringResource(R.string.summary_confirm_soon),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = EifiSpacing.Medium),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                EifiPrimaryButton(
+                    text = stringResource(methodUi.action, formatFcfa(uiState.amount)),
+                    onClick = actions.onConfirm,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
-            if (uiState.confirmed) {
-                Text(
-                    text = stringResource(R.string.summary_confirm_soon),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = EifiSpacing.Medium),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-            }
-            EifiPrimaryButton(
-                text = stringResource(methodUi.action, formatFcfa(uiState.amount)),
-                onClick = onConfirm,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
-    if (choosingAccount) {
-        AccountSheet(
-            operators = uiState.operators,
-            selected = uiState.operator,
-            onSelect = {
-                onSelectOperator(it)
-                choosingAccount = false
-            },
-            onDismiss = { choosingAccount = false },
-        )
+}
+
+/** The account, the fees and the PIN reminder. */
+@Composable
+private fun AccountDetails(account: PayingAccount, methodUi: ReceivingMethodUi, onChange: (() -> Unit)?) {
+    val operatorName = stringResource(account.operator.displayName)
+    Column(verticalArrangement = Arrangement.spacedBy(EifiSpacing.Large)) {
+        AccountCard(label = stringResource(methodUi.accountLabel), account = account, onChange = onChange)
+        Fees(methodUi = methodUi, operatorName = operatorName)
+        Note(icon = DesignR.drawable.ic_eifi_shield, text = stringResource(R.string.summary_pin_reminder, operatorName))
     }
 }
 
@@ -157,7 +157,10 @@ private fun TopBar(title: String, remainingSeconds: Long, onClose: () -> Unit) {
         EifiCloseButton(onClick = onClose, modifier = Modifier.align(Alignment.CenterStart))
         Text(text = title, style = MaterialTheme.typography.titleMedium)
         EifiPill(
-            text = stringResource(R.string.summary_expires_in, countdown(remainingSeconds)),
+            text = stringResource(
+                R.string.summary_expires_in,
+                "%d:%02d".format(remainingSeconds / SECONDS_PER_MINUTE, remainingSeconds % SECONDS_PER_MINUTE),
+            ),
             modifier = Modifier.align(Alignment.CenterEnd),
             tone = EifiPillTone.Accent,
             icon = painterResource(DesignR.drawable.ic_eifi_timer),
@@ -228,49 +231,46 @@ private fun Problem(title: Int, body: Int, onClose: () -> Unit, modifier: Modifi
     )
 }
 
-private fun countdown(seconds: Long): String = "%d:%02d".format(
-    seconds / SECONDS_PER_MINUTE,
-    seconds % SECONDS_PER_MINUTE,
-)
-
 private const val SECONDS_PER_MINUTE = 60
 
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun PaymentSummaryScreenPreview() {
+    val account = PayingAccount(
+        operator = Operator.OrangeMoney,
+        sim = SimCard(subscriptionId = 1, slotIndex = 0, carrierName = "Orange CM", operator = Operator.OrangeMoney),
+    )
     EifiTheme {
         PaymentSummaryScreen(
             uiState = PaymentSummaryUiState.Ready(
                 displayName = "Kiosque Ndé",
                 amount = 2_500,
-                operators = listOf(Operator.OrangeMoney, Operator.MtnMomo),
-                operator = Operator.OrangeMoney,
+                payeeOperators = listOf(Operator.OrangeMoney, Operator.MtnMomo),
+                accounts = listOf(account),
+                account = account,
                 receivingMethod = ReceivingMethod.MerchantCode("482913"),
                 remainingSeconds = 102,
             ),
-            onSelectOperator = {},
-            onConfirm = {},
-            onClose = {},
+            actions = PaymentSummaryActions(),
         )
     }
 }
 
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
-private fun PaymentSummaryScreenTransferPreview() {
+private fun PaymentSummaryScreenNoAccountPreview() {
     EifiTheme {
         PaymentSummaryScreen(
             uiState = PaymentSummaryUiState.Ready(
                 displayName = "Paul",
                 amount = 2_500,
-                operators = listOf(Operator.OrangeMoney),
-                operator = Operator.OrangeMoney,
-                receivingMethod = ReceivingMethod.PhoneNumber("+237690123456"),
+                payeeOperators = listOf(Operator.MtnMomo),
+                accounts = emptyList(),
+                account = null,
+                receivingMethod = ReceivingMethod.PhoneNumber("+237670123456"),
                 remainingSeconds = 102,
             ),
-            onSelectOperator = {},
-            onConfirm = {},
-            onClose = {},
+            actions = PaymentSummaryActions(),
         )
     }
 }

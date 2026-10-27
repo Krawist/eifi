@@ -1,11 +1,17 @@
 package com.eifi.feature.pay.summary
 
 import androidx.lifecycle.SavedStateHandle
+import com.eifi.core.data.AppPermission
+import com.eifi.core.data.PayingAccountChoice
 import com.eifi.core.data.PayingAccountRepository
+import com.eifi.core.data.PermissionRequestHistory
 import com.eifi.core.payload.Operator
 import com.eifi.core.payload.PaymentRequest
 import com.eifi.core.payload.PaymentUrlCodec
 import com.eifi.core.payload.ReceivingMethod
+import com.eifi.core.permission.PermissionChecker
+import com.eifi.core.ussd.SimCard
+import com.eifi.core.ussd.SimCardRepository
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import java.time.Clock
@@ -44,17 +50,39 @@ internal class PaymentSummaryViewModelTest {
     private val codec = PaymentUrlCodec(baseUrl = "https://pay.eifi.app", clock = clock)
 
     private val payingAccounts = object : PayingAccountRepository {
-        override val lastOperator = MutableStateFlow<Operator?>(null)
+        override val choice = MutableStateFlow<PayingAccountChoice?>(null)
 
-        override suspend fun saveLastOperator(operator: Operator) {
-            lastOperator.value = operator
+        override suspend fun saveChoice(choice: PayingAccountChoice) {
+            this.choice.value = choice
         }
     }
+
+    /** The payer's SIMs, `null` without the phone calls permission. */
+    private var sims: List<SimCard>? = null
+
+    private var phoneCallsGranted = true
+
+    private val requestedPermissions = mutableSetOf<AppPermission>()
 
     private fun viewModel(url: String) = PaymentSummaryViewModel(
         savedStateHandle = SavedStateHandle(mapOf(PaymentSummaryViewModel.PAYMENT_URL to url)),
         paymentUrlCodec = codec,
-        payingAccountRepository = payingAccounts,
+        payingAccountService = PayingAccountService(
+            simCardRepository = object : SimCardRepository {
+                override fun activeSimCards() = sims
+            },
+            payingAccountRepository = payingAccounts,
+        ),
+        permissionChecker = object : PermissionChecker {
+            override fun isGranted(permission: AppPermission) = phoneCallsGranted
+        },
+        permissionRequestHistory = object : PermissionRequestHistory {
+            override suspend fun wasRequested(permission: AppPermission) = permission in requestedPermissions
+
+            override suspend fun markRequested(permission: AppPermission) {
+                requestedPermissions += permission
+            }
+        },
         clock = clock,
     )
 
@@ -67,6 +95,14 @@ internal class PaymentSummaryViewModelTest {
             receivingMethods = receivingMethods,
             expiresAt = start.plusSeconds(120),
         ),
+    )
+
+    /** Helper without side effect: a SIM of [operator] in [slotIndex]. */
+    private fun sim(slotIndex: Int, operator: Operator?) = SimCard(
+        subscriptionId = slotIndex + 1,
+        slotIndex = slotIndex,
+        carrierName = "",
+        operator = operator,
     )
 
     @BeforeEach
@@ -82,8 +118,9 @@ internal class PaymentSummaryViewModelTest {
     @Nested
     inner class UiState {
         @Test
-        fun `should show the payee, the amount and the time left`() = runTest(dispatcher) {
+        fun `should show the payee, the amount, the account and the time left`() = runTest(dispatcher) {
             // given
+            sims = listOf(sim(slotIndex = 0, operator = Operator.OrangeMoney))
             val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
             backgroundScope.launch { viewModel.uiState.collect {} }
 
@@ -92,20 +129,31 @@ internal class PaymentSummaryViewModelTest {
             runCurrent()
 
             // then
+            val account =
+                PayingAccount(
+                    operator = Operator.OrangeMoney,
+                    sim = sim(slotIndex = 0, operator = Operator.OrangeMoney),
+                )
             viewModel.uiState.value shouldBe PaymentSummaryUiState.Ready(
                 displayName = "Kiosque Ndé",
                 amount = 2_500,
-                operators = listOf(Operator.OrangeMoney),
-                operator = Operator.OrangeMoney,
+                payeeOperators = listOf(Operator.OrangeMoney),
+                accounts = listOf(account),
+                account = account,
                 receivingMethod = ReceivingMethod.MerchantCode("482913"),
                 remainingSeconds = 102,
             )
         }
 
         @Test
-        fun `should offer the last account used when the payee accepts it`() = runTest(dispatcher) {
+        fun `should offer the remembered account when the payee accepts it`() = runTest(dispatcher) {
             // given
-            payingAccounts.lastOperator.value = Operator.MtnMomo
+            sims =
+                listOf(
+                    sim(slotIndex = 0, operator = Operator.OrangeMoney),
+                    sim(slotIndex = 1, operator = Operator.MtnMomo),
+                )
+            payingAccounts.choice.value = PayingAccountChoice(operator = Operator.MtnMomo, subscriptionId = 2)
             val viewModel = viewModel(
                 url(
                     mapOf(
@@ -120,23 +168,77 @@ internal class PaymentSummaryViewModelTest {
             runCurrent()
 
             // then
-            (viewModel.uiState.value as PaymentSummaryUiState.Ready).operator shouldBe Operator.MtnMomo
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).account shouldBe
+                PayingAccount(operator = Operator.MtnMomo, sim = sim(slotIndex = 1, operator = Operator.MtnMomo))
         }
 
         @Test
-        fun `should offer the first operator of the payee when the last account used is not accepted`() =
-            runTest(dispatcher) {
-                // given
-                payingAccounts.lastOperator.value = Operator.MtnMomo
-                val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
-                backgroundScope.launch { viewModel.uiState.collect {} }
+        fun `should block the payment when no SIM is with an operator the payee accepts`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 0, operator = null))
+            val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
 
-                // when
-                runCurrent()
+            // when
+            runCurrent()
 
-                // then
-                (viewModel.uiState.value as PaymentSummaryUiState.Ready).operator shouldBe Operator.OrangeMoney
-            }
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).account.shouldBeNull()
+        }
+
+        @Test
+        fun `should offer every operator of the payee when the SIMs are not known`() = runTest(dispatcher) {
+            // given
+            phoneCallsGranted = false
+            requestedPermissions += AppPermission.PhoneCalls
+            val viewModel = viewModel(
+                url(
+                    mapOf(
+                        Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"),
+                        Operator.MtnMomo to ReceivingMethod.MerchantCode("771234"),
+                    ),
+                ),
+            )
+            backgroundScope.launch { viewModel.uiState.collect {} }
+
+            // when
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).accounts shouldBe listOf(
+                PayingAccount(operator = Operator.OrangeMoney, sim = null),
+                PayingAccount(operator = Operator.MtnMomo, sim = null),
+            )
+        }
+
+        @Test
+        fun `should ask for the phone calls permission at the first summary`() = runTest(dispatcher) {
+            // given
+            phoneCallsGranted = false
+            val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+
+            // when
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).activePermission shouldBe AppPermission.PhoneCalls
+        }
+
+        @Test
+        fun `should not ask again for the phone calls permission`() = runTest(dispatcher) {
+            // given
+            phoneCallsGranted = false
+            requestedPermissions += AppPermission.PhoneCalls
+            val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+
+            // when
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).activePermission.shouldBeNull()
+        }
 
         @Test
         fun `should block the payment once the code expires`() = runTest(dispatcher) {
@@ -185,10 +287,55 @@ internal class PaymentSummaryViewModelTest {
     }
 
     @Nested
-    inner class SelectOperator {
+    inner class OnPermissionDone {
+        @Test
+        fun `should offer the SIMs once the permission is granted`() = runTest(dispatcher) {
+            // given
+            phoneCallsGranted = false
+            val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            sims = listOf(sim(slotIndex = 0, operator = Operator.OrangeMoney))
+
+            // when
+            viewModel.onPermissionDone(granted = true)
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).account shouldBe
+                PayingAccount(
+                    operator = Operator.OrangeMoney,
+                    sim = sim(slotIndex = 0, operator = Operator.OrangeMoney),
+                )
+        }
+
+        @Test
+        fun `should not ask again once asked`() = runTest(dispatcher) {
+            // given
+            phoneCallsGranted = false
+            val viewModel = viewModel(url(mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+
+            // when
+            viewModel.onPermissionDone(granted = false)
+            runCurrent()
+
+            // then
+            requestedPermissions shouldBe setOf(AppPermission.PhoneCalls)
+        }
+    }
+
+    @Nested
+    inner class ChooseAccount {
         @Test
         fun `should pay with the chosen account`() = runTest(dispatcher) {
             // given
+            sims =
+                listOf(
+                    sim(slotIndex = 0, operator = Operator.OrangeMoney),
+                    sim(slotIndex = 1, operator = Operator.MtnMomo),
+                )
             val viewModel = viewModel(
                 url(
                     mapOf(
@@ -201,12 +348,40 @@ internal class PaymentSummaryViewModelTest {
             runCurrent()
 
             // when
-            viewModel.selectOperator(Operator.MtnMomo)
+            viewModel.chooseAccount(
+                account = PayingAccount(
+                    operator = Operator.MtnMomo,
+                    sim = sim(slotIndex = 1, operator = Operator.MtnMomo),
+                ),
+                remember = false,
+            )
             runCurrent()
 
             // then
-            val state = viewModel.uiState.value as PaymentSummaryUiState.Ready
-            state.receivingMethod shouldBe ReceivingMethod.PhoneNumber("+237670123456")
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).receivingMethod shouldBe
+                ReceivingMethod.PhoneNumber("+237670123456")
+        }
+
+        @Test
+        fun `should remember the chosen account when asked`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+
+            // when
+            viewModel.chooseAccount(
+                account = PayingAccount(
+                    operator = Operator.MtnMomo,
+                    sim = sim(slotIndex = 1, operator = Operator.MtnMomo),
+                ),
+                remember = true,
+            )
+            runCurrent()
+
+            // then
+            payingAccounts.choice.value shouldBe PayingAccountChoice(operator = Operator.MtnMomo, subscriptionId = 2)
         }
     }
 
@@ -215,6 +390,7 @@ internal class PaymentSummaryViewModelTest {
         @Test
         fun `should remember the account for the next payment`() = runTest(dispatcher) {
             // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
             val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
             backgroundScope.launch { viewModel.uiState.collect {} }
             runCurrent()
@@ -224,12 +400,37 @@ internal class PaymentSummaryViewModelTest {
             runCurrent()
 
             // then
-            payingAccounts.lastOperator.value shouldBe Operator.MtnMomo
+            payingAccounts.choice.value shouldBe PayingAccountChoice(operator = Operator.MtnMomo, subscriptionId = 2)
+        }
+
+        @Test
+        fun `should not remember the account when the payer opted out`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            viewModel.chooseAccount(
+                account = PayingAccount(
+                    operator = Operator.MtnMomo,
+                    sim = sim(slotIndex = 1, operator = Operator.MtnMomo),
+                ),
+                remember = false,
+            )
+            runCurrent()
+
+            // when
+            viewModel.confirm()
+            runCurrent()
+
+            // then
+            payingAccounts.choice.value.shouldBeNull()
         }
 
         @Test
         fun `should not confirm once the code has expired`() = runTest(dispatcher) {
             // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
             val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
             backgroundScope.launch { viewModel.uiState.collect {} }
             advanceTimeBy(121_000)
@@ -240,7 +441,7 @@ internal class PaymentSummaryViewModelTest {
             runCurrent()
 
             // then
-            payingAccounts.lastOperator.value.shouldBeNull()
+            payingAccounts.choice.value.shouldBeNull()
         }
     }
 }

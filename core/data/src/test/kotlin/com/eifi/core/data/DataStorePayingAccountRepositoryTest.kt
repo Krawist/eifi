@@ -20,33 +20,33 @@ internal class DataStorePayingAccountRepositoryTest(@TempDir private val folder:
 
     private val repository = DataStorePayingAccountRepository(
         jsonDataStore(
-            serializer = Operator.serializer().nullable,
+            serializer = PayingAccountChoice.serializer().nullable,
             defaultValue = null,
             scope = scope.backgroundScope,
-        ) { File(folder, "last_paying_operator.json") },
+        ) { File(folder, "paying_account.json") },
     )
 
     @Nested
-    inner class LastOperator {
+    inner class Choice {
         @Test
-        fun `should be null before the first payment`() = scope.runTest {
+        fun `should be null before an account is remembered`() = scope.runTest {
             // when
-            val operator = repository.lastOperator.first()
+            val choice = repository.choice.first()
 
             // then
-            operator.shouldBeNull()
+            choice.shouldBeNull()
         }
     }
 
     @Nested
-    inner class SaveLastOperator {
+    inner class SaveChoice {
         @Test
-        fun `should give back the saved operator`() = scope.runTest {
+        fun `should give back the saved account`() = scope.runTest {
             // when
-            repository.saveLastOperator(Operator.MtnMomo)
+            repository.saveChoice(PayingAccountChoice(operator = Operator.MtnMomo, subscriptionId = 3))
 
             // then
-            repository.lastOperator.first() shouldBe Operator.MtnMomo
+            repository.choice.first() shouldBe PayingAccountChoice(operator = Operator.MtnMomo, subscriptionId = 3)
         }
     }
 }

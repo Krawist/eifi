@@ -281,6 +281,8 @@ List the active SIMs, recognise their operator and only offer the combinations a
 - If no SIM matches the recipient's operators, the screen explains it (a transfer only works between two accounts of the same operator).
 - The "Se souvenir" (Remember) choice is saved locally.
 
+Decided on October 27, 2026: the operator of a SIM comes from its network code, MCC 624 with MNC 01 for MTN and 02 for Orange (ITU E.212 list). The phone calls permission (`CALL_PHONE`, `READ_PHONE_STATE`) is asked once, at the first summary; refused, every operator of the payee is offered without SIM. "Se souvenir de mon choix" is checked by default; the account is then also remembered when confirming. Without any compatible SIM, the summary explains it and offers no payment.
+
 Size: M. Dependencies: EIFI-001, EIFI-201.
 
 ### EIFI-203 · Biometric confirmation

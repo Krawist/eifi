@@ -1,5 +1,6 @@
 package com.eifi.feature.pay
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -10,6 +11,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.eifi.feature.pay.scan.ScanScreen
+import com.eifi.feature.pay.summary.PaymentSummaryActions
 import com.eifi.feature.pay.summary.PaymentSummaryScreen
 import com.eifi.feature.pay.summary.PaymentSummaryViewModel
 import kotlinx.serialization.Serializable
@@ -73,21 +75,7 @@ fun NavGraphBuilder.payGraph(navController: NavController, onBack: () -> Unit) {
             )
         }
         composable<PaymentSummaryRoute> {
-            val viewModel: PaymentSummaryViewModel = hiltViewModel(
-                checkNotNull(LocalViewModelStoreOwner.current) {
-                    "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
-                },
-                null,
-            )
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            uiState?.let {
-                PaymentSummaryScreen(
-                    uiState = it,
-                    onSelectOperator = viewModel::selectOperator,
-                    onConfirm = viewModel::confirm,
-                    onClose = { navController.popBackStack() },
-                )
-            }
+            PaymentSummaryDestination(onClose = { navController.popBackStack() })
         }
     }
 }
@@ -95,4 +83,28 @@ fun NavGraphBuilder.payGraph(navController: NavController, onBack: () -> Unit) {
 /** Opens the summary of the payment [url], read outside the Pay graph (home screen, App Link). */
 fun NavController.navigateToPaymentSummary(url: String) {
     navigate(PaymentSummaryRoute(url)) { launchSingleTop = true }
+}
+
+@Composable
+private fun PaymentSummaryDestination(onClose: () -> Unit) {
+    val viewModel: PaymentSummaryViewModel = hiltViewModel(
+        checkNotNull(LocalViewModelStoreOwner.current) {
+            "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+        },
+        null,
+    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    uiState?.let {
+        PaymentSummaryScreen(
+            uiState = it,
+            actions = PaymentSummaryActions(
+                onPermissionDone = viewModel::onPermissionDone,
+                onChangeAccount = viewModel::openAccountChoice,
+                onChooseAccount = viewModel::chooseAccount,
+                onCloseAccountChoice = viewModel::closeAccountChoice,
+                onConfirm = viewModel::confirm,
+                onClose = onClose,
+            ),
+        )
+    }
 }

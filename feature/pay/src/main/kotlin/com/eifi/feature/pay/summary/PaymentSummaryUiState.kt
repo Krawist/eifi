@@ -1,5 +1,6 @@
 package com.eifi.feature.pay.summary
 
+import com.eifi.core.data.AppPermission
 import com.eifi.core.payload.Operator
 import com.eifi.core.payload.ReceivingMethod
 
@@ -10,20 +11,29 @@ internal sealed interface PaymentSummaryUiState {
      *
      * @property displayName name of the payee.
      * @property amount amount to pay, in FCFA.
-     * @property operators the operators the payee accepts, among which the payer chooses their account.
-     * @property operator the payer's account: the chosen one, else the last one used if the payee accepts it, else
-     * the first one the payee accepts.
-     * @property receivingMethod where the money goes with [operator]: decides between "Payer" and "Envoyer".
+     * @property payeeOperators the operators the payee accepts.
+     * @property accounts the payer's accounts compatible with the payee, see [PayingAccountService.accounts].
+     * @property account the account to pay with: the chosen one, else the remembered one, else the first one;
+     * `null` when no account is compatible, which blocks the payment.
+     * @property receivingMethod where the money goes with [account], or with the payee's first operator when there
+     * is no account: decides between "Payer" and "Envoyer".
      * @property remainingSeconds time left before the payee's code expires.
+     * @property activePermission the permission being explained, `null` when none is.
+     * @property choosingAccount whether the "Choisissez votre compte" screen shows.
+     * @property rememberChoice whether the account is offered first on the next payments.
      * @property confirmed whether the payer has confirmed; the biometric prompt comes with EIFI-203.
      */
     data class Ready(
         val displayName: String,
         val amount: Long,
-        val operators: List<Operator>,
-        val operator: Operator,
+        val payeeOperators: List<Operator>,
+        val accounts: List<PayingAccount>,
+        val account: PayingAccount?,
         val receivingMethod: ReceivingMethod,
         val remainingSeconds: Long,
+        val activePermission: AppPermission? = null,
+        val choosingAccount: Boolean = false,
+        val rememberChoice: Boolean = true,
         val confirmed: Boolean = false,
     ) : PaymentSummaryUiState
 

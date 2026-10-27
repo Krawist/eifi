@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="account_choice_continue">Continue</string>
+    <string name="account_choice_note">The payment goes through your operator\'s USSD prompt, on the chosen SIM. The money goes straight to %1$s.</string>
+    <string name="account_choice_remember">Remember my choice</string>
+    <string name="account_choice_subtitle">Only the accounts %1$s accepts are offered.</string>
+    <string name="account_choice_title">Choose your account</string>
+    <string name="account_sim">SIM %1$d · %2$s</string>
     <string name="pay_action_pay">Pay</string>
     <string name="pay_action_scan">Scan a QR code</string>
     <string name="pay_back">Back</string>
@@ -10,7 +16,7 @@
     <string name="pay_title">Pay</string>
     <string name="scan_hint">Aim at the QR code of the person collecting.</string>
     <string name="summary_account_change">Change</string>
-    <string name="summary_account_title">Choose your account</string>
+    <string name="summary_account_sim">%1$s · SIM %2$d</string>
     <string name="summary_back">Back</string>
     <string name="summary_confirm_soon">Fingerprint confirmation will open here.</string>
     <string name="summary_expired_body">Ask the person collecting to show a new code.</string>
@@ -23,6 +29,8 @@
     <string name="summary_merchant_fees">No fees for you</string>
     <string name="summary_merchant_title">Pay</string>
     <string name="summary_merchant_with">Pay with</string>
+    <string name="summary_no_account_body">None of your SIM cards is with an operator %1$s accepts. A payment only works between two accounts of the same operator.</string>
+    <string name="summary_no_account_title">No compatible account</string>
     <string name="summary_pin_reminder">You will then confirm with your secret code in the %1$s prompt. Eifi never sees it.</string>
     <string name="summary_transfer_action">Send %1$s FCFA</string>
     <string name="summary_transfer_badge">Transfer to a person</string>

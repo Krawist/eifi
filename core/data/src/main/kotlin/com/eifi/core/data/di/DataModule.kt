@@ -10,6 +10,7 @@ import com.eifi.core.data.DataStorePayingAccountRepository
 import com.eifi.core.data.DataStorePermissionRequestHistory
 import com.eifi.core.data.DataStoreReceivingProfileRepository
 import com.eifi.core.data.DataStoreUserPreferencesRepository
+import com.eifi.core.data.PayingAccountChoice
 import com.eifi.core.data.PayingAccountRepository
 import com.eifi.core.data.PermissionRequestHistory
 import com.eifi.core.data.ReceivingProfile
@@ -23,7 +24,6 @@ import com.eifi.core.data.database.RoomPaymentRepository
 import com.eifi.core.data.fake.FakeActivityRepository
 import com.eifi.core.data.jsonDataStore
 import com.eifi.core.data.payment.PaymentRepository
-import com.eifi.core.payload.Operator
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -85,9 +85,9 @@ internal abstract class DataModule {
 
         @Provides
         @Singleton
-        fun provideLastPayingOperatorStore(@ApplicationContext context: Context): DataStore<Operator?> =
-            jsonDataStore(serializer = Operator.serializer().nullable, defaultValue = null) {
-                context.dataStoreFile("last_paying_operator.json")
+        fun providePayingAccountStore(@ApplicationContext context: Context): DataStore<PayingAccountChoice?> =
+            jsonDataStore(serializer = PayingAccountChoice.serializer().nullable, defaultValue = null) {
+                context.dataStoreFile("paying_account.json")
             }
 
         @Provides

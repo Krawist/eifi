@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="account_choice_continue">Continuer</string>
+    <string name="account_choice_note">Le paiement passe par l\'invite USSD de votre opérateur, sur la SIM choisie. L\'argent va directement à %1$s.</string>
+    <string name="account_choice_remember">Se souvenir de mon choix</string>
+    <string name="account_choice_subtitle">Seuls les comptes acceptés par %1$s sont proposés.</string>
+    <string name="account_choice_title">Choisissez votre compte</string>
+    <string name="account_sim">SIM %1$d · %2$s</string>
     <string name="operator_mtn_momo" translatable="false">MTN MoMo</string>
     <string name="operator_mtn_momo_short" translatable="false">MoMo</string>
     <string name="operator_orange_money" translatable="false">Orange Money</string>
@@ -14,7 +20,7 @@
     <string name="pay_title">Payer</string>
     <string name="scan_hint">Visez le QR code de celui qui encaisse.</string>
     <string name="summary_account_change">Changer</string>
-    <string name="summary_account_title">Choisissez votre compte</string>
+    <string name="summary_account_sim">%1$s · SIM %2$d</string>
     <string name="summary_back">Retour</string>
     <string name="summary_confirm_soon">La confirmation par empreinte s\'ouvrira ici.</string>
     <string name="summary_expired_body">Demandez à celui qui encaisse d\'afficher un nouveau code.</string>
@@ -27,6 +33,8 @@
     <string name="summary_merchant_fees">Sans frais pour vous</string>
     <string name="summary_merchant_title">Payer</string>
     <string name="summary_merchant_with">Payer avec</string>
+    <string name="summary_no_account_body">Aucune de vos cartes SIM n\'est chez un opérateur accepté par %1$s. Un paiement ne passe qu\'entre deux comptes du même opérateur.</string>
+    <string name="summary_no_account_title">Aucun compte compatible</string>
     <string name="summary_pin_reminder">Vous confirmerez ensuite avec votre code secret dans l\'invite %1$s. Eifi ne le voit jamais.</string>
     <string name="summary_transfer_action">Envoyer %1$s FCFA</string>
     <string name="summary_transfer_badge">Transfert à un particulier</string>

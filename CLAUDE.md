@@ -207,11 +207,17 @@ been chosen yet.
   PIN reminder, "Payer" or "Envoyer" from `ReceivingMethodUi` (one per method, to build from the operator
   specification in EIFI-208), countdown, expired screen once the code expires. Account: the chosen one, else the last
   one used (`PayingAccountRepository`, saved on confirmation) if the payee accepts it, else the payee's first operator;
-  "Changer" opens a simple picker of the payee's operators until the EIFI-202 screen. Confirming shows a placeholder
+  "Changer" opens "Choisissez votre compte" (EIFI-202). Confirming shows a placeholder
   line until EIFI-203.
-- [ ] **Next ticket: EIFI-202**, then EIFI-203… EIFI-105 and EIFI-106 wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
+- [x] **EIFI-202** — operator and SIM: `SimCardRepository` in `:core:ussd` (`SubscriptionManager`, `null` without
+  `READ_PHONE_STATE`), operator from MCC + MNC (`OperatorNetworkService`: 624-01 MTN, 624-02 Orange, ITU E.212).
+  `PayingAccountService` (`feature/pay/.../summary`) offers each SIM of an operator the payee accepts (every operator
+  when the SIMs are unknown) and the remembered `PayingAccountChoice` first. Phone calls permission asked once, at the
+  first summary. "Choisissez votre compte" (`AccountChoiceScreen`) with "Se souvenir de mon choix", saved when
+  continuing or confirming; without compatible SIM, the summary explains it and has no button.
+- [ ] **Next ticket: EIFI-203**, then EIFI-204… EIFI-105 and EIFI-106 wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
-  USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
+  USSD templates, SMS senders and the fee schedule remain values to be provided, never
   invented.
 
 Update this section at the end of each ticket.

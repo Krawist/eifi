@@ -1,18 +1,17 @@
 package com.eifi.core.data
 
 import androidx.datastore.core.DataStore
-import com.eifi.core.payload.Operator
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 
-/** [PayingAccountRepository] backed by a typed DataStore holding the last [Operator]. */
+/** [PayingAccountRepository] backed by a typed DataStore holding the [PayingAccountChoice]. */
 internal class DataStorePayingAccountRepository @Inject constructor(
-    private val lastOperatorStore: DataStore<Operator?>,
+    private val choiceStore: DataStore<PayingAccountChoice?>,
 ) : PayingAccountRepository {
 
-    override val lastOperator: Flow<Operator?> = lastOperatorStore.data
+    override val choice: Flow<PayingAccountChoice?> = choiceStore.data
 
-    override suspend fun saveLastOperator(operator: Operator) {
-        lastOperatorStore.updateData { operator }
+    override suspend fun saveChoice(choice: PayingAccountChoice) {
+        choiceStore.updateData { choice }
     }
 }
