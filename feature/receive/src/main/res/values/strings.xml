@@ -11,13 +11,17 @@
     <string name="operator_mtn_momo_short" translatable="false">MoMo</string>
     <string name="operator_orange_money" translatable="false">Orange Money</string>
     <string name="operator_orange_money_short" translatable="false">OM</string>
+    <string name="payment_amount_title">Montant à payer</string>
     <string name="payment_back">Retour</string>
-    <string name="payment_cancel">Annuler</string>
+    <string name="payment_cancel">Annuler l\'encaissement</string>
     <string name="payment_confirmed">Paiement reçu</string>
-    <string name="payment_expired">Session expirée</string>
-    <string name="payment_qr_coming">Le QR code et le NFC arrivent bientôt.</string>
-    <string name="payment_title">QR et NFC actifs</string>
-    <string name="payment_waiting">En attente du paiement · %1$s</string>
+    <string name="payment_expired">Code expiré</string>
+    <string name="payment_expired_body">Le client ne peut plus payer avec ce code. Recommencez pour en afficher un nouveau.</string>
+    <string name="payment_expires_in">Expire dans %1$s</string>
+    <string name="payment_qr_description">QR code du paiement</string>
+    <string name="payment_restart">Recommencer avec le même montant</string>
+    <string name="payment_scan_hint">Le client scanne ce code avec son téléphone.</string>
+    <string name="payment_waiting">En attente du paiement…</string>
     <string name="receiving_profile_add">Ajouter %1$s</string>
     <string name="receiving_profile_code_label">Code marchand %1$s</string>
     <string name="receiving_profile_code_required">Indiquez votre code marchand</string>

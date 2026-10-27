@@ -10,5 +10,6 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.payload)
     implementation(projects.core.permission)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.libphonenumber)
 }

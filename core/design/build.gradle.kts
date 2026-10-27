@@ -6,3 +6,7 @@ plugins {
 android {
     namespace = "com.eifi.core.design"
 }
+
+dependencies {
+    implementation(libs.zxing.core)
+}

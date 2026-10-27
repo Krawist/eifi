@@ -20,6 +20,12 @@ android {
         applicationId = "com.eifi"
         versionCode = 1
         versionName = "0.1.0"
+        // TODO(EIFI-021): the domain of the payment page, not chosen yet.
+        buildConfigField("String", "PAYMENT_BASE_URL", "\"https://pay.eifi.app\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     // French is the default language (unqualified resources), English the only translation.
@@ -61,6 +67,7 @@ android {
 dependencies {
     implementation(projects.core.design)
     implementation(projects.core.data)
+    implementation(projects.core.payload)
     implementation(projects.core.sms)
     implementation(projects.feature.onboarding)
     implementation(projects.feature.pay)

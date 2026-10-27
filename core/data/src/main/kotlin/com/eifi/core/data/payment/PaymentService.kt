@@ -1,8 +1,11 @@
 package com.eifi.core.data.payment
 
+import com.eifi.core.data.ReceivingProfile
+import com.eifi.core.payload.PaymentRequest
 import com.eifi.core.payload.PaymentRequestService
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 /**
@@ -26,6 +29,16 @@ class PaymentService @Inject constructor() {
             expiresAt = at.plus(DEFAULT_DURATION),
         )
     }
+
+    /** The request carried by the payment URL of a received [payment], to be paid to [profile]. */
+    fun toPaymentRequest(payment: Payment, profile: ReceivingProfile): PaymentRequest = PaymentRequest(
+        id = payment.id,
+        displayName = profile.displayName,
+        amount = payment.amount,
+        receivingMethods = profile.receivingMethods,
+        // The URL carries whole seconds: rounded down, so that the payer never sees a later expiry.
+        expiresAt = payment.expiresAt.truncatedTo(ChronoUnit.SECONDS),
+    )
 
     /** The status at [now]: a PENDING payment past its expiry is EXPIRED, even before it is stored as such. */
     fun statusAt(payment: Payment, now: Instant): PaymentStatus =

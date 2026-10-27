@@ -90,7 +90,7 @@ fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Uni
         composable<ReceiveRoute> {
             AmountEntryDestination(navController = navController, onBack = onBack)
         }
-        // TODO(EIFI-103): the QR code and the NFC emission of the payment.
+        // TODO(EIFI-104): the NFC emission of the payment.
         composable<PaymentRoute> {
             PaymentDestination(navController = navController)
         }
@@ -198,7 +198,10 @@ private fun AmountEntryDestination(navController: NavController, onBack: () -> U
     )
 }
 
-/** A cancelled payment goes back to the amount, which stays typed for another try. */
+/**
+ * A cancelled payment goes back to the amount, which stays typed for another try. A payment opened again after
+ * its expiry replaces this one.
+ */
 @Composable
 private fun PaymentDestination(navController: NavController) {
     val viewModel: PaymentViewModel = hiltViewModel(
@@ -212,5 +215,16 @@ private fun PaymentDestination(navController: NavController) {
     LaunchedEffect(state.status) {
         if (state.status == PaymentStatus.Cancelled) navController.popBackStack()
     }
-    PaymentScreen(uiState = state, onCancel = viewModel::cancel, onBack = { navController.popBackStack() })
+    LaunchedEffect(state.restartedPaymentId) {
+        val paymentId = state.restartedPaymentId ?: return@LaunchedEffect
+        navController.navigate(PaymentRoute(paymentId)) {
+            popUpTo<PaymentRoute> { inclusive = true }
+        }
+    }
+    PaymentScreen(
+        uiState = state,
+        onCancel = viewModel::cancel,
+        onRestart = viewModel::restart,
+        onClose = { navController.popBackStack() },
+    )
 }

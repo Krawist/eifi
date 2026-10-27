@@ -186,6 +186,8 @@ Size: M. Dependencies: EIFI-020, EIFI-012.
 - Brightness goes to maximum while it is shown, then returns to its initial value.
 - On expiry, the screen says so and offers to restart with the same amount.
 
+Decided on October 27, 2026: until the domain is chosen (EIFI-021), the base URL is a placeholder in `BuildConfig.PAYMENT_BASE_URL`. The "NFC actif" banner and the mention of approaching the phone come with EIFI-104, when the emulation really runs; "En attente du SMS de l'opérateur" comes with EIFI-105.
+
 Size: M. Dependencies: EIFI-102.
 
 ### EIFI-104 · Emit the URL over NFC (HCE Type 4)

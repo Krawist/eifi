@@ -1,0 +1,43 @@
+package com.eifi.core.design.component
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.eifi.core.design.R
+import com.eifi.core.design.theme.EifiColors
+import com.eifi.core.design.theme.EifiDimens
+import com.eifi.core.design.theme.EifiSpacing
+import com.eifi.core.design.theme.EifiTheme
+
+/** Round white close button at the top left of a screen that interrupts a flow, like the QR code screen. */
+@Composable
+fun EifiCloseButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(EifiDimens.RoundButton),
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = EifiColors.Surface,
+            contentColor = EifiColors.Ink,
+        ),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_eifi_close),
+            contentDescription = stringResource(R.string.navigation_close),
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF6F8F7)
+@Composable
+private fun EifiCloseButtonPreview() {
+    EifiTheme {
+        EifiCloseButton(onClick = {}, modifier = Modifier.padding(EifiSpacing.Gutter))
+    }
+}

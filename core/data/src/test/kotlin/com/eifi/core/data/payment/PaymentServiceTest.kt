@@ -1,5 +1,9 @@
 package com.eifi.core.data.payment
 
+import com.eifi.core.data.ReceivingProfile
+import com.eifi.core.payload.Operator
+import com.eifi.core.payload.PaymentRequest
+import com.eifi.core.payload.ReceivingMethod
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldMatch
@@ -59,6 +63,46 @@ internal class PaymentServiceTest {
             shouldThrow<IllegalArgumentException> {
                 service.newReceived(amount = 0, label = null, at = createdAt)
             } shouldHaveMessage "The amount must be positive"
+        }
+    }
+
+    @Nested
+    inner class ToPaymentRequest {
+        @Test
+        fun `should carry the payment and the receiving profile`() {
+            // given
+            val profile = ReceivingProfile(
+                displayName = "Kiosque Ndé",
+                receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913")),
+            )
+
+            // when
+            val request = service.toPaymentRequest(payment = payment(), profile = profile)
+
+            // then
+            request shouldBe PaymentRequest(
+                id = "0a1b2c3d4e5f",
+                displayName = "Kiosque Ndé",
+                amount = 2_500,
+                receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913")),
+                expiresAt = expiresAt,
+            )
+        }
+
+        @Test
+        fun `should round the expiry down to the second`() {
+            // given
+            val profile = ReceivingProfile(
+                displayName = "Kiosque Ndé",
+                receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913")),
+            )
+            val payment = payment().copy(expiresAt = expiresAt.plusMillis(999))
+
+            // when
+            val request = service.toPaymentRequest(payment = payment, profile = profile)
+
+            // then
+            request.expiresAt shouldBe expiresAt
         }
     }
 

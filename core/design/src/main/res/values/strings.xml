@@ -4,4 +4,5 @@
     <string name="eifi_wordmark" translatable="false">eifi</string>
     <string name="keypad_delete">Effacer</string>
     <string name="navigation_back">Retour</string>
+    <string name="navigation_close">Fermer</string>
 </resources>
