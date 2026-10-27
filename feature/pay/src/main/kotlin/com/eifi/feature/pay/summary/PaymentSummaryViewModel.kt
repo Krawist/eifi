@@ -197,6 +197,7 @@ internal class PaymentSummaryViewModel @Inject constructor(
         val account = interaction.chosenAccount?.takeIf { it in accounts }
             ?: payingAccountService.defaultAccount(accounts = accounts, choice = payer.choice)
         return PaymentSummaryUiState.Ready(
+            paymentId = request.id,
             displayName = request.displayName,
             amount = request.amount,
             payeeOperators = request.receivingMethods.keys.toList(),

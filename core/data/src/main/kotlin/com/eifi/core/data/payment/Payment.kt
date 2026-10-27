@@ -1,5 +1,6 @@
 package com.eifi.core.data.payment
 
+import com.eifi.core.payload.Operator
 import java.time.Instant
 
 /**
@@ -15,6 +16,8 @@ import java.time.Instant
  * @property status status as stored; see [PaymentService.statusAt] for the status at a given instant.
  * @property confirmationSource how the payment was confirmed, `null` until it is CONFIRMED.
  * @property endedAt when the payment left PENDING.
+ * @property counterpartyName the other party: the payee of a sent payment; `null` when unknown.
+ * @property operator the operator the money goes through; `null` when unknown.
  */
 data class Payment(
     val id: String,
@@ -26,4 +29,6 @@ data class Payment(
     val status: PaymentStatus = PaymentStatus.Pending,
     val confirmationSource: ConfirmationSource? = null,
     val endedAt: Instant? = null,
+    val counterpartyName: String? = null,
+    val operator: Operator? = null,
 )

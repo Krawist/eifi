@@ -69,7 +69,7 @@ internal class PaymentServiceTest {
     @Nested
     inner class NewSent {
         @Test
-        fun `should open a pending sent payment with the id and expiry of the request`() {
+        fun `should open a pending sent payment to the payee of the request`() {
             // given
             val request = PaymentRequest(
                 id = "0a1b2c3d4e5f",
@@ -80,7 +80,7 @@ internal class PaymentServiceTest {
             )
 
             // when
-            val payment = service.newSent(request = request, at = createdAt)
+            val payment = service.newSent(request = request, operator = Operator.OrangeMoney, at = createdAt)
 
             // then
             payment shouldBe Payment(
@@ -90,6 +90,8 @@ internal class PaymentServiceTest {
                 label = null,
                 createdAt = createdAt,
                 expiresAt = expiresAt,
+                counterpartyName = "Kiosque Ndé",
+                operator = Operator.OrangeMoney,
             )
         }
     }

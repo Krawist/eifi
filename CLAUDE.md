@@ -227,8 +227,14 @@ been chosen yet.
   `TelecomUssdLauncher` (`placeCall` on the `PhoneAccountHandle` of the SIM, `tel:` URI with `%23`; dialer when
   `CALL_PHONE` is refused). `PaymentLaunchService` stores the sent payment first (`PaymentRepository.openSent`, same id as
   the request): a session is never launched twice. The summary shows the `LaunchOutcome`.
-- [ ] **Next ticket: EIFI-205**, then EIFI-206… Transfers need their USSD syntax and fees (EIFI-001); EIFI-105 and
-  EIFI-106 wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
+- [x] **EIFI-205** — payer's receipt (`feature/pay/.../receipt`, `ReceiptRoute(paymentId)`): "Demande envoyée" until
+  the debit SMS confirms it ("Paiement effectué", EIFI-206), payee, amount, account, date, status lines, dark
+  "Terminé" (`EifiDarkButton`) so it never looks like the payee's "Paiement reçu". Opens when the payer comes back to
+  Eifi after the launch (`ReceiptOnReturn`), or with "Voir le reçu". The sent payment keeps its payee and operator
+  (`Payment.counterpartyName`, `Payment.operator`, database version 2 with an auto-migration). "Partager le reçu" shares
+  the receipt as a PNG (graphics layer, `FileProvider` `${applicationId}.receipts`).
+- [ ] **Next ticket: EIFI-206** (needs the debit SMS of EIFI-002), else EIFI-207… Transfers need their USSD syntax
+  and fees (EIFI-001); EIFI-105 and EIFI-106 wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   transfer USSD templates, SMS senders and the fee schedule remain values to be provided, never
   invented.

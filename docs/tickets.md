@@ -315,6 +315,8 @@ When the USSD prompt closes and the app is back in the foreground, show the "Pai
 - The screen does not reuse the payee's "Paiement reçu" layout, so the two cannot be confused.
 - The receipt is saved in the local history and can be shared as an image.
 
+Decided on October 27, 2026: until the debit SMS confirms the payment (EIFI-206), the receipt is titled "Demande envoyée" rather than "Paiement effectué", and invites the payer to check the operator's SMS: Eifi cannot know whether the PIN was typed. The operator reference row comes with the debit SMS. The receipt opens when the payer comes back to Eifi after the launch, or from "Voir le reçu" on the summary.
+
 Size: M. Dependencies: EIFI-204.
 
 ### EIFI-206 · Optional debit SMS detection

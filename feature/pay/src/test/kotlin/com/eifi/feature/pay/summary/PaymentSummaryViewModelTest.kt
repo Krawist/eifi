@@ -192,6 +192,7 @@ internal class PaymentSummaryViewModelTest {
                     sim = sim(slotIndex = 0, operator = Operator.OrangeMoney),
                 )
             viewModel.uiState.value shouldBe PaymentSummaryUiState.Ready(
+                paymentId = "0a1b2c3d4e5f",
                 displayName = "Kiosque Ndé",
                 amount = 2_500,
                 payeeOperators = listOf(Operator.OrangeMoney),

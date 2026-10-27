@@ -1,6 +1,7 @@
 package com.eifi.core.data.payment
 
 import com.eifi.core.data.ReceivingProfile
+import com.eifi.core.payload.Operator
 import com.eifi.core.payload.PaymentRequest
 import com.eifi.core.payload.PaymentRequestService
 import java.time.Duration
@@ -30,14 +31,19 @@ class PaymentService @Inject constructor() {
         )
     }
 
-    /** A new PENDING sent payment of [request], paid at [at]; it keeps the id of the request, see [Payment.id]. */
-    fun newSent(request: PaymentRequest, at: Instant): Payment = Payment(
+    /**
+     * A new PENDING sent payment of [request] with [operator], paid at [at]; it keeps the id of the request, see
+     * [Payment.id].
+     */
+    fun newSent(request: PaymentRequest, operator: Operator, at: Instant): Payment = Payment(
         id = request.id,
         type = TransactionType.Sent,
         amount = request.amount,
         label = null,
         createdAt = at,
         expiresAt = request.expiresAt,
+        counterpartyName = request.displayName,
+        operator = operator,
     )
 
     /** The request carried by the payment URL of a received [payment], to be paid to [profile]. */

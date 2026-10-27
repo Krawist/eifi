@@ -30,6 +30,7 @@ import com.eifi.core.design.component.EifiIconTile
 import com.eifi.core.design.component.EifiPill
 import com.eifi.core.design.component.EifiPillTone
 import com.eifi.core.design.component.EifiPrimaryButton
+import com.eifi.core.design.component.EifiSecondaryButton
 import com.eifi.core.design.component.PlaceholderScreen
 import com.eifi.core.design.format.formatFcfa
 import com.eifi.core.design.theme.EifiColors
@@ -95,6 +96,7 @@ private fun ReadyContent(uiState: PaymentSummaryUiState.Ready, actions: PaymentS
             }
         }
     }
+    ReceiptOnReturn(uiState = uiState, onShowReceipt = actions.onShowReceipt)
     if (uiState.confirmationStep == ConfirmationStep.Authenticating) {
         BiometricConfirmation(
             title = stringResource(ReceivingMethodUi.of(uiState.receivingMethod).action, formatFcfa(uiState.amount)),
@@ -136,17 +138,17 @@ private fun Summary(
                     )
                 }
             }
-            uiState.account?.let { BottomAction(uiState = uiState, account = it, onConfirm = actions.onConfirm) }
+            uiState.account?.let { BottomAction(uiState = uiState, account = it, actions = actions) }
         }
     }
 }
 
 /**
- * The confirmation button; once launched, what the launch did; without known USSD code, why the payment is not
- * offered.
+ * The confirmation button; once launched, what the launch did and the receipt; without known USSD code, why the
+ * payment is not offered.
  */
 @Composable
-private fun BottomAction(uiState: PaymentSummaryUiState.Ready, account: PayingAccount, onConfirm: () -> Unit) {
+private fun BottomAction(uiState: PaymentSummaryUiState.Ready, account: PayingAccount, actions: PaymentSummaryActions) {
     val operatorName = stringResource(account.operator.displayName)
     val message = when {
         !uiState.ussdAvailable -> stringResource(R.string.summary_unavailable, operatorName)
@@ -158,7 +160,7 @@ private fun BottomAction(uiState: PaymentSummaryUiState.Ready, account: PayingAc
     if (message == null) {
         EifiPrimaryButton(
             text = stringResource(ReceivingMethodUi.of(uiState.receivingMethod).action, formatFcfa(uiState.amount)),
-            onClick = onConfirm,
+            onClick = actions.onConfirm,
             modifier = Modifier.fillMaxWidth(),
         )
     } else {
@@ -168,6 +170,13 @@ private fun BottomAction(uiState: PaymentSummaryUiState.Ready, account: PayingAc
             contentPadding = PaddingValues(EifiSpacing.Large),
         ) {
             Text(text = message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+        }
+        if (uiState.launchOutcome != null) {
+            EifiSecondaryButton(
+                text = stringResource(R.string.summary_show_receipt),
+                onClick = { actions.onShowReceipt(uiState.paymentId) },
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
@@ -244,6 +253,7 @@ private fun PaymentSummaryScreenPreview() {
     EifiTheme {
         PaymentSummaryScreen(
             uiState = PaymentSummaryUiState.Ready(
+                paymentId = "0a1b2c3d4e5f",
                 displayName = "Kiosque Ndé",
                 amount = 2_500,
                 payeeOperators = listOf(Operator.OrangeMoney, Operator.MtnMomo),
@@ -264,6 +274,7 @@ private fun PaymentSummaryScreenNoAccountPreview() {
     EifiTheme {
         PaymentSummaryScreen(
             uiState = PaymentSummaryUiState.Ready(
+                paymentId = "0a1b2c3d4e5f",
                 displayName = "Paul",
                 amount = 2_500,
                 payeeOperators = listOf(Operator.MtnMomo),

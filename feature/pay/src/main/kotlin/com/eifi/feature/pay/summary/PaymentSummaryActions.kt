@@ -12,6 +12,7 @@ package com.eifi.feature.pay.summary
  * @property onAuthenticationCancelled the payer cancelled the biometric prompt, or it failed.
  * @property onScreenLockMissing the phone has no screen lock for the prompt.
  * @property onCloseScreenLockNeeded back from the screen lock explanation.
+ * @property onShowReceipt opens the receipt of the launched payment, with its id.
  * @property onClose leaves the summary.
  */
 internal data class PaymentSummaryActions(
@@ -24,5 +25,6 @@ internal data class PaymentSummaryActions(
     val onAuthenticationCancelled: () -> Unit = {},
     val onScreenLockMissing: () -> Unit = {},
     val onCloseScreenLockNeeded: () -> Unit = {},
+    val onShowReceipt: (paymentId: String) -> Unit = {},
     val onClose: () -> Unit = {},
 )

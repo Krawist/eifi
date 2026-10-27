@@ -46,6 +46,7 @@ internal class ContrastTest {
         fun textColourPairs() = listOf(
             pair("ink on background", EifiColors.Ink, EifiColors.Background),
             pair("ink on surface", EifiColors.Ink, EifiColors.Surface),
+            pair("surface on ink (dark button)", EifiColors.Surface, EifiColors.Ink),
             pair("muted on background", EifiColors.Muted, EifiColors.Background),
             pair("muted on surface", EifiColors.Muted, EifiColors.Surface),
             pair("muted on divider (disabled button)", EifiColors.Muted, EifiColors.Divider),

@@ -39,6 +39,22 @@ fun EifiPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Mo
     }
 }
 
+/**
+ * Closing action filled with [EifiColors.Ink], white text (« Terminé » of the payer's receipt): keeps that screen
+ * apart from the payee's ones, which use the primary colour.
+ */
+@Composable
+fun EifiDarkButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Button(
+        onClick = onClick,
+        shape = EifiRadius.Button,
+        colors = ButtonDefaults.buttonColors(containerColor = EifiColors.Ink, contentColor = EifiColors.Surface),
+        modifier = modifier.fillMaxWidth().heightIn(min = EifiDimens.ButtonHeight),
+    ) {
+        Text(text = text, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
 /** Secondary action shown as a text link under the main button (« Voir l'historique du jour »). */
 @Composable
 fun EifiSecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
@@ -66,6 +82,7 @@ private fun EifiButtonsPreview() {
         ) {
             EifiPrimaryButton(text = "Encaisser 2 500 FCFA", onClick = {})
             EifiPrimaryButton(text = "Encaisser", onClick = {}, enabled = false)
+            EifiDarkButton(text = "Terminé", onClick = {})
             EifiSecondaryButton(text = "Voir l'historique du jour", onClick = {}, modifier = Modifier.fillMaxWidth())
         }
     }

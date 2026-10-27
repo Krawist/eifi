@@ -209,6 +209,7 @@ private fun AccountChoiceScreenPreview() {
     EifiTheme {
         AccountChoiceScreen(
             uiState = PaymentSummaryUiState.Ready(
+                paymentId = "0a1b2c3d4e5f",
                 displayName = "Kiosque Ndé",
                 amount = 2_500,
                 payeeOperators = listOf(Operator.OrangeMoney, Operator.MtnMomo),

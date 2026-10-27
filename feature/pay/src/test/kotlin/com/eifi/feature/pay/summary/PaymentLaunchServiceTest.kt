@@ -169,7 +169,11 @@ internal class PaymentLaunchServiceTest {
 
             // then
             sentPayments shouldBe listOf(
-                PaymentService().newSent(request = request(ReceivingMethod.MerchantCode("482913")), at = now),
+                PaymentService().newSent(
+                    request = request(ReceivingMethod.MerchantCode("482913")),
+                    operator = Operator.OrangeMoney,
+                    at = now,
+                ),
             )
         }
 

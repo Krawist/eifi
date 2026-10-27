@@ -8,6 +8,7 @@ import com.eifi.core.data.payment.Payment
 import com.eifi.core.data.payment.PaymentService
 import com.eifi.core.data.payment.PaymentStatus
 import com.eifi.core.data.payment.TransactionType
+import com.eifi.core.payload.Operator
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldMatch
@@ -118,7 +119,7 @@ internal class RoomPaymentRepositoryTest {
     @Nested
     inner class OpenSent {
         @Test
-        fun `should store the sent payment`() = runTest {
+        fun `should store the sent payment with its payee and operator`() = runTest {
             // given
             val payment = Payment(
                 id = "0a1b2c3d4e5f",
@@ -127,6 +128,8 @@ internal class RoomPaymentRepositoryTest {
                 label = null,
                 createdAt = now,
                 expiresAt = now.plusSeconds(120),
+                counterpartyName = "Kiosque Ndé",
+                operator = Operator.OrangeMoney,
             )
 
             // when

@@ -9,6 +9,7 @@ internal sealed interface PaymentSummaryUiState {
     /**
      * A payment that can be made, until its countdown ends.
      *
+     * @property paymentId id of the payment request, also the id of the sent payment and its receipt.
      * @property displayName name of the payee.
      * @property amount amount to pay, in FCFA.
      * @property payeeOperators the operators the payee accepts.
@@ -26,6 +27,7 @@ internal sealed interface PaymentSummaryUiState {
      * @property launchOutcome what launching the USSD code did, `null` until it is launched.
      */
     data class Ready(
+        val paymentId: String,
         val displayName: String,
         val amount: Long,
         val payeeOperators: List<Operator>,

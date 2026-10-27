@@ -37,7 +37,9 @@ internal class PaymentLaunchService @Inject constructor(
                 "No USSD code for ${account.operator}"
             }
         return when {
-            !paymentRepository.openSent(paymentService.newSent(request = request, at = clock.instant())) ->
+            !paymentRepository.openSent(
+                paymentService.newSent(request = request, operator = account.operator, at = clock.instant()),
+            ) ->
                 LaunchOutcome.AlreadyLaunched
             ussdLauncher.call(code = code, subscriptionId = account.sim?.subscriptionId) -> LaunchOutcome.Called
             else -> {

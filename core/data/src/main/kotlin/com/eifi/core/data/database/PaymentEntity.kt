@@ -7,6 +7,7 @@ import com.eifi.core.data.payment.ConfirmationSource
 import com.eifi.core.data.payment.Payment
 import com.eifi.core.data.payment.PaymentStatus
 import com.eifi.core.data.payment.TransactionType
+import com.eifi.core.payload.Operator
 import java.time.Instant
 
 /**
@@ -22,6 +23,8 @@ import java.time.Instant
  * @property status [Payment.status].
  * @property confirmationSource [Payment.confirmationSource].
  * @property endedAt [Payment.endedAt].
+ * @property counterpartyName [Payment.counterpartyName].
+ * @property operator [Payment.operator].
  */
 @Entity(tableName = "payment", indices = [Index(value = ["type", "status", "amount"])])
 internal data class PaymentEntity(
@@ -34,6 +37,8 @@ internal data class PaymentEntity(
     val status: PaymentStatus,
     val confirmationSource: ConfirmationSource?,
     val endedAt: Long?,
+    val counterpartyName: String?,
+    val operator: Operator?,
 ) {
     fun toPayment() = Payment(
         id = id,
@@ -45,6 +50,8 @@ internal data class PaymentEntity(
         status = status,
         confirmationSource = confirmationSource,
         endedAt = endedAt?.let(Instant::ofEpochMilli),
+        counterpartyName = counterpartyName,
+        operator = operator,
     )
 
     companion object {
@@ -58,6 +65,8 @@ internal data class PaymentEntity(
             status = payment.status,
             confirmationSource = payment.confirmationSource,
             endedAt = payment.endedAt?.toEpochMilli(),
+            counterpartyName = payment.counterpartyName,
+            operator = payment.operator,
         )
     }
 }
