@@ -28,7 +28,6 @@ internal fun OnboardingLayout(
     buttonLabel: String,
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
-    buttonEnabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(modifier = modifier.fillMaxSize(), color = EifiColors.Background) {
@@ -43,7 +42,7 @@ internal fun OnboardingLayout(
                 current = step,
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = EifiSpacing.XLarge),
             )
-            EifiPrimaryButton(text = buttonLabel, onClick = onButtonClick, enabled = buttonEnabled)
+            EifiPrimaryButton(text = buttonLabel, onClick = onButtonClick)
         }
     }
 }

@@ -26,11 +26,11 @@ internal fun NamesScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val missingNames = uiState.showErrors && !uiState.canFinish
     OnboardingLayout(
         step = 2,
         buttonLabel = stringResource(R.string.names_finish),
         onButtonClick = onFinish,
-        buttonEnabled = uiState.canFinish,
         modifier = modifier,
     ) {
         EifiBackButton(onClick = onBack)
@@ -48,6 +48,7 @@ internal fun NamesScreen(
             value = uiState.personalName,
             onValueChange = onPersonalNameChange,
             label = stringResource(R.string.names_personal),
+            isError = missingNames,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
                 imeAction = ImeAction.Next,
@@ -58,6 +59,8 @@ internal fun NamesScreen(
             value = uiState.businessName,
             onValueChange = onBusinessNameChange,
             label = stringResource(R.string.names_business),
+            isError = missingNames,
+            supportingText = stringResource(R.string.names_required).takeIf { missingNames },
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
                 imeAction = ImeAction.Done,

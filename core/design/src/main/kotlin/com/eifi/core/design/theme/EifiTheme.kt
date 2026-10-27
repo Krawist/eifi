@@ -17,6 +17,7 @@ private val EifiColorScheme = lightColorScheme(
     onSurface = EifiColors.Ink,
     onSurfaceVariant = EifiColors.Muted,
     outlineVariant = EifiColors.Divider,
+    error = EifiColors.Error,
 )
 
 /** Eifi theme, plain and light version only for the pilot. */

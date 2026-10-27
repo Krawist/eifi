@@ -17,6 +17,15 @@ internal data class OperatorForm(
             ReceivingMethodKind.MerchantCode -> runCatching { ReceivingMethod.MerchantCode(value.trim()) }.getOrNull()
         }
 
+    /** Why [receivingMethod] is `null`, or `null` when the value is valid. */
+    val error: OperatorFormError?
+        get() = when {
+            receivingMethod != null -> null
+            kind == ReceivingMethodKind.MerchantCode -> OperatorFormError.MerchantCodeRequired
+            value.isEmpty() -> OperatorFormError.PhoneRequired
+            else -> OperatorFormError.PhoneInvalid
+        }
+
     companion object {
         /** A saved E.164 number goes back to its country among [countries], as a national number. */
         fun of(method: ReceivingMethod, countries: List<PhoneCountry>): OperatorForm = when (method) {

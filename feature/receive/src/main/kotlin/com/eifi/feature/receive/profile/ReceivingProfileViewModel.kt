@@ -95,9 +95,13 @@ internal class ReceivingProfileViewModel @Inject constructor(
         _uiState.update { if (it.operators.size > 1) it.copy(operators = it.operators - operator) else it }
     }
 
+    /** Saves the profile, or shows why it cannot be saved yet. */
     fun save() {
         val state = _uiState.value
-        if (!state.canSave) return
+        if (!state.canSave) {
+            _uiState.update { it.copy(showErrors = true) }
+            return
+        }
         val methods = state.operators.mapNotNull { (operator, form) ->
             form.receivingMethod?.let { operator to it }
         }.toMap()

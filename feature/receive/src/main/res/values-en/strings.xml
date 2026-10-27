@@ -9,13 +9,16 @@
     <string name="amount_entry_minimum">Minimum amount: %1$s FCFA</string>
     <string name="receiving_profile_add">Add %1$s</string>
     <string name="receiving_profile_code_label">%1$s merchant code</string>
+    <string name="receiving_profile_code_required">Enter your merchant code</string>
     <string name="receiving_profile_continue">Continue</string>
     <string name="receiving_profile_country">Country: %1$s</string>
     <string name="receiving_profile_display_name">Name shown to those who pay you</string>
+    <string name="receiving_profile_display_name_required">Enter the name shown to those who pay you</string>
     <string name="receiving_profile_merchant_code">Merchant code</string>
     <string name="receiving_profile_note">With your number, the payer makes a transfer and pays the transfer fees. With a merchant code, payment is free for your customers.</string>
     <string name="receiving_profile_phone">My number</string>
     <string name="receiving_profile_phone_label">%1$s number</string>
+    <string name="receiving_profile_phone_required">Enter your number</string>
     <string name="receiving_profile_phone_rule">Not a valid mobile number for this country</string>
     <string name="receiving_profile_remove">Remove</string>
     <string name="receiving_profile_save">Save</string>

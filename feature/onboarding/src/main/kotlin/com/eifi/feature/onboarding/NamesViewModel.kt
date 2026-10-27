@@ -42,10 +42,13 @@ internal class NamesViewModel @Inject constructor(private val userPreferencesRep
         _uiState.update { it.copy(businessName = name.take(UserProfile.MAX_NAME_LENGTH)) }
     }
 
-    /** Saves the profile, which completes the onboarding. Does nothing without any name. */
+    /** Saves the profile, which completes the onboarding; without any name, shows why it cannot. */
     fun finish() {
         val state = _uiState.value
-        if (!state.canFinish) return
+        if (!state.canFinish) {
+            _uiState.update { it.copy(showErrors = true) }
+            return
+        }
         viewModelScope.launch {
             userPreferencesRepository.saveProfile(
                 UserProfile(

@@ -40,7 +40,6 @@ import com.eifi.core.payload.Operator
 import com.eifi.feature.receive.R
 import com.eifi.feature.receive.displayName
 import com.eifi.feature.receive.profile.phone.CameroonPhoneCountry
-import com.eifi.feature.receive.profile.phone.PhoneCountry
 import com.eifi.feature.receive.shortName
 
 /** "Où recevoir l'argent": display name and, for each operator, a phone number or a merchant code. */
@@ -72,19 +71,16 @@ internal fun ReceivingProfileScreen(
                     value = uiState.displayName,
                     onValueChange = actions.onDisplayNameChange,
                     label = stringResource(R.string.receiving_profile_display_name),
+                    isError = uiState.showErrors && uiState.displayNameMissing,
+                    supportingText = stringResource(R.string.receiving_profile_display_name_required)
+                        .takeIf { uiState.showErrors && uiState.displayNameMissing },
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Words,
                         imeAction = ImeAction.Next,
                     ),
                 )
                 uiState.operators.forEach { (operator, form) ->
-                    OperatorCard(
-                        operator = operator,
-                        form = form,
-                        countries = uiState.phoneCountries,
-                        removable = uiState.operators.size > 1,
-                        actions = actions,
-                    )
+                    OperatorCard(operator = operator, form = form, uiState = uiState, actions = actions)
                 }
                 uiState.missingOperators.forEach { operator ->
                     EifiDashedButton(
@@ -98,7 +94,6 @@ internal fun ReceivingProfileScreen(
                     if (editing) R.string.receiving_profile_save else R.string.receiving_profile_continue,
                 ),
                 onClick = actions.onSave,
-                enabled = uiState.canSave,
                 modifier = Modifier.padding(top = EifiSpacing.Large),
             )
         }
@@ -109,11 +104,11 @@ internal fun ReceivingProfileScreen(
 private fun OperatorCard(
     operator: Operator,
     form: OperatorForm,
-    countries: List<PhoneCountry>,
-    removable: Boolean,
+    uiState: ReceivingProfileUiState,
     actions: ReceivingProfileActions,
 ) {
     val operatorName = stringResource(operator.displayName)
+    val removable = uiState.operators.size > 1
     EifiCard(shape = EifiRadius.CardLarge, modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(EifiSpacing.Large)) {
             Row(
@@ -142,11 +137,17 @@ private fun OperatorCard(
                 if (phone) {
                     CountrySelector(
                         selected = form.country,
-                        countries = countries,
+                        countries = uiState.phoneCountries,
                         onSelect = { actions.onCountryChange(operator, it) },
                     )
                 }
-                ValueField(operator = operator, operatorName = operatorName, form = form, actions = actions)
+                ValueField(
+                    operator = operator,
+                    operatorName = operatorName,
+                    form = form,
+                    error = form.error?.takeIf { uiState.showErrors || it == OperatorFormError.PhoneInvalid },
+                    actions = actions,
+                )
             }
             Text(
                 text = stringResource(R.string.receiving_profile_note),
@@ -163,6 +164,7 @@ private fun RowScope.ValueField(
     operator: Operator,
     operatorName: String,
     form: OperatorForm,
+    error: OperatorFormError?,
     actions: ReceivingProfileActions,
 ) {
     val phone = form.kind == ReceivingMethodKind.PhoneNumber
@@ -174,8 +176,8 @@ private fun RowScope.ValueField(
             operatorName,
         ),
         containerColor = EifiColors.Background,
-        supportingText = stringResource(R.string.receiving_profile_phone_rule)
-            .takeIf { phone && form.value.isNotEmpty() && form.receivingMethod == null },
+        isError = error != null,
+        supportingText = error?.let { stringResource(it.message) },
         keyboardOptions = KeyboardOptions(
             keyboardType = if (phone) KeyboardType.Phone else KeyboardType.Text,
             imeAction = ImeAction.Done,
@@ -183,6 +185,13 @@ private fun RowScope.ValueField(
         modifier = Modifier.weight(1f),
     )
 }
+
+private val OperatorFormError.message: Int
+    get() = when (this) {
+        OperatorFormError.PhoneRequired -> R.string.receiving_profile_phone_required
+        OperatorFormError.PhoneInvalid -> R.string.receiving_profile_phone_rule
+        OperatorFormError.MerchantCodeRequired -> R.string.receiving_profile_code_required
+    }
 
 /** Operator initials on a soft tile, as on the mockups ("OM"). */
 @Composable

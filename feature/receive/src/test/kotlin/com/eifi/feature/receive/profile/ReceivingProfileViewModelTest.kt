@@ -234,6 +234,18 @@ internal class ReceivingProfileViewModelTest {
         }
 
         @Test
+        fun `should show the errors when the profile is incomplete`() {
+            // given
+            viewModel.onDisplayNameChange("")
+
+            // when
+            viewModel.save()
+
+            // then
+            viewModel.uiState.value.showErrors.shouldBeTrue()
+        }
+
+        @Test
         fun `should save nothing while a value is invalid`() {
             // given
             viewModel.onValueChange(Operator.OrangeMoney, "6901")

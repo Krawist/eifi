@@ -21,7 +21,7 @@ import com.eifi.core.design.theme.EifiTheme
 
 /**
  * Single-line white field with a floating label, without underline.
- * [containerColor] is grey inside a white card.
+ * [containerColor] is grey inside a white card; with [isError], the label and [supportingText] turn red.
  */
 @Composable
 fun EifiTextField(
@@ -30,6 +30,7 @@ fun EifiTextField(
     label: String,
     modifier: Modifier = Modifier,
     supportingText: String? = null,
+    isError: Boolean = false,
     containerColor: Color = EifiColors.Surface,
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -39,6 +40,7 @@ fun EifiTextField(
         onValueChange = onValueChange,
         label = { Text(text = label) },
         supportingText = supportingText?.let { { Text(text = it) } },
+        isError = isError,
         singleLine = true,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
@@ -54,6 +56,11 @@ fun EifiTextField(
             cursorColor = EifiColors.OnPrimary,
             focusedSupportingTextColor = EifiColors.Muted,
             unfocusedSupportingTextColor = EifiColors.Muted,
+            errorContainerColor = containerColor,
+            errorIndicatorColor = Color.Transparent,
+            errorLabelColor = EifiColors.Error,
+            errorSupportingTextColor = EifiColors.Error,
+            errorCursorColor = EifiColors.Error,
         ),
         modifier = modifier.fillMaxWidth(),
     )
@@ -70,6 +77,14 @@ private fun EifiTextFieldPreview() {
                 onValueChange = {},
                 label = "Nom de votre commerce",
                 supportingText = "Facultatif",
+                modifier = Modifier.padding(top = EifiSpacing.Medium),
+            )
+            EifiTextField(
+                value = "6901",
+                onValueChange = {},
+                label = "Numéro Orange Money",
+                supportingText = "Numéro mobile invalide pour ce pays",
+                isError = true,
                 modifier = Modifier.padding(top = EifiSpacing.Medium),
             )
         }

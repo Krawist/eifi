@@ -88,6 +88,9 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
 - Tests: JUnit 5 + Kotest assertions (`shouldBe`…), set up by the convention plugins. Names start with
   `should`, one `@Nested inner class` per tested method, `// given`, `// when`, `// then`,
   `@ParameterizedTest` for variations. Fakes for repositories; `Dispatchers.setMain` for ViewModels.
+- Forms: the main button stays enabled; when the input cannot be submitted, each field says why
+  (`EifiTextField(isError, supportingText)`, red `EifiColors.Error`). An invalid value shows as soon as
+  it is typed, a missing one only after a first attempt.
 - Amounts: integers in FCFA (`Long`), displayed with `formatFcfa()` (thin space U+202F as
   thousands separator).
 - Quality: `./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug` must pass before a ticket

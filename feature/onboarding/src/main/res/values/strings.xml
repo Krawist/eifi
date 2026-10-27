@@ -30,6 +30,7 @@
     <string name="names_business">Nom de votre commerce</string>
     <string name="names_finish">Terminer</string>
     <string name="names_personal">Votre nom</string>
+    <string name="names_required">Indiquez votre nom, celui de votre commerce, ou les deux</string>
     <string name="names_subtitle">Votre nom, le nom de votre commerce, ou les deux. Si vous avez un commerce, c\'est son nom qui s\'affiche.</string>
     <string name="names_title">Comment vous appeler\u00A0?</string>
     <string name="operator_mtn_momo" translatable="false">MTN MoMo</string>

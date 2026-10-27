@@ -13,14 +13,17 @@
     <string name="operator_orange_money_short" translatable="false">OM</string>
     <string name="receiving_profile_add">Ajouter %1$s</string>
     <string name="receiving_profile_code_label">Code marchand %1$s</string>
+    <string name="receiving_profile_code_required">Indiquez votre code marchand</string>
     <string name="receiving_profile_continue">Continuer</string>
     <string name="receiving_profile_country">Pays\u00A0: %1$s</string>
     <string name="receiving_profile_country_item" translatable="false">%1$s %2$s (%3$s) %4$s</string>
     <string name="receiving_profile_display_name">Nom affiché à ceux qui vous paient</string>
+    <string name="receiving_profile_display_name_required">Indiquez le nom affiché à ceux qui vous paient</string>
     <string name="receiving_profile_merchant_code">Code marchand</string>
     <string name="receiving_profile_note">Avec votre numéro, celui qui paie fait un transfert et paie les frais de transfert. Avec un code marchand, le paiement est gratuit pour vos clients.</string>
     <string name="receiving_profile_phone">Mon numéro</string>
     <string name="receiving_profile_phone_label">Numéro %1$s</string>
+    <string name="receiving_profile_phone_required">Indiquez votre numéro</string>
     <string name="receiving_profile_phone_rule">Numéro mobile invalide pour ce pays</string>
     <string name="receiving_profile_remove">Retirer</string>
     <string name="receiving_profile_save">Enregistrer</string>

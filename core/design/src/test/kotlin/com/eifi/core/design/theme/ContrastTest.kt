@@ -51,6 +51,8 @@ internal class ContrastTest {
             pair("muted on divider (disabled button)", EifiColors.Muted, EifiColors.Divider),
             pair("on-primary on primary", EifiColors.OnPrimary, EifiColors.Primary),
             pair("on-primary on background (secondary button)", EifiColors.OnPrimary, EifiColors.Background),
+            pair("error on surface", EifiColors.Error, EifiColors.Surface),
+            pair("error on background (field inside a card)", EifiColors.Error, EifiColors.Background),
         )
 
         private fun pair(name: String, foreground: Color, background: Color): Arguments =

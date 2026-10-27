@@ -116,6 +116,18 @@ internal class NamesViewModelTest {
         }
 
         @Test
+        fun `should show why it cannot finish without any name`() {
+            // given
+            val viewModel = NamesViewModel(repository)
+
+            // when
+            viewModel.finish()
+
+            // then
+            viewModel.uiState.value.showErrors.shouldBeTrue()
+        }
+
+        @Test
         fun `should save nothing without any name`() {
             // given
             val viewModel = NamesViewModel(repository)

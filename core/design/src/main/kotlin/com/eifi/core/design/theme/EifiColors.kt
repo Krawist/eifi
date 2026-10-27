@@ -20,6 +20,9 @@ object EifiColors {
     val PrimarySoft = Color(0xFFE0F9F2)
     val AccentSoft = Color(0xFFFFF0CC)
 
+    /** Validation errors: the field label and the message under it. */
+    val Error = Color(0xFFB3261E)
+
     /** Light [Primary], for elements laid on a [Primary] card. */
     val PrimaryLight = Color(0xFF7AEBD3)
 }
