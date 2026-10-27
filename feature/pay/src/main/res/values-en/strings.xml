@@ -9,13 +9,8 @@
     <string name="launch_already_launched">This payment was already launched from this phone. Ask for a new code if needed.</string>
     <string name="launch_called">Code launched. Type your secret code in the %1$s prompt.</string>
     <string name="launch_dialer_opened">Without the call permission, tap Call in the dialer, then type your secret code.</string>
-    <string name="pay_action_pay">Pay</string>
-    <string name="pay_action_scan">Scan a QR code</string>
     <string name="pay_back">Back</string>
-    <string name="pay_outcome_dial_yourself">Without the call permission, you will dial the USSD code shown yourself.</string>
     <string name="pay_outcome_use_nfc">Without the camera, bring your phone close to the payee\'s.</string>
-    <string name="pay_outcome_ussd_ready">The USSD code will be launched here.</string>
-    <string name="pay_subtitle">Tap or scan to pay.</string>
     <string name="pay_title">Pay</string>
     <string name="receipt_account">Account</string>
     <string name="receipt_check_sms">Check the %1$s SMS to know whether you were debited.</string>

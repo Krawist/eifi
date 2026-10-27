@@ -72,19 +72,23 @@ fun NavGraphBuilder.payGraph(navController: NavController, onBack: () -> Unit) {
             LaunchedEffect(uiState.openScanner) {
                 if (!uiState.openScanner) return@LaunchedEffect
                 viewModel.onScannerOpened()
-                navController.navigate(ScanRoute)
+                // Closing the scanner goes back to where "Payer" was chosen.
+                navController.navigate(ScanRoute) { popUpTo<PayRoute> { inclusive = true } }
             }
-            PayScreen(
-                uiState = uiState,
-                onPay = viewModel::onPay,
-                onScan = viewModel::onScan,
-                onPermissionDone = { granted ->
-                    uiState.activePermission?.let { viewModel.onStepDone(it, granted) }
-                },
-                onBack = onBack,
-            )
+            PayScreen(uiState = uiState, onPermissionDone = viewModel::onPermissionDone, onBack = onBack)
         }
         composable<ScanRoute> {
+            val viewModel: ScanViewModel = hiltViewModel(
+                checkNotNull(LocalViewModelStoreOwner.current) {
+                    "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+                },
+                null,
+            )
+            LaunchedEffect(viewModel) {
+                viewModel.paymentUrls.collect { url ->
+                    navController.navigate(PaymentSummaryRoute(url)) { popUpTo<ScanRoute> { inclusive = true } }
+                }
+            }
             ScanScreen(
                 onScanned = { url ->
                     navController.navigate(PaymentSummaryRoute(url)) {

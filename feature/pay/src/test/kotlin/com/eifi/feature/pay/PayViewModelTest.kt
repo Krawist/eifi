@@ -49,101 +49,68 @@ internal class PayViewModelTest {
     }
 
     @Nested
-    inner class OnPay {
-        @Test
-        fun `should explain the phone calls permission the first time`() {
-            // when
-            viewModel.onPay()
-
-            // then
-            viewModel.uiState.value shouldBe PayUiState(activePermission = AppPermission.PhoneCalls)
-        }
-
-        @Test
-        fun `should launch the USSD code when the permission is granted`() {
-            // given
-            granted += AppPermission.PhoneCalls
-
-            // when
-            viewModel.onPay()
-
-            // then
-            viewModel.uiState.value shouldBe PayUiState(outcome = PayOutcome.UssdReady)
-        }
-
-        @Test
-        fun `should offer to dial the code when the permission was refused before`() {
-            // given
-            requested += AppPermission.PhoneCalls
-
-            // when
-            viewModel.onPay()
-
-            // then
-            viewModel.uiState.value shouldBe PayUiState(outcome = PayOutcome.DialYourself)
-        }
-    }
-
-    @Nested
-    inner class OnScan {
-        @Test
-        fun `should explain the camera permission the first time`() {
-            // when
-            viewModel.onScan()
-
-            // then
-            viewModel.uiState.value shouldBe PayUiState(activePermission = AppPermission.Camera)
-        }
-
+    inner class UiState {
         @Test
         fun `should open the scanner when the camera is allowed`() {
             // given
             granted += AppPermission.Camera
 
             // when
-            viewModel.onScan()
+            val state = viewModel.uiState.value
 
             // then
-            viewModel.uiState.value shouldBe PayUiState(openScanner = true)
+            state shouldBe PayUiState(openScanner = true)
+        }
+
+        @Test
+        fun `should explain the camera permission the first time`() {
+            // when
+            val state = viewModel.uiState.value
+
+            // then
+            state shouldBe PayUiState(activePermission = AppPermission.Camera)
+        }
+
+        @Test
+        fun `should offer NFC when the camera was refused before`() {
+            // given
+            requested += AppPermission.Camera
+
+            // when
+            val state = viewModel.uiState.value
+
+            // then
+            state shouldBe PayUiState(cameraRefused = true)
         }
     }
 
     @Nested
-    inner class OnStepDone {
-        @Test
-        fun `should offer NFC when the camera is refused`() {
-            // given
-            viewModel.onScan()
-
-            // when
-            viewModel.onStepDone(AppPermission.Camera, granted = false)
-
-            // then
-            viewModel.uiState.value shouldBe PayUiState(outcome = PayOutcome.UseNfc)
-        }
-
+    inner class OnPermissionDone {
         @Test
         fun `should open the scanner once the camera is allowed`() {
-            // given
-            viewModel.onScan()
-
             // when
-            viewModel.onStepDone(AppPermission.Camera, granted = true)
+            viewModel.onPermissionDone(granted = true)
 
             // then
             viewModel.uiState.value shouldBe PayUiState(openScanner = true)
         }
 
         @Test
-        fun `should launch the USSD code once the phone calls permission is granted`() {
-            // given
-            viewModel.onPay()
-
+        fun `should offer NFC when the camera is refused`() {
             // when
-            viewModel.onStepDone(AppPermission.PhoneCalls, granted = true)
+            viewModel.onPermissionDone(granted = false)
 
             // then
-            viewModel.uiState.value shouldBe PayUiState(outcome = PayOutcome.UssdReady)
+            viewModel.uiState.value shouldBe PayUiState(cameraRefused = true)
+        }
+
+        @Test
+        fun `should not ask again for the camera`() {
+            // when
+            viewModel.onPermissionDone(granted = false)
+
+            // then
+            requested shouldBe setOf(AppPermission.Camera)
         }
     }
 
@@ -153,7 +120,6 @@ internal class PayViewModelTest {
         fun `should not open the scanner again`() {
             // given
             granted += AppPermission.Camera
-            viewModel.onScan()
 
             // when
             viewModel.onScannerOpened()

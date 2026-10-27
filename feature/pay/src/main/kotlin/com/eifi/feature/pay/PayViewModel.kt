@@ -16,9 +16,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * Entry of the Pay mode: reads a payment by NFC, or opens the scanner once the camera is allowed. Still asks for
- * the phone calls permission before paying (until EIFI-204). Each permission is asked once; after a refusal, the
- * alternative is offered directly.
+ * Entry of the Pay mode: a payment can be read by NFC anywhere, so choosing "Payer" means scanning (EIFI-209). Opens
+ * the scanner once the camera is allowed, explaining the permission the first time; refused, it invites the payer to
+ * bring the phones together, while still reading NFC.
  */
 @HiltViewModel
 internal class PayViewModel @Inject constructor(
@@ -33,35 +33,28 @@ internal class PayViewModel @Inject constructor(
     /** Payment URLs read by NFC while the screen is shown: each one opens its summary. */
     val paymentUrls: Flow<String> = nfcPaymentReader.paymentUrls
 
-    fun onPay() = request(AppPermission.PhoneCalls)
-
-    fun onScan() = request(AppPermission.Camera)
-
-    fun onStepDone(permission: AppPermission, granted: Boolean) {
+    init {
         viewModelScope.launch {
-            permissionRequestHistory.markRequested(permission)
-            _uiState.update { stateAfter(permission, granted) }
-        }
-    }
-
-    /** The scanner has been opened: back on this screen, it does not open again. */
-    fun onScannerOpened() {
-        _uiState.update { it.copy(openScanner = false) }
-    }
-
-    private fun request(permission: AppPermission) {
-        viewModelScope.launch {
+            val camera = AppPermission.Camera
             val state = when {
-                permissionChecker.isGranted(permission) -> stateAfter(permission, granted = true)
-                permissionRequestHistory.wasRequested(permission) -> stateAfter(permission, granted = false)
-                else -> PayUiState(activePermission = permission)
+                permissionChecker.isGranted(camera) -> PayUiState(openScanner = true)
+                permissionRequestHistory.wasRequested(camera) -> PayUiState(cameraRefused = true)
+                else -> PayUiState(activePermission = camera)
             }
             _uiState.update { state }
         }
     }
 
-    private fun stateAfter(permission: AppPermission, granted: Boolean): PayUiState = when (permission) {
-        AppPermission.Camera -> if (granted) PayUiState(openScanner = true) else PayUiState(outcome = PayOutcome.UseNfc)
-        else -> PayUiState(outcome = if (granted) PayOutcome.UssdReady else PayOutcome.DialYourself)
+    /** The camera permission was explained and asked. */
+    fun onPermissionDone(granted: Boolean) {
+        viewModelScope.launch {
+            permissionRequestHistory.markRequested(AppPermission.Camera)
+            _uiState.update { if (granted) PayUiState(openScanner = true) else PayUiState(cameraRefused = true) }
+        }
+    }
+
+    /** The scanner has been opened: it does not open again. */
+    fun onScannerOpened() {
+        _uiState.update { it.copy(openScanner = false) }
     }
 }
