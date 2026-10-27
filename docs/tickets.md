@@ -84,6 +84,23 @@ Opening a screen slides it in from the right while the previous one moves slight
 
 Size: S. Dependencies: EIFI-012, EIFI-030.
 
+### EIFI-014 · Clear the keypad with a long press
+
+A long press on the delete key of the numeric keypad clears everything typed, with a haptic feedback; a short press still deletes the last digit.
+
+- The long press works on every screen using the keypad (amount entry).
+
+Size: S. Dependencies: EIFI-011.
+
+### EIFI-015 · Preload the local database
+
+At each start, a seeder fills the tables that are still empty: the USSD codes of Orange Money and MTN MoMo (EIFI-204), and a few sample payments for the pilot demonstrations. The fake repositories are removed: the recent activity of the home screen and the USSD codes are read from Room.
+
+- The seed runs again on an empty database, never over existing rows.
+- The sample payments are grouped in one place, to be removed after the pilot; the USSD codes will later come from the backend.
+
+Size: S. Dependencies: EIFI-102, EIFI-204.
+
 ## Payment format
 
 ### EIFI-020 · Specify and code the payment URL format
@@ -249,6 +266,32 @@ Size: S. Dependencies: EIFI-102.
 
 Size: M. Dependencies: EIFI-106, EIFI-108.
 
+### EIFI-110 · Keep the phone number and the merchant code while editing
+
+On "Où recevoir l'argent", switching an operator between phone number and merchant code keeps what was typed in each, so the payee can go back and forth without losing it. Only the selected one is saved in the profile.
+
+- Coming back to the profile shows the saved value in its kind; the other kind starts empty.
+- Saving validates the selected kind only.
+
+Size: S. Dependencies: EIFI-100.
+
+### EIFI-111 · Choose the operators of a payment
+
+On "Saisie du montant", when the profile accepts both operators, the payee can turn each one off for this payment, for example when one network is down. A short message explains the consequence ("Le client ne pourra payer qu'avec Orange Money"). At least one operator stays selected. The payment URL then only carries the selected operators.
+
+- With a single operator in the profile, the pill is shown but cannot be turned off.
+- Turning off the last selected operator is refused, with a message.
+
+Size: S. Dependencies: EIFI-101, EIFI-103.
+
+### EIFI-112 · Always open a new payment
+
+"Encaisser" always opens a new payment: a payment still pending for the same amount is cancelled, rather than reopened, so that the payee never sees an older countdown. The rule "only one PENDING payment per amount" still holds.
+
+- The cancelled payment stops being emitted over NFC.
+
+Size: S. Dependencies: EIFI-102.
+
 ## Pay mode
 
 ### EIFI-200 · Read the payment URL
@@ -334,6 +377,8 @@ Local list of payments made, with recipient, amount, operator, date and status.
 
 - Each row reopens the matching receipt.
 
+Decided on October 27, 2026: the "Historique" page opened from the home screen lists the payments sent and received together, newest first, grouped by day, with their status. The totals per operator of the payee's "Historique du jour" stay in EIFI-109, as they depend on the SMS.
+
 Size: S. Dependencies: EIFI-205.
 
 ### EIFI-208 · Operator fees and compatibility
@@ -351,6 +396,15 @@ Design note (October 27, 2026): the screens must not know each receiving method.
 - A `ReceivingMethodUi` built from the specification (Android module, string resources): button label ("Payer" or "Envoyer"), fee notice, icon. Screens only display it, so a new method needs a specification, its strings and a URL wire code (free codes: 0 and 3 to 7), but no screen change.
 
 Size: M. Dependencies: EIFI-001, EIFI-201, EIFI-202.
+
+### EIFI-209 · "Payer" opens the scanner
+
+Since a payment can be read by NFC from anywhere in the app, choosing "Payer" means the payer wants to scan: it opens the built-in scanner directly, after the camera permission step the first time. Without the camera, the screen invites the payer to bring the phones together. The scanner also reads NFC while it is open.
+
+- The Pay entry screen with its "Payer" and "Scanner un QR code" buttons is removed.
+- Closing the scanner goes back to where the payer came from.
+
+Size: S. Dependencies: EIFI-200, EIFI-032.
 
 ## Quality and pilot launch
 
