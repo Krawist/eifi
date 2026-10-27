@@ -1,6 +1,5 @@
 package com.eifi.feature.receive.profile
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,8 +38,10 @@ import com.eifi.core.design.theme.EifiSpacing
 import com.eifi.core.design.theme.EifiTheme
 import com.eifi.core.payload.Operator
 import com.eifi.feature.receive.R
+import com.eifi.feature.receive.displayName
 import com.eifi.feature.receive.profile.phone.CameroonPhoneCountry
 import com.eifi.feature.receive.profile.phone.PhoneCountry
+import com.eifi.feature.receive.shortName
 
 /** "Où recevoir l'argent": display name and, for each operator, a phone number or a merchant code. */
 @Composable
@@ -197,20 +198,6 @@ private fun OperatorBadge(text: String) {
         }
     }
 }
-
-@get:StringRes
-private val Operator.displayName: Int
-    get() = when (this) {
-        Operator.OrangeMoney -> R.string.operator_orange_money
-        Operator.MtnMomo -> R.string.operator_mtn_momo
-    }
-
-@get:StringRes
-private val Operator.shortName: Int
-    get() = when (this) {
-        Operator.OrangeMoney -> R.string.operator_orange_money_short
-        Operator.MtnMomo -> R.string.operator_mtn_momo_short
-    }
 
 @Preview(widthDp = 390, heightDp = 844)
 @Composable

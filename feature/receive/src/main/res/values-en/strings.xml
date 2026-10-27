@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="receive_back">Back</string>
-    <string name="receive_confirmation_automatic">Automatic confirmation by the operator\'s SMS.</string>
-    <string name="receive_confirmation_manual">Manual confirmation: check the operator\'s SMS yourself.</string>
-    <string name="receive_subtitle">Enter an amount to collect.</string>
-    <string name="receive_title">Collect</string>
+    <string name="amount_entry_add_label">+ Add a label</string>
+    <string name="amount_entry_collect">Collect</string>
+    <string name="amount_entry_collect_amount">Collect %1$s FCFA</string>
+    <string name="amount_entry_label">Label (optional)</string>
+    <string name="amount_entry_manual_confirmation">Manual confirmation</string>
+    <string name="amount_entry_maximum">Maximum amount: %1$s FCFA</string>
+    <string name="amount_entry_minimum">Minimum amount: %1$s FCFA</string>
     <string name="receiving_profile_add">Add %1$s</string>
     <string name="receiving_profile_code_label">%1$s merchant code</string>
     <string name="receiving_profile_continue">Continue</string>
@@ -19,4 +21,7 @@
     <string name="receiving_profile_save">Save</string>
     <string name="receiving_profile_subtitle">This information stays on your phone.</string>
     <string name="receiving_profile_title">Where to receive the money?</string>
+    <string name="session_placeholder_back">Back</string>
+    <string name="session_placeholder_subtitle">%1$s FCFA · the QR code screen is coming soon.</string>
+    <string name="session_placeholder_title">QR and NFC active</string>
 </resources>

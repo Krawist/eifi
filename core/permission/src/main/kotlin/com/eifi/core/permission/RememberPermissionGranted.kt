@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.eifi.core.data.AppPermission
 
@@ -21,8 +22,18 @@ fun rememberPermissionGranted(permission: AppPermission): State<Boolean> {
     return granted
 }
 
+/** The system checker; nothing is granted in a preview, which has no system services to query. */
 @Composable
 internal fun rememberPermissionChecker(): PermissionChecker {
     val context = LocalContext.current.applicationContext
-    return remember(context) { AndroidPermissionChecker(context) }
+    val inPreview = LocalInspectionMode.current
+    return remember(context, inPreview) {
+        if (inPreview) {
+            object : PermissionChecker {
+                override fun isGranted(permission: AppPermission) = false
+            }
+        } else {
+            AndroidPermissionChecker(context)
+        }
+    }
 }

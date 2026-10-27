@@ -20,7 +20,6 @@
     <string name="home_receive_subtitle">Saisissez un montant, l\'autre approche son téléphone</string>
     <string name="home_receive_title">Encaisser</string>
     <string name="home_settings">Réglages</string>
-    <string name="home_wordmark" translatable="false">eifi</string>
     <string name="mode_choice_continue">Continuer</string>
     <string name="mode_choice_subtitle">Vous pourrez faire les deux. Choisissez par où commencer.</string>
     <string name="mode_choice_title">Que voulez-vous faire avec Eifi ?</string>

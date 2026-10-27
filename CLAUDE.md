@@ -172,7 +172,11 @@ been chosen yet.
   `PhoneCountry` per supported country (only `CameroonPhoneCountry`, validated with libphonenumber), listed
   by the view model, picked in a `CountrySelector`; stored in E.164 (`ReceivingMethod.PhoneNumber`). Battery guide per
   brand (`DeviceBrand`, `BatteryGuide`): menu paths to verify in EIFI-300.
-- [ ] **Next ticket: EIFI-101**, then EIFI-102… (order in `docs/tickets.md`).
+- [x] **EIFI-101** — amount entry (`feature/receive/.../amount`): `AmountInput` (100 to 2,000,000 FCFA),
+  `AmountEntryViewModel`, screen with back button, keypad, optional label, operator pills, manual
+  confirmation pill and a line explaining the minimum or maximum.
+  "Encaisser" opens `SessionPlaceholderRoute` (amount, label) until EIFI-102/103. New `EifiLogo`.
+- [ ] **Next ticket: EIFI-102**, then EIFI-103… (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
   invented.

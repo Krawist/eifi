@@ -24,13 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.eifi.core.data.ActivityItem
 import com.eifi.core.data.PaymentDirection
 import com.eifi.core.design.R as DesignR
 import com.eifi.core.design.component.EifiCard
 import com.eifi.core.design.component.EifiIconTile
+import com.eifi.core.design.component.EifiLogo
 import com.eifi.core.design.component.EifiPill
 import com.eifi.core.design.component.EifiPillTone
 import com.eifi.core.design.theme.EifiColors
@@ -80,18 +80,7 @@ internal fun HomeScreen(
 @Composable
 private fun Header(onOpenSettings: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        // The logo is not chosen yet (see docs/design/90-logo-pistes.png): the contactless icon stands in.
-        EifiIconTile(
-            icon = painterResource(DesignR.drawable.ic_eifi_contactless),
-            containerColor = EifiColors.Primary,
-            contentColor = EifiColors.OnPrimary,
-            size = EifiDimens.IconTileSmall,
-        )
-        Text(
-            text = stringResource(R.string.home_wordmark),
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-            modifier = Modifier.padding(start = EifiSpacing.Small).weight(1f),
-        )
+        EifiLogo(modifier = Modifier.weight(1f))
         IconButton(
             onClick = onOpenSettings,
             modifier = Modifier.size(EifiDimens.RoundButton),

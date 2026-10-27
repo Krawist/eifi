@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -12,8 +13,15 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import com.eifi.core.data.AppPermission
+import com.eifi.core.design.component.PlaceholderScreen
+import com.eifi.core.design.format.formatFcfa
 import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.core.permission.PermissionStep
+import com.eifi.core.permission.rememberPermissionGranted
+import com.eifi.feature.receive.amount.AmountEntryActions
+import com.eifi.feature.receive.amount.AmountEntryScreen
+import com.eifi.feature.receive.amount.AmountEntryViewModel
 import com.eifi.feature.receive.profile.ReceivingProfileActions
 import com.eifi.feature.receive.profile.ReceivingProfileScreen
 import com.eifi.feature.receive.profile.ReceivingProfileViewModel
@@ -35,8 +43,13 @@ internal data class ReceivingProfileRoute(val editing: Boolean = false)
 @Serializable
 internal data object ReceivePermissionsRoute
 
+/** "Saisie du montant", the main screen of the mode. */
 @Serializable
 internal data object ReceiveRoute
+
+/** Payment session of [amount]: placeholder of the "QR et NFC actifs" screen until EIFI-102 and EIFI-103. */
+@Serializable
+internal data class SessionPlaceholderRoute(val amount: Long, val label: String? = null)
 
 /** Adds the Receive graph; [onBack] leaves the mode. */
 fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Unit) {
@@ -66,7 +79,19 @@ fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Uni
         composable<ReceivePermissionsRoute> {
             ReceivePermissionsDestination(navController = navController, onBack = onBack)
         }
-        composable<ReceiveRoute> { ReceiveScreen(onBack = onBack) }
+        composable<ReceiveRoute> {
+            AmountEntryDestination(navController = navController, onBack = onBack)
+        }
+        // TODO(EIFI-102, EIFI-103): create the session, then show its QR code and emit it over NFC.
+        composable<SessionPlaceholderRoute> { entry ->
+            val session = entry.toRoute<SessionPlaceholderRoute>()
+            PlaceholderScreen(
+                title = stringResource(R.string.session_placeholder_title),
+                subtitle = stringResource(R.string.session_placeholder_subtitle, formatFcfa(session.amount)),
+                actionLabel = stringResource(R.string.session_placeholder_back),
+                onAction = { navController.popBackStack() },
+            )
+        }
     }
 }
 
@@ -138,6 +163,39 @@ private fun ReceivingProfileDestination(navController: NavController, editing: B
             onRemoveOperator = viewModel::removeOperator,
             onSave = viewModel::save,
             onBack = leave,
+        ),
+    )
+}
+
+@Composable
+private fun AmountEntryDestination(navController: NavController, onBack: () -> Unit) {
+    val viewModel: AmountEntryViewModel = hiltViewModel(
+        checkNotNull(LocalViewModelStoreOwner.current) {
+            "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+        },
+        null,
+    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val automaticConfirmation by rememberPermissionGranted(AppPermission.NotificationAccess)
+    AmountEntryScreen(
+        uiState = uiState,
+        automaticConfirmation = automaticConfirmation,
+        actions = AmountEntryActions(
+            onDigits = viewModel::onDigits,
+            onDelete = viewModel::onDelete,
+            onShowLabel = viewModel::showLabel,
+            onLabelChange = viewModel::onLabelChange,
+            onCollect = {
+                navController.navigate(
+                    SessionPlaceholderRoute(
+                        amount = uiState.amount,
+                        label = uiState.label.ifBlank {
+                            null
+                        },
+                    ),
+                )
+            },
+            onBack = onBack,
         ),
     )
 }

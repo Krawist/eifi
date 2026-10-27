@@ -162,6 +162,8 @@ Implement the "Saisie du montant" (amount entry) screen: numeric keypad, 000 key
 - The amount is an integer in FCFA, from 100 to 2,000,000, and the button stays disabled outside this range.
 - The amount is displayed with a thin space as thousands separator.
 
+Decided on October 27, 2026: a back button replaces "Aujourd'hui" (top left, the logo on the right), as the history is not needed from this screen. A key that would go past 2,000,000 is ignored, and a line under the amount explains the minimum or the maximum; the label (30 characters at most) stays on the phone, as the payment URL does not carry it; "Encaisser" opens a placeholder of the "QR et NFC actifs" screen until EIFI-102 and EIFI-103. A "Confirmation manuelle" pill shows when notification access is refused.
+
 Size: M. Dependencies: EIFI-011.
 
 ### EIFI-102 · Create and manage the local session
