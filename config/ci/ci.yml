@@ -29,7 +29,7 @@ jobs:
       - name: detekt
         run: ./gradlew detekt
 
-      - name: Tests unitaires
+      - name: Unit tests
         run: ./gradlew testDebugUnitTest
 
       - name: Build debug

@@ -7,7 +7,7 @@ import com.eifi.core.design.component.PlaceholderScreen
 
 /** Empty screen of the Pay mode (EIFI-010). */
 @Composable
-fun PayScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
+internal fun PayScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     PlaceholderScreen(
         title = stringResource(R.string.pay_title),
         subtitle = stringResource(R.string.pay_subtitle),

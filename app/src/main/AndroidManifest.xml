@@ -5,6 +5,7 @@
          tickets that need them, and are requested when they are needed (EIFI-032). -->
 
     <application
+        android:name=".EifiApplication"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

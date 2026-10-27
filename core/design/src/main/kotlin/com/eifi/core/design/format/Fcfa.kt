@@ -1,7 +1,7 @@
 package com.eifi.core.design.format
 
 /** Narrow no-break space, thousands separator of amounts. */
-const val THIN_SPACE: Char = ' '
+internal const val THIN_SPACE: Char = ' '
 
 private const val GROUP_SIZE = 3
 

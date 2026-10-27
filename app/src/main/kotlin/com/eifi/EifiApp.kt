@@ -1,25 +1,56 @@
 package com.eifi
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import com.eifi.feature.onboarding.Mode
-import com.eifi.feature.onboarding.ModeChoiceScreen
-import com.eifi.feature.pay.PayScreen
-import com.eifi.feature.receive.ReceiveScreen
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
+import com.eifi.core.data.AppMode
+import com.eifi.feature.onboarding.OnboardingGraph
+import com.eifi.feature.onboarding.onboardingGraph
+import com.eifi.feature.pay.PayGraph
+import com.eifi.feature.pay.payGraph
+import com.eifi.feature.receive.ReceiveGraph
+import com.eifi.feature.receive.receiveGraph
 
-/**
- * Temporary assembly of the modes (EIFI-010). The real navigation, with
- * Navigation Compose and the mode remembered in DataStore, comes with EIFI-012.
- */
+/** Root of the app: one navigation graph per mode, opened on the remembered mode. */
 @Composable
-fun EifiApp() {
-    var mode by rememberSaveable { mutableStateOf<Mode?>(null) }
-    when (mode) {
-        null -> ModeChoiceScreen(onModeChosen = { mode = it })
-        Mode.Pay -> PayScreen(onBack = { mode = null })
-        Mode.Receive -> ReceiveScreen(onBack = { mode = null })
+internal fun EifiApp(uiState: MainUiState) {
+    when (uiState) {
+        // Blank background while the preferences load (a few milliseconds).
+        MainUiState.Loading -> Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+        is MainUiState.Ready -> EifiNavHost(startMode = uiState.startMode)
+    }
+}
+
+@Composable
+private fun EifiNavHost(startMode: AppMode?, navController: NavHostController = rememberNavController()) {
+    NavHost(navController = navController, startDestination = startMode?.graph ?: OnboardingGraph) {
+        onboardingGraph(
+            onModeChosen = { mode ->
+                navController.navigate(mode.graph) {
+                    popUpTo(OnboardingGraph) { inclusive = true }
+                }
+            },
+        )
+        payGraph(onBack = { navController.leaveMode(PayGraph) })
+        receiveGraph(onBack = { navController.leaveMode(ReceiveGraph) })
+    }
+}
+
+private val AppMode.graph: Any
+    get() = when (this) {
+        AppMode.Pay -> PayGraph
+        AppMode.Receive -> ReceiveGraph
+    }
+
+/** Back to the mode choice until the home screen exists (EIFI-031). */
+private fun NavHostController.leaveMode(graph: Any) {
+    navigate(OnboardingGraph) {
+        popUpTo(graph) { inclusive = true }
     }
 }

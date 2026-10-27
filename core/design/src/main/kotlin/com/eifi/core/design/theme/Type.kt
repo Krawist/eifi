@@ -19,7 +19,7 @@ private fun jakarta(weight: FontWeight) = Font(
 )
 
 /** Plus Jakarta Sans (OFL, see core/design/fonts/OFL.txt), embedded as a single variable font. */
-val EifiFontFamily: FontFamily = FontFamily(
+internal val EifiFontFamily: FontFamily = FontFamily(
     jakarta(FontWeight.Normal),
     jakarta(FontWeight.Medium),
     jakarta(FontWeight.SemiBold),

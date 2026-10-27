@@ -3,6 +3,8 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.eifi.android.application)
     alias(libs.plugins.eifi.android.compose)
+    alias(libs.plugins.eifi.android.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 // Release signing: read from keystore.properties (not versioned). See README.
@@ -18,6 +20,12 @@ android {
         applicationId = "com.eifi"
         versionCode = 1
         versionName = "0.1.0"
+    }
+
+    // French is the default language (unqualified resources), English the only translation.
+    androidResources {
+        localeFilters += listOf("fr", "en")
+        generateLocaleConfig = true
     }
 
     signingConfigs {
@@ -52,6 +60,7 @@ android {
 
 dependencies {
     implementation(projects.core.design)
+    implementation(projects.core.data)
     implementation(projects.feature.onboarding)
     implementation(projects.feature.pay)
     implementation(projects.feature.receive)
@@ -59,4 +68,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    testImplementation(libs.kotlinx.coroutines.test)
 }

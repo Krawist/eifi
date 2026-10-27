@@ -18,11 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.eifi.core.data.AppMode
 import com.eifi.core.design.theme.EifiRadius
 import com.eifi.core.design.theme.EifiTheme
 
 @Composable
-fun ModeChoiceScreen(onModeChosen: (Mode) -> Unit, modifier: Modifier = Modifier) {
+internal fun ModeChoiceScreen(onModeChosen: (AppMode) -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = Modifier.safeDrawingPadding().padding(horizontal = 20.dp, vertical = 28.dp),
@@ -37,14 +38,14 @@ fun ModeChoiceScreen(onModeChosen: (Mode) -> Unit, modifier: Modifier = Modifier
                 modifier = Modifier.padding(bottom = 16.dp),
             )
             Button(
-                onClick = { onModeChosen(Mode.Pay) },
+                onClick = { onModeChosen(AppMode.Pay) },
                 shape = EifiRadius.Button,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
             ) {
                 Text(stringResource(R.string.mode_pay), style = MaterialTheme.typography.labelLarge)
             }
             FilledTonalButton(
-                onClick = { onModeChosen(Mode.Receive) },
+                onClick = { onModeChosen(AppMode.Receive) },
                 shape = EifiRadius.Button,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
             ) {

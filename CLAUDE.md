@@ -68,17 +68,26 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
 ## Stack and conventions
 
 - Kotlin, Jetpack Compose, themed Material 3. minSdk 26, compile/target 36. JDK 17.
-- UDF architecture: ViewModel + state in `StateFlow`, coroutines. Hilt, Room, DataStore and
-  Navigation Compose arrive with EIFI-012.
+- UDF architecture: `@HiltViewModel` + state in `StateFlow`, coroutines. Hilt (KSP), Room,
+  DataStore and type-safe Navigation Compose (`@Serializable` routes).
+- Navigation: each feature exposes its graph object (`OnboardingGraph`, `PayGraph`,
+  `ReceiveGraph`) and a `NavGraphBuilder.xxxGraph(...)` extension; `:app` (`EifiApp.kt`) wires
+  them. Features never navigate to each other directly: they take callbacks.
 - Gradle Kotlin DSL, `gradle/libs.versions.toml` catalog, convention plugins in `build-logic/`:
     - `eifi.android.application`, `eifi.android.library`, `eifi.android.compose`,
-      `eifi.android.feature` (library + compose + `:core:design`), `eifi.jvm.library` (pure Kotlin).
+      `eifi.android.feature` (library + compose + Hilt + navigation + `:core:design`),
+      `eifi.android.hilt`, `eifi.android.room` (schemas in `schemas/`), `eifi.jvm.library`
+      (pure Kotlin).
 - Kotlin sources in `src/main/kotlin` and `src/test/kotlin`.
 - Type-safe module accessors: `implementation(projects.core.design)`.
 - Pure business logic (payload, parsers, matching, templates) in Kotlin without Android
   dependencies whenever possible, covered by JVM tests.
 - User-facing texts: `strings.xml` resources in French (default) **and** English (`values-en`).
-  Never hard-coded text in a composable.
+  Never hard-coded text in a composable. The app language follows the phone, French otherwise
+  (`localeFilters` fr/en, generated locale config, `unqualifiedResLocale=fr`).
+- Tests: JUnit 5 + Kotest assertions (`shouldBe`…), set up by the convention plugins. Names start with
+  `should`, one `@Nested inner class` per tested method, `// given`, `// when`, `// then`,
+  `@ParameterizedTest` for variations. Fakes for repositories; `Dispatchers.setMain` for ViewModels.
 - Amounts: integers in FCFA (`Long`), displayed with `formatFcfa()` (thin space U+202F as
   thousands separator).
 - Quality: `./gradlew ktlintCheck detekt testDebugUnitTest assembleDebug` must pass before a ticket
@@ -97,6 +106,7 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
 | `:feature:pay`        | Pay mode screens                                    | 200–208       |
 | `:feature:receive`    | Receive mode screens                                | 100–109       |
 | `:core:design`        | Theme, colours, type, components, formatting        | 011           |
+| `:core:data`          | DataStore preferences, Room database (from 102)     | 012, 102      |
 | `:core:payload`       | Payment URL encoding/decoding (pure Kotlin)         | 020           |
 | `:core:nfc`           | Type 4 HCE and NDEF reader                          | 104, 200      |
 | `:core:ussd`          | USSD templates, SIM, call launch                    | 202, 204      |
@@ -130,7 +140,11 @@ been chosen yet.
   `EifiSecondaryButton`, `EifiCard`, `EifiPill` (+ `EifiPillTone`), `NumericKeypad`,
   `AmountDisplay`; catalogue `catalog/DesignSystemCatalog.kt`; contrast checked by
   `ContrastTest`. Use these components in screens rather than raw Material.
-- [ ] **Next ticket: EIFI-012**, then EIFI-020, then EIFI-030… (order in `docs/tickets.md`).
+- [x] **EIFI-012** — Hilt, type-safe Navigation Compose (one nested graph per mode), DataStore
+  (`UserPreferencesRepository`: the app reopens on the last chosen mode), Room plugin wired in
+  `:core:data` (the `EifiDatabase` class comes with its first entity in EIFI-102), French default
+  and English locales. Leaving a mode returns to the mode choice until the home screen (EIFI-031).
+- [ ] **Next ticket: EIFI-020**, then EIFI-030… (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
   invented.

@@ -7,7 +7,7 @@ import com.eifi.core.design.component.PlaceholderScreen
 
 /** Empty screen of the Receive mode (EIFI-010). */
 @Composable
-fun ReceiveScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
+internal fun ReceiveScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     PlaceholderScreen(
         title = stringResource(R.string.receive_title),
         subtitle = stringResource(R.string.receive_subtitle),

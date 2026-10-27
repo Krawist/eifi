@@ -19,6 +19,7 @@ dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.compose.gradlePlugin)
+    compileOnly(libs.room.gradlePlugin)
 }
 
 gradlePlugin {
@@ -38,6 +39,14 @@ gradlePlugin {
         register("androidFeature") {
             id = "eifi.android.feature"
             implementationClass = "AndroidFeatureConventionPlugin"
+        }
+        register("androidHilt") {
+            id = "eifi.android.hilt"
+            implementationClass = "AndroidHiltConventionPlugin"
+        }
+        register("androidRoom") {
+            id = "eifi.android.room"
+            implementationClass = "AndroidRoomConventionPlugin"
         }
         register("jvmLibrary") {
             id = "eifi.jvm.library"
