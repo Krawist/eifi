@@ -23,6 +23,20 @@ internal interface PaymentDao {
     @Query("SELECT * FROM payment WHERE type = 'Received' AND status = 'Pending' AND amount = :amount LIMIT 1")
     suspend fun getPendingReceivedByAmount(amount: Long): PaymentEntity?
 
+    /** Every payment, latest first. */
+    @Query("SELECT * FROM payment ORDER BY createdAt DESC")
+    fun getAllAsFlow(): Flow<List<PaymentEntity>>
+
+    /** The payments sent and the payments received and confirmed, with their operator, latest first. */
+    @Query(
+        "SELECT * FROM payment WHERE operator IS NOT NULL " +
+            "AND (type = 'Sent' OR status = 'Confirmed') ORDER BY createdAt DESC LIMIT :limit",
+    )
+    fun getRecentActivityAsFlow(limit: Int): Flow<List<PaymentEntity>>
+
+    @Query("SELECT COUNT(*) FROM payment")
+    suspend fun count(): Int
+
     /** Stores as EXPIRED the PENDING payments whose expiry has passed, ended at their expiry. */
     @Query(
         "UPDATE payment SET status = 'Expired', endedAt = expiresAt " +

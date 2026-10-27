@@ -20,10 +20,12 @@ import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
 import com.eifi.core.data.UserProfileService
 import com.eifi.core.data.database.EifiDatabase
+import com.eifi.core.data.database.RoomActivityRepository
 import com.eifi.core.data.database.RoomPaymentRepository
-import com.eifi.core.data.fake.FakeActivityRepository
+import com.eifi.core.data.database.RoomUssdConfigRepository
 import com.eifi.core.data.jsonDataStore
 import com.eifi.core.data.payment.PaymentRepository
+import com.eifi.core.ussd.UssdConfigRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -48,7 +50,10 @@ internal abstract class DataModule {
     abstract fun bindPaymentRepository(impl: RoomPaymentRepository): PaymentRepository
 
     @Binds
-    abstract fun bindActivityRepository(impl: FakeActivityRepository): ActivityRepository
+    abstract fun bindActivityRepository(impl: RoomActivityRepository): ActivityRepository
+
+    @Binds
+    abstract fun bindUssdConfigRepository(impl: RoomUssdConfigRepository): UssdConfigRepository
 
     @Binds
     abstract fun bindPayingAccountRepository(impl: DataStorePayingAccountRepository): PayingAccountRepository

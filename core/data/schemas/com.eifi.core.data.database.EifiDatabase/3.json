@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "5d527456164cac19745c5cc82ae9d533",
+    "identityHash": "a61a5627174cdbf2682b0f4b78607367",
     "entities": [
       {
         "tableName": "payment",
@@ -94,11 +94,39 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_payment_type_status_amount` ON `${TABLE_NAME}` (`type`, `status`, `amount`)"
           }
         ]
+      },
+      {
+        "tableName": "ussd_config",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`operator` TEXT NOT NULL, `merchantPayment` TEXT, `transfer` TEXT, PRIMARY KEY(`operator`))",
+        "fields": [
+          {
+            "fieldPath": "operator",
+            "columnName": "operator",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "merchantPayment",
+            "columnName": "merchantPayment",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "transfer",
+            "columnName": "transfer",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "operator"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5d527456164cac19745c5cc82ae9d533')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a61a5627174cdbf2682b0f4b78607367')"
     ]
   }
 }
