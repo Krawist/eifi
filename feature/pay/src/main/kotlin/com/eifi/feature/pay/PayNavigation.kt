@@ -79,7 +79,15 @@ fun NavGraphBuilder.payGraph(navController: NavController, onBack: () -> Unit) {
                 },
                 null,
             )
-            PaymentSummaryScreen(uiState = viewModel.uiState, onClose = { navController.popBackStack() })
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            uiState?.let {
+                PaymentSummaryScreen(
+                    uiState = it,
+                    onSelectOperator = viewModel::selectOperator,
+                    onConfirm = viewModel::confirm,
+                    onClose = { navController.popBackStack() },
+                )
+            }
         }
     }
 }

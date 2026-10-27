@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="operator_mtn_momo" translatable="false">MTN MoMo</string>
+    <string name="operator_mtn_momo_short" translatable="false">MoMo</string>
+    <string name="operator_orange_money" translatable="false">Orange Money</string>
+    <string name="operator_orange_money_short" translatable="false">OM</string>
     <string name="pay_action_pay">Payer</string>
     <string name="pay_action_scan">Scanner un QR code</string>
     <string name="pay_back">Retour</string>
@@ -9,12 +13,27 @@
     <string name="pay_subtitle">Approchez ou scannez pour payer.</string>
     <string name="pay_title">Payer</string>
     <string name="scan_hint">Visez le QR code de celui qui encaisse.</string>
+    <string name="summary_account_change">Changer</string>
+    <string name="summary_account_title">Choisissez votre compte</string>
     <string name="summary_back">Retour</string>
+    <string name="summary_confirm_soon">La confirmation par empreinte s\'ouvrira ici.</string>
     <string name="summary_expired_body">Demandez à celui qui encaisse d\'afficher un nouveau code.</string>
     <string name="summary_expired_title">Ce code a expiré</string>
+    <string name="summary_expires_in">Expire dans %1$s</string>
     <string name="summary_invalid_body">Ce code ne vient pas d\'Eifi ou il est abîmé. Scannez de nouveau ou rapprochez les téléphones.</string>
     <string name="summary_invalid_title">Code non reconnu</string>
-    <string name="summary_pay_to">Payer à</string>
+    <string name="summary_merchant_action">Payer %1$s FCFA</string>
+    <string name="summary_merchant_badge">Code marchand</string>
+    <string name="summary_merchant_fees">Sans frais pour vous</string>
+    <string name="summary_merchant_title">Payer</string>
+    <string name="summary_merchant_with">Payer avec</string>
+    <string name="summary_pin_reminder">Vous confirmerez ensuite avec votre code secret dans l\'invite %1$s. Eifi ne le voit jamais.</string>
+    <string name="summary_transfer_action">Envoyer %1$s FCFA</string>
+    <string name="summary_transfer_badge">Transfert à un particulier</string>
+    <string name="summary_transfer_fees">Frais de transfert à votre charge</string>
+    <string name="summary_transfer_fees_detail">Les frais %1$s et la taxe de 0,2 %% s\'ajoutent au montant.</string>
+    <string name="summary_transfer_title">Envoyer</string>
+    <string name="summary_transfer_with">Envoyer avec</string>
     <string name="summary_update_body">Ce paiement vient d\'une version plus récente d\'Eifi. Mettez l\'application à jour pour payer.</string>
     <string name="summary_update_title">Mise à jour nécessaire</string>
 </resources>

@@ -202,7 +202,14 @@ been chosen yet.
   and NDEF intent filters on the placeholder host (`paymentHost` manifest placeholder, no autoVerify until EIFI-021,
   `MainViewModel.paymentLink`). All lead to `PaymentSummaryRoute(url)`, which decodes it: payee and amount, or
   expired / update needed / not recognised. The full summary comes with EIFI-201.
-- [ ] **Next ticket: EIFI-201**, then EIFI-202… EIFI-105 and EIFI-106 wait for the SMS of EIFI-002. (order in `docs/tickets.md`).
+- [x] **EIFI-201** — summary screen (`feature/pay/.../summary`): payee with a neutral badge ("Code marchand" or
+  "Transfert à un particulier", nothing verifies a merchant without a backend), amount, account card, fee notice and
+  PIN reminder, "Payer" or "Envoyer" from `ReceivingMethodUi` (one per method, to build from the operator
+  specification in EIFI-208), countdown, expired screen once the code expires. Account: the chosen one, else the last
+  one used (`PayingAccountRepository`, saved on confirmation) if the payee accepts it, else the payee's first operator;
+  "Changer" opens a simple picker of the payee's operators until the EIFI-202 screen. Confirming shows a placeholder
+  line until EIFI-203.
+- [ ] **Next ticket: EIFI-202**, then EIFI-203… EIFI-105 and EIFI-106 wait for the SMS of EIFI-002 (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
   invented.

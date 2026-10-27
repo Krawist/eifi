@@ -269,6 +269,8 @@ Implement the "Récapitulatif" (summary) screen: payee's name, amount, chosen ac
 - The default account is the last one used, if it is compatible.
 - The session countdown is visible, and payment is blocked after expiry.
 
+Decided on October 27, 2026: the payee's badge stays neutral ("Code marchand" or "Transfert à un particulier") instead of "Marchand vérifié", since nothing verifies a merchant without a backend. Until EIFI-202, "Changer" opens a simple list of the payee's operators, without SIMs. The last account used is saved when the payer confirms.
+
 Size: M. Dependencies: EIFI-011, EIFI-200.
 
 ### EIFI-202 · Choice of operator and SIM
