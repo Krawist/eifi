@@ -216,7 +216,9 @@ private fun ReceivingProfileScreenPreview() {
             uiState = ReceivingProfileUiState(
                 phoneCountries = listOf(CameroonPhoneCountry),
                 displayName = "Boutique Mama Ngono",
-                operators = mapOf(Operator.OrangeMoney to OperatorForm(country = CameroonPhoneCountry, value = "6901")),
+                operators = mapOf(
+                    Operator.OrangeMoney to OperatorForm(country = CameroonPhoneCountry, phoneNumber = "6901"),
+                ),
             ),
             editing = false,
             actions = ReceivingProfileActions(),

@@ -24,7 +24,8 @@ internal class OperatorFormTest {
             expected: OperatorFormError,
         ) {
             // given
-            val form = OperatorForm(country = CameroonPhoneCountry, kind = kind, value = value)
+            val form =
+                OperatorForm(country = CameroonPhoneCountry, kind = kind, phoneNumber = value, merchantCode = value)
 
             // when
             val error = form.error
@@ -36,7 +37,7 @@ internal class OperatorFormTest {
         @Test
         fun `should have no error for a valid number`() {
             // given
-            val form = OperatorForm(country = CameroonPhoneCountry, value = "690123456")
+            val form = OperatorForm(country = CameroonPhoneCountry, phoneNumber = "690123456")
 
             // when
             val error = form.error

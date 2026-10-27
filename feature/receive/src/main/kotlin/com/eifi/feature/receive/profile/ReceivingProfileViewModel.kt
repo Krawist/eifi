@@ -67,24 +67,24 @@ internal class ReceivingProfileViewModel @Inject constructor(
         _uiState.update { it.copy(displayName = name.take(PaymentRequestService.MAX_DISPLAY_NAME_LENGTH)) }
     }
 
-    /** Switching between phone number and merchant code starts the value again. */
+    /** Switching between phone number and merchant code keeps what was typed in each. */
     fun onKindChange(operator: Operator, kind: ReceivingMethodKind) {
-        updateOperator(operator) { if (it.kind == kind) it else OperatorForm(country = it.country, kind = kind) }
+        updateOperator(operator) { it.copy(kind = kind) }
     }
 
     /** Another country starts the phone number again, as its rules differ. */
     fun onCountryChange(operator: Operator, country: PhoneCountry) {
-        updateOperator(operator) { if (it.country == country) it else it.copy(country = country, value = "") }
+        updateOperator(operator) { if (it.country == country) it else it.copy(country = country, phoneNumber = "") }
     }
 
     /** A phone number keeps its national digits (see [PhoneCountry.normalize]); a merchant code is cut. */
     fun onValueChange(operator: Operator, value: String) {
         updateOperator(operator) { form ->
-            val cleaned = when (form.kind) {
-                ReceivingMethodKind.PhoneNumber -> form.country.normalize(value)
-                ReceivingMethodKind.MerchantCode -> value.take(ReceivingMethodService.MAX_MERCHANT_CODE_LENGTH)
+            when (form.kind) {
+                ReceivingMethodKind.PhoneNumber -> form.copy(phoneNumber = form.country.normalize(value))
+                ReceivingMethodKind.MerchantCode ->
+                    form.copy(merchantCode = value.take(ReceivingMethodService.MAX_MERCHANT_CODE_LENGTH))
             }
-            form.copy(value = cleaned)
         }
     }
 

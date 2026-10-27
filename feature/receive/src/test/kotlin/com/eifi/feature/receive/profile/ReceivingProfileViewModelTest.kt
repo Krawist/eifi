@@ -86,7 +86,11 @@ internal class ReceivingProfileViewModelTest {
                 phoneCountries = listOf(CameroonPhoneCountry),
                 displayName = "Boutique",
                 operators = mapOf(
-                    Operator.MtnMomo to OperatorForm(CameroonPhoneCountry, ReceivingMethodKind.MerchantCode, "730154"),
+                    Operator.MtnMomo to OperatorForm(
+                        country = CameroonPhoneCountry,
+                        kind = ReceivingMethodKind.MerchantCode,
+                        merchantCode = "730154",
+                    ),
                 ),
             )
         }
@@ -143,7 +147,7 @@ internal class ReceivingProfileViewModelTest {
     @Nested
     inner class OnKindChange {
         @Test
-        fun `should start the value again when switching to a merchant code`() {
+        fun `should keep the phone number when switching to a merchant code`() {
             // given
             viewModel.onValueChange(Operator.OrangeMoney, "690123456")
 
@@ -151,8 +155,25 @@ internal class ReceivingProfileViewModelTest {
             viewModel.onKindChange(Operator.OrangeMoney, ReceivingMethodKind.MerchantCode)
 
             // then
-            viewModel.uiState.value.operators.getValue(Operator.OrangeMoney) shouldBe
-                OperatorForm(country = CameroonPhoneCountry, kind = ReceivingMethodKind.MerchantCode)
+            viewModel.uiState.value.operators.getValue(Operator.OrangeMoney) shouldBe OperatorForm(
+                country = CameroonPhoneCountry,
+                kind = ReceivingMethodKind.MerchantCode,
+                phoneNumber = "690123456",
+            )
+        }
+
+        @Test
+        fun `should show the merchant code typed before when switching back`() {
+            // given
+            viewModel.onKindChange(Operator.OrangeMoney, ReceivingMethodKind.MerchantCode)
+            viewModel.onValueChange(Operator.OrangeMoney, "482913")
+            viewModel.onKindChange(Operator.OrangeMoney, ReceivingMethodKind.PhoneNumber)
+
+            // when
+            viewModel.onKindChange(Operator.OrangeMoney, ReceivingMethodKind.MerchantCode)
+
+            // then
+            viewModel.uiState.value.operators.getValue(Operator.OrangeMoney).value shouldBe "482913"
         }
     }
 
@@ -170,7 +191,7 @@ internal class ReceivingProfileViewModelTest {
             val form = viewModel.uiState.value.operators.getValue(Operator.OrangeMoney)
 
             // then
-            form shouldBe OperatorForm(country = CameroonPhoneCountry, value = "690123456")
+            form shouldBe OperatorForm(country = CameroonPhoneCountry, phoneNumber = "690123456")
         }
     }
 
@@ -240,6 +261,22 @@ internal class ReceivingProfileViewModelTest {
                     Operator.MtnMomo to ReceivingMethod.MerchantCode("730154"),
                 ),
             )
+        }
+
+        @Test
+        fun `should save only the selected kind of an operator`() {
+            // given
+            viewModel.onDisplayNameChange("Kiosque Ndé")
+            viewModel.onValueChange(Operator.OrangeMoney, "690123456")
+            viewModel.onKindChange(Operator.OrangeMoney, ReceivingMethodKind.MerchantCode)
+            viewModel.onValueChange(Operator.OrangeMoney, "482913")
+
+            // when
+            viewModel.save()
+
+            // then
+            receivingProfiles.profile.value?.receivingMethods shouldBe
+                mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))
         }
 
         @Test
