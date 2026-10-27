@@ -9,6 +9,9 @@ import com.eifi.core.data.payment.PaymentRepository
 import com.eifi.core.data.payment.PaymentService
 import com.eifi.core.data.payment.PaymentStatus
 import com.eifi.core.data.payment.TransactionType
+import com.eifi.core.nfc.NfcPaymentEmitter
+import com.eifi.core.nfc.NfcStatus
+import com.eifi.core.nfc.NfcStatusProvider
 import com.eifi.core.payload.Operator
 import com.eifi.core.payload.PaymentRequest
 import com.eifi.core.payload.PaymentUrlCodec
@@ -21,6 +24,7 @@ import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -101,16 +105,47 @@ internal class PaymentViewModelTest {
         }
     }
 
+    /** The URL emitted over NFC, `null` when none is. */
+    private var emitted: String? = null
+
+    private val emitter = object : NfcPaymentEmitter {
+        override fun start(url: String) {
+            emitted = url
+        }
+
+        override fun stop(url: String) {
+            if (emitted == url) emitted = null
+        }
+    }
+
     private val viewModel by lazy {
         PaymentViewModel(
             savedStateHandle = SavedStateHandle(mapOf(PaymentViewModel.PAYMENT_ID to "0a1b2c3d4e5f")),
             paymentRepository = repository,
-            receivingProfileRepository = receivingProfiles,
             paymentService = paymentService,
-            paymentUrlCodec = codec,
+            paymentChannelService = PaymentChannelService(
+                receivingProfileRepository = receivingProfiles,
+                paymentService = paymentService,
+                paymentUrlCodec = codec,
+                nfcPaymentEmitter = emitter,
+                nfcStatusProvider = object : NfcStatusProvider {
+                    override val status = flowOf(NfcStatus.Ready)
+                },
+            ),
             clock = clock,
         )
     }
+
+    /** Payment URL of the stored payment, paid to the receiving profile. */
+    private fun expectedUrl() = codec.encode(
+        PaymentRequest(
+            id = "0a1b2c3d4e5f",
+            displayName = "Kiosque Ndé",
+            amount = 2_500,
+            receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913")),
+            expiresAt = start.plusSeconds(120),
+        ),
+    )
 
     @BeforeEach
     fun setUp() {
@@ -139,15 +174,8 @@ internal class PaymentViewModelTest {
                 label = "Pain",
                 status = PaymentStatus.Pending,
                 remainingSeconds = 102,
-                url = codec.encode(
-                    PaymentRequest(
-                        id = "0a1b2c3d4e5f",
-                        displayName = "Kiosque Ndé",
-                        amount = 2_500,
-                        receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913")),
-                        expiresAt = start.plusSeconds(120),
-                    ),
-                ),
+                url = expectedUrl(),
+                nfcStatus = NfcStatus.Ready,
             )
         }
 
@@ -175,6 +203,48 @@ internal class PaymentViewModelTest {
 
             // then
             stored.value.status shouldBe PaymentStatus.Expired
+        }
+    }
+
+    @Nested
+    inner class NfcEmission {
+        @Test
+        fun `should emit the payment URL while the payment is pending`() = runTest(dispatcher) {
+            // given
+            viewModel
+
+            // when
+            runCurrent()
+
+            // then
+            emitted shouldBe expectedUrl()
+        }
+
+        @Test
+        fun `should stop emitting once the payment is cancelled`() = runTest(dispatcher) {
+            // given
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+
+            // when
+            viewModel.cancel()
+            runCurrent()
+
+            // then
+            emitted.shouldBeNull()
+        }
+
+        @Test
+        fun `should stop emitting once the payment has expired`() = runTest(dispatcher) {
+            // given
+            viewModel
+
+            // when
+            advanceTimeBy(121_000)
+            runCurrent()
+
+            // then
+            emitted.shouldBeNull()
         }
     }
 

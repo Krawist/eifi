@@ -2,6 +2,7 @@ package com.eifi.feature.receive.payment
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,7 @@ import com.eifi.core.design.R as DesignR
 import com.eifi.core.design.component.AmountDisplay
 import com.eifi.core.design.component.EifiCard
 import com.eifi.core.design.component.EifiCloseButton
+import com.eifi.core.design.component.EifiIconTile
 import com.eifi.core.design.component.EifiPill
 import com.eifi.core.design.component.EifiPillTone
 import com.eifi.core.design.component.EifiPrimaryButton
@@ -35,11 +37,12 @@ import com.eifi.core.design.component.EifiSecondaryButton
 import com.eifi.core.design.theme.EifiColors
 import com.eifi.core.design.theme.EifiSpacing
 import com.eifi.core.design.theme.EifiTheme
+import com.eifi.core.nfc.NfcStatus
 import com.eifi.feature.receive.R
 
 /**
- * "QR et NFC actifs": amount, QR code of the payment URL and countdown while the payment is pending; once
- * expired, an offer to start again with the same amount. NFC comes with EIFI-104.
+ * "QR et NFC actifs": amount, QR code of the payment URL, NFC status and countdown while the payment is pending;
+ * once expired, an offer to start again with the same amount.
  */
 @Composable
 internal fun PaymentScreen(
@@ -94,6 +97,9 @@ internal fun PaymentScreen(
                         PaymentCardContent(uiState = uiState)
                     }
                 }
+                if (uiState.status == PaymentStatus.Pending && uiState.url != null) {
+                    uiState.nfcStatus?.let { NfcBanner(status = it) }
+                }
                 if (uiState.status == PaymentStatus.Pending) Waiting()
             }
             Actions(uiState = uiState, onCancel = onCancel, onRestart = onRestart, onClose = onClose)
@@ -109,12 +115,23 @@ private fun PaymentCardContent(uiState: PaymentUiState) {
             CircularProgressIndicator(color = EifiColors.Primary)
         } else {
             MaxBrightness()
+            if (uiState.nfcStatus == NfcStatus.Ready) NfcPriority()
             EifiQrCode(
                 content = uiState.url,
                 contentDescription = stringResource(R.string.payment_qr_description),
                 modifier = Modifier.fillMaxWidth(),
             )
-            CardText(text = stringResource(R.string.payment_scan_hint))
+            CardText(
+                text = stringResource(
+                    if (uiState.nfcStatus ==
+                        NfcStatus.Ready
+                    ) {
+                        R.string.payment_scan_or_tap_hint
+                    } else {
+                        R.string.payment_scan_hint
+                    },
+                ),
+            )
         }
         PaymentStatus.Expired -> {
             Text(text = stringResource(R.string.payment_expired), style = MaterialTheme.typography.titleLarge)
@@ -123,6 +140,52 @@ private fun PaymentCardContent(uiState: PaymentUiState) {
         // TODO(EIFI-106): the "Paiement reçu" screen.
         PaymentStatus.Confirmed -> EifiPill(text = stringResource(R.string.payment_confirmed))
         PaymentStatus.Cancelled -> Unit
+    }
+}
+
+/** NFC emitting, or why it cannot: the QR code stays usable in any case. */
+@Composable
+private fun NfcBanner(status: NfcStatus) {
+    val ready = status == NfcStatus.Ready
+    EifiCard(
+        modifier = Modifier.fillMaxWidth(),
+        color = if (ready) EifiColors.Soft else EifiColors.Surface,
+        contentPadding = PaddingValues(EifiSpacing.Medium),
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(EifiSpacing.Medium),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            EifiIconTile(
+                icon = painterResource(DesignR.drawable.ic_eifi_contactless),
+                containerColor = if (ready) EifiColors.Primary else EifiColors.Divider,
+                contentColor = if (ready) EifiColors.OnPrimary else EifiColors.Muted,
+            )
+            Column {
+                Text(
+                    text = stringResource(
+                        when (status) {
+                            NfcStatus.Ready -> R.string.payment_nfc_ready
+                            NfcStatus.Disabled -> R.string.payment_nfc_disabled
+                            NfcStatus.Unavailable -> R.string.payment_nfc_unavailable
+                        },
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (ready) EifiColors.OnSoft else EifiColors.Ink,
+                )
+                Text(
+                    text = stringResource(
+                        when (status) {
+                            NfcStatus.Ready -> R.string.payment_nfc_ready_body
+                            NfcStatus.Disabled -> R.string.payment_nfc_disabled_body
+                            NfcStatus.Unavailable -> R.string.payment_nfc_unavailable_body
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (ready) EifiColors.OnSoft else EifiColors.Muted,
+                )
+            }
+        }
     }
 }
 
@@ -203,6 +266,7 @@ private fun PaymentScreenPreview() {
                 status = PaymentStatus.Pending,
                 remainingSeconds = 102,
                 url = "https://pay.eifi.app/p#v1.CgsMDQ4PaSB2gHnEEwhCb3V0aXF1ZQERBkgpE",
+                nfcStatus = NfcStatus.Ready,
             ),
             onCancel = {},
             onRestart = {},

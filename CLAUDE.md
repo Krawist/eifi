@@ -192,7 +192,12 @@ been chosen yet.
   `PaymentUrlCodec` provided by `:app` with `BuildConfig.PAYMENT_BASE_URL`, a placeholder until EIFI-021), countdown
   pill, full brightness while the code shows (`MaxBrightness`), restart with the same amount once expired. New
   `EifiCloseButton`. The NFC banner comes with EIFI-104, the SMS waiting line with EIFI-105.
-- [ ] **Next ticket: EIFI-104**, then EIFI-105… (order in `docs/tickets.md`).
+- [x] **EIFI-104** — NFC emission in `:core:nfc`: `Type4Tag` (NFC Forum Type 4 tag, read-only, standard APDUs) holding
+  `ndefUriMessage(url)`, answered by `PaymentTagService` (`HostApduService`, AID D2760000850101, category other),
+  enabled only while `NfcPaymentEmitter` emits a pending payment, preferred over Samsung's built-in tag while the
+  QR screen is resumed (`NfcPaymentPriority`). `PaymentChannelService` gives the QR screen its
+  URL and NFC status; banner "NFC actif" / "NFC désactivé" / "Pas de NFC". Tap to test on real phones (EIFI-003).
+- [ ] **Next ticket: EIFI-105**, then EIFI-106… (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
   invented.

@@ -8,6 +8,7 @@ android {
 
 dependencies {
     implementation(projects.core.data)
+    implementation(projects.core.nfc)
     implementation(projects.core.payload)
     implementation(projects.core.permission)
     implementation(libs.androidx.activity.compose)

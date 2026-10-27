@@ -198,6 +198,8 @@ Implement the `HostApduService` that emulates an NFC Type 4 tag holding the paym
 - The service no longer responds after the session ends.
 - If NFC is missing or disabled, the screen says so without blocking the QR code.
 
+Decided on October 27, 2026: built before EIFI-003 on the standard NFC Forum Type 4 tag protocol; the tap between real phones is checked as part of EIFI-003. The service is a disabled component, enabled only while a pending payment is shown, so that other apps keep the NDEF application the rest of the time. Samsung's built-in tag ("Tag intégré") claims the same AID: without priority, Android asks which app to use and then reports a conflict. While the QR screen is resumed, `CardEmulation.setPreferredService` gives Eifi priority (`NfcPaymentPriority`).
+
 Size: L. Dependencies: EIFI-003, EIFI-102.
 
 ### EIFI-105 · Read credit SMS

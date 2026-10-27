@@ -14,9 +14,16 @@
     <string name="payment_expired">Code expired</string>
     <string name="payment_expired_body">The customer can no longer pay with this code. Start again to show a new one.</string>
     <string name="payment_expires_in">Expires in %1$s</string>
+    <string name="payment_nfc_disabled">NFC turned off</string>
+    <string name="payment_nfc_disabled_body">Turn it on in the settings to get paid without scanning.</string>
+    <string name="payment_nfc_ready">NFC active</string>
+    <string name="payment_nfc_ready_body">Place both phones back to back</string>
+    <string name="payment_nfc_unavailable">No NFC</string>
+    <string name="payment_nfc_unavailable_body">This phone has no NFC: the customer scans the QR code.</string>
     <string name="payment_qr_description">Payment QR code</string>
     <string name="payment_restart">Start again with the same amount</string>
     <string name="payment_scan_hint">The customer scans this code with their phone.</string>
+    <string name="payment_scan_or_tap_hint">The customer scans this code or brings their phone close.</string>
     <string name="payment_waiting">Waiting for the payment…</string>
     <string name="receiving_profile_add">Add %1$s</string>
     <string name="receiving_profile_code_label">%1$s merchant code</string>
