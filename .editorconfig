@@ -12,6 +12,11 @@ trim_trailing_whitespace = true
 max_line_length = 120
 ktlint_code_style = android_studio
 ktlint_function_naming_ignore_when_annotated_with = Composable
+# Imports: plain alphabetical order and never `*`; read by both ktlint and the IDE.
+ij_kotlin_imports_layout = *
+ij_kotlin_name_count_to_use_star_import = 2147483647
+ij_kotlin_name_count_to_use_star_import_for_members = 2147483647
+ij_kotlin_packages_to_use_import_on_demand =
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
 
