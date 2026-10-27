@@ -191,6 +191,8 @@ private fun AmountEntryDestination(navController: NavController, onBack: () -> U
             onDigits = viewModel::onDigits,
             onDelete = viewModel::onDelete,
             onClear = viewModel::onClear,
+            onToggleOperator = viewModel::toggleOperator,
+            onOperatorNoticeShown = viewModel::onOperatorNoticeShown,
             onShowLabel = viewModel::showLabel,
             onLabelChange = viewModel::onLabelChange,
             onCollect = viewModel::collect,

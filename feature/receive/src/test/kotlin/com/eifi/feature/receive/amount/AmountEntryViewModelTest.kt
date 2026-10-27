@@ -10,6 +10,7 @@ import com.eifi.core.payload.Operator
 import com.eifi.core.payload.ReceivingMethod
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import java.time.Instant
 import kotlinx.coroutines.Dispatchers
@@ -38,11 +39,12 @@ internal class AmountEntryViewModelTest {
         override suspend fun saveProfile(profile: ReceivingProfile) = Unit
     }
 
-    private val openedPayments = mutableListOf<Pair<Long, String?>>()
+    /** Amount, label and accepted operators of each [PaymentRepository.openReceived]. */
+    private val openedPayments = mutableListOf<Triple<Long, String?, List<Operator>?>>()
 
     private val payments = object : PaymentRepository {
-        override suspend fun openReceived(amount: Long, label: String?): Payment {
-            openedPayments += amount to label
+        override suspend fun openReceived(amount: Long, label: String?, acceptedOperators: List<Operator>?): Payment {
+            openedPayments += Triple(amount, label, acceptedOperators)
             return Payment(
                 id = "0a1b2c3d4e5f",
                 type = TransactionType.Received,
@@ -87,6 +89,7 @@ internal class AmountEntryViewModelTest {
             state shouldBe AmountEntryUiState(
                 displayName = "Boutique Mama Ngono",
                 acceptedOperators = listOf(Operator.OrangeMoney, Operator.MtnMomo),
+                selectedOperators = listOf(Operator.OrangeMoney, Operator.MtnMomo),
             )
         }
 
@@ -170,7 +173,20 @@ internal class AmountEntryViewModelTest {
             viewModel.collect()
 
             // then
-            openedPayments shouldBe listOf(2_500L to "Pain")
+            openedPayments shouldBe listOf(Triple(2_500L, "Pain", null))
+        }
+
+        @Test
+        fun `should open the payment with the selected operators only`() {
+            // given
+            listOf("2", "5", "00").forEach(viewModel::onDigits)
+            viewModel.toggleOperator(Operator.OrangeMoney)
+
+            // when
+            viewModel.collect()
+
+            // then
+            openedPayments shouldBe listOf(Triple(2_500L, null, listOf(Operator.MtnMomo)))
         }
 
         @Test
@@ -210,6 +226,78 @@ internal class AmountEntryViewModelTest {
 
             // then
             viewModel.uiState.value.amount shouldBe 0
+        }
+    }
+
+    @Nested
+    inner class ToggleOperator {
+        @Test
+        fun `should turn an operator off for this payment`() {
+            // when
+            viewModel.toggleOperator(Operator.MtnMomo)
+
+            // then
+            viewModel.uiState.value.selectedOperators shouldBe listOf(Operator.OrangeMoney)
+        }
+
+        @Test
+        fun `should explain that the payer cannot pay with a turned off operator`() {
+            // when
+            viewModel.toggleOperator(Operator.MtnMomo)
+
+            // then
+            viewModel.uiState.value.operatorNotice shouldBe OperatorNotice.TurnedOff(Operator.MtnMomo)
+        }
+
+        @Test
+        fun `should turn an operator on again in the order of the profile`() {
+            // given
+            viewModel.toggleOperator(Operator.OrangeMoney)
+
+            // when
+            viewModel.toggleOperator(Operator.OrangeMoney)
+
+            // then
+            viewModel.uiState.value.selectedOperators shouldBe listOf(Operator.OrangeMoney, Operator.MtnMomo)
+        }
+
+        @Test
+        fun `should keep the last selected operator`() {
+            // given
+            viewModel.toggleOperator(Operator.MtnMomo)
+
+            // when
+            viewModel.toggleOperator(Operator.OrangeMoney)
+
+            // then
+            viewModel.uiState.value.selectedOperators shouldBe listOf(Operator.OrangeMoney)
+        }
+
+        @Test
+        fun `should explain why the last operator stays on`() {
+            // given
+            viewModel.toggleOperator(Operator.MtnMomo)
+
+            // when
+            viewModel.toggleOperator(Operator.OrangeMoney)
+
+            // then
+            viewModel.uiState.value.operatorNotice shouldBe OperatorNotice.LastKept(Operator.OrangeMoney)
+        }
+    }
+
+    @Nested
+    inner class OnOperatorNoticeShown {
+        @Test
+        fun `should not show the message again`() {
+            // given
+            viewModel.toggleOperator(Operator.MtnMomo)
+
+            // when
+            viewModel.onOperatorNoticeShown()
+
+            // then
+            viewModel.uiState.value.operatorNotice.shouldBeNull()
         }
     }
 

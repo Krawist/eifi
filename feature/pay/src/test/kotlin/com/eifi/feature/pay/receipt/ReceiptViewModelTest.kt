@@ -34,7 +34,8 @@ internal class ReceiptViewModelTest {
         ReceiptViewModel(
             savedStateHandle = SavedStateHandle(mapOf(ReceiptViewModel.PAYMENT_ID to "0a1b2c3d4e5f")),
             paymentRepository = object : PaymentRepository {
-                override suspend fun openReceived(amount: Long, label: String?) = error("Not used")
+                override suspend fun openReceived(amount: Long, label: String?, acceptedOperators: List<Operator>?) =
+                    error("Not used")
 
                 override suspend fun openSent(payment: Payment) = error("Not used")
 

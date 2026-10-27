@@ -35,7 +35,7 @@ internal class PaymentServiceTest {
         @Test
         fun `should open a pending received payment of 2 minutes`() {
             // when
-            val payment = service.newReceived(amount = 2_500, label = "Pain", at = createdAt)
+            val payment = service.newReceived(amount = 2_500, label = "Pain", acceptedOperators = null, at = createdAt)
 
             // then
             payment shouldBe Payment(
@@ -51,17 +51,25 @@ internal class PaymentServiceTest {
         @Test
         fun `should give a payment URL id`() {
             // when
-            val payment = service.newReceived(amount = 2_500, label = null, at = createdAt)
+            val payment = service.newReceived(amount = 2_500, label = null, acceptedOperators = null, at = createdAt)
 
             // then
             payment.id shouldMatch "[0-9a-f]{12}"
         }
 
         @Test
+        fun `should reject an empty list of operators`() {
+            // when & then
+            shouldThrow<IllegalArgumentException> {
+                service.newReceived(amount = 2_500, label = null, acceptedOperators = emptyList(), at = createdAt)
+            } shouldHaveMessage "At least one operator is required"
+        }
+
+        @Test
         fun `should reject an amount that is not positive`() {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                service.newReceived(amount = 0, label = null, at = createdAt)
+                service.newReceived(amount = 0, label = null, acceptedOperators = null, at = createdAt)
             } shouldHaveMessage "The amount must be positive"
         }
     }
@@ -133,6 +141,45 @@ internal class PaymentServiceTest {
 
             // then
             request.expiresAt shouldBe expiresAt
+        }
+
+        @Test
+        fun `should carry only the operators accepted by the payment`() {
+            // given
+            val profile = ReceivingProfile(
+                displayName = "Kiosque Ndé",
+                receivingMethods = mapOf(
+                    Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"),
+                    Operator.MtnMomo to ReceivingMethod.MerchantCode("730154"),
+                ),
+            )
+
+            // when
+            val request = service.toPaymentRequest(
+                payment = payment().copy(acceptedOperators = listOf(Operator.MtnMomo)),
+                profile = profile,
+            )
+
+            // then
+            request.receivingMethods shouldBe mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("730154"))
+        }
+
+        @Test
+        fun `should carry every operator of the profile when none of the accepted ones is left`() {
+            // given
+            val profile = ReceivingProfile(
+                displayName = "Kiosque Ndé",
+                receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913")),
+            )
+
+            // when
+            val request = service.toPaymentRequest(
+                payment = payment().copy(acceptedOperators = listOf(Operator.MtnMomo)),
+                profile = profile,
+            )
+
+            // then
+            request.receivingMethods shouldBe mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913"))
         }
     }
 

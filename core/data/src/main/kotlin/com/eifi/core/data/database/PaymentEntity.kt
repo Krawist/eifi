@@ -25,6 +25,7 @@ import java.time.Instant
  * @property endedAt [Payment.endedAt].
  * @property counterpartyName [Payment.counterpartyName].
  * @property operator [Payment.operator].
+ * @property acceptedOperators [Payment.acceptedOperators], see [OperatorListConverter].
  */
 @Entity(tableName = "payment", indices = [Index(value = ["type", "status", "amount"])])
 internal data class PaymentEntity(
@@ -39,6 +40,7 @@ internal data class PaymentEntity(
     val endedAt: Long?,
     val counterpartyName: String?,
     val operator: Operator?,
+    val acceptedOperators: List<Operator>?,
 ) {
     fun toPayment() = Payment(
         id = id,
@@ -52,6 +54,7 @@ internal data class PaymentEntity(
         endedAt = endedAt?.let(Instant::ofEpochMilli),
         counterpartyName = counterpartyName,
         operator = operator,
+        acceptedOperators = acceptedOperators,
     )
 
     companion object {
@@ -67,6 +70,7 @@ internal data class PaymentEntity(
             endedAt = payment.endedAt?.toEpochMilli(),
             counterpartyName = payment.counterpartyName,
             operator = payment.operator,
+            acceptedOperators = payment.acceptedOperators,
         )
     }
 }

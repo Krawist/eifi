@@ -1,10 +1,14 @@
 package com.eifi.feature.receive.amount
 
+import com.eifi.core.payload.Operator
+
 /** User actions of [AmountEntryScreen], grouped to keep its parameter list short. */
 internal data class AmountEntryActions(
     val onDigits: (String) -> Unit = {},
     val onDelete: () -> Unit = {},
     val onClear: () -> Unit = {},
+    val onToggleOperator: (Operator) -> Unit = {},
+    val onOperatorNoticeShown: () -> Unit = {},
     val onShowLabel: () -> Unit = {},
     val onLabelChange: (String) -> Unit = {},
     val onCollect: () -> Unit = {},

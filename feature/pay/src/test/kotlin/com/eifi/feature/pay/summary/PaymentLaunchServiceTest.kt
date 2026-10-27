@@ -39,7 +39,8 @@ internal class PaymentLaunchServiceTest {
 
     private val service = PaymentLaunchService(
         paymentRepository = object : PaymentRepository {
-            override suspend fun openReceived(amount: Long, label: String?) = error("Not used")
+            override suspend fun openReceived(amount: Long, label: String?, acceptedOperators: List<Operator>?) =
+                error("Not used")
 
             override suspend fun openSent(payment: Payment): Boolean {
                 if (sentPayments.any { it.id == payment.id }) return false

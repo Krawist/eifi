@@ -55,7 +55,7 @@ internal class RoomPaymentRepositoryTest {
         @Test
         fun `should store a pending received payment of 2 minutes`() = runTest {
             // when
-            val payment = repository.openReceived(amount = 2_500, label = "Pain")
+            val payment = repository.openReceived(amount = 2_500, label = "Pain", acceptedOperators = null)
 
             // then
             stored(payment.id) shouldBe Payment(
@@ -71,7 +71,7 @@ internal class RoomPaymentRepositoryTest {
         @Test
         fun `should use the id format of the payment URL`() = runTest {
             // when
-            val payment = repository.openReceived(amount = 2_500, label = null)
+            val payment = repository.openReceived(amount = 2_500, label = null, acceptedOperators = null)
 
             // then
             payment.id shouldMatch "[0-9a-f]{12}"
@@ -80,11 +80,11 @@ internal class RoomPaymentRepositoryTest {
         @Test
         fun `should open a new payment rather than reopen the one pending for the same amount`() = runTest {
             // given
-            val first = repository.openReceived(amount = 2_500, label = "Pain")
+            val first = repository.openReceived(amount = 2_500, label = "Pain", acceptedOperators = null)
             now = now.plusSeconds(30)
 
             // when
-            val second = repository.openReceived(amount = 2_500, label = "Lait")
+            val second = repository.openReceived(amount = 2_500, label = "Lait", acceptedOperators = null)
 
             // then
             (second.id == first.id) shouldBe false
@@ -93,24 +93,37 @@ internal class RoomPaymentRepositoryTest {
         @Test
         fun `should cancel the payment still pending for the same amount`() = runTest {
             // given
-            val first = repository.openReceived(amount = 2_500, label = "Pain")
+            val first = repository.openReceived(amount = 2_500, label = "Pain", acceptedOperators = null)
             now = now.plusSeconds(30)
 
             // when
-            repository.openReceived(amount = 2_500, label = "Lait")
+            repository.openReceived(amount = 2_500, label = "Lait", acceptedOperators = null)
 
             // then
             stored(first.id).status shouldBe PaymentStatus.Cancelled
         }
 
         @Test
+        fun `should store the operators accepted by the payment`() = runTest {
+            // when
+            val payment = repository.openReceived(
+                amount = 2_500,
+                label = null,
+                acceptedOperators = listOf(Operator.MtnMomo),
+            )
+
+            // then
+            stored(payment.id).acceptedOperators shouldBe listOf(Operator.MtnMomo)
+        }
+
+        @Test
         fun `should expire the pending payment before opening a new one`() = runTest {
             // given
-            val first = repository.openReceived(amount = 2_500, label = null)
+            val first = repository.openReceived(amount = 2_500, label = null, acceptedOperators = null)
             now = now.plus(Duration.ofMinutes(2))
 
             // when
-            repository.openReceived(amount = 2_500, label = null)
+            repository.openReceived(amount = 2_500, label = null, acceptedOperators = null)
 
             // then
             stored(first.id).status shouldBe PaymentStatus.Expired
@@ -119,10 +132,10 @@ internal class RoomPaymentRepositoryTest {
         @Test
         fun `should open separate payments for different amounts`() = runTest {
             // given
-            val first = repository.openReceived(amount = 2_500, label = null)
+            val first = repository.openReceived(amount = 2_500, label = null, acceptedOperators = null)
 
             // when
-            val second = repository.openReceived(amount = 1_000, label = null)
+            val second = repository.openReceived(amount = 1_000, label = null, acceptedOperators = null)
 
             // then
             (second.id == first.id) shouldBe false
@@ -180,7 +193,7 @@ internal class RoomPaymentRepositoryTest {
         @Test
         fun `should store the cancellation`() = runTest {
             // given
-            val payment = repository.openReceived(amount = 2_500, label = null)
+            val payment = repository.openReceived(amount = 2_500, label = null, acceptedOperators = null)
 
             // when
             repository.cancel(payment.id)
@@ -195,7 +208,7 @@ internal class RoomPaymentRepositoryTest {
         @Test
         fun `should store the confirmation and its source`() = runTest {
             // given
-            val payment = repository.openReceived(amount = 2_500, label = null)
+            val payment = repository.openReceived(amount = 2_500, label = null, acceptedOperators = null)
 
             // when
             repository.confirm(payment.id, ConfirmationSource.Manual)
@@ -210,7 +223,7 @@ internal class RoomPaymentRepositoryTest {
         @Test
         fun `should expire a payment left while the app was in the background`() = runTest {
             // given
-            val payment = repository.openReceived(amount = 2_500, label = null)
+            val payment = repository.openReceived(amount = 2_500, label = null, acceptedOperators = null)
             now = now.plus(Duration.ofMinutes(5))
 
             // when

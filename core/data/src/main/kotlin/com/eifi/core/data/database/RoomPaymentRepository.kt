@@ -6,6 +6,7 @@ import com.eifi.core.data.payment.ConfirmationSource
 import com.eifi.core.data.payment.Payment
 import com.eifi.core.data.payment.PaymentRepository
 import com.eifi.core.data.payment.PaymentService
+import com.eifi.core.payload.Operator
 import java.time.Clock
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -23,14 +24,16 @@ internal class RoomPaymentRepository @Inject constructor(
 
     private val dao = database.paymentDao()
 
-    override suspend fun openReceived(amount: Long, label: String?): Payment = inTransaction {
-        val now = clock.instant()
-        dao.expireOverdue(now.toEpochMilli())
-        dao.getPendingReceivedByAmount(amount)?.let {
-            dao.update(PaymentEntity.of(paymentService.cancel(payment = it.toPayment(), at = now)))
+    override suspend fun openReceived(amount: Long, label: String?, acceptedOperators: List<Operator>?): Payment =
+        inTransaction {
+            val now = clock.instant()
+            dao.expireOverdue(now.toEpochMilli())
+            dao.getPendingReceivedByAmount(amount)?.let {
+                dao.update(PaymentEntity.of(paymentService.cancel(payment = it.toPayment(), at = now)))
+            }
+            paymentService.newReceived(amount = amount, label = label, acceptedOperators = acceptedOperators, at = now)
+                .also { dao.insert(PaymentEntity.of(it)) }
         }
-        paymentService.newReceived(amount = amount, label = label, at = now).also { dao.insert(PaymentEntity.of(it)) }
-    }
 
     override suspend fun openSent(payment: Payment): Boolean = inTransaction {
         val stored = dao.getById(payment.id) != null

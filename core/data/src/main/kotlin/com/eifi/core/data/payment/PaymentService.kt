@@ -4,6 +4,7 @@ import com.eifi.core.data.ReceivingProfile
 import com.eifi.core.payload.Operator
 import com.eifi.core.payload.PaymentRequest
 import com.eifi.core.payload.PaymentRequestService
+import com.eifi.core.payload.ReceivingMethod
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -18,9 +19,13 @@ import javax.inject.Inject
  */
 class PaymentService @Inject constructor() {
 
-    /** A new PENDING received payment of [amount], waiting [DEFAULT_DURATION] from [at]. */
-    fun newReceived(amount: Long, label: String?, at: Instant): Payment {
+    /**
+     * A new PENDING received payment of [amount], waiting [DEFAULT_DURATION] from [at], offered to the payer with
+     * [acceptedOperators] (`null` for all those of the receiving profile).
+     */
+    fun newReceived(amount: Long, label: String?, acceptedOperators: List<Operator>?, at: Instant): Payment {
         require(amount > 0) { "The amount must be positive" }
+        require(acceptedOperators == null || acceptedOperators.isNotEmpty()) { "At least one operator is required" }
         return Payment(
             id = PaymentRequestService.newId(),
             type = TransactionType.Received,
@@ -28,6 +33,7 @@ class PaymentService @Inject constructor() {
             label = label,
             createdAt = at,
             expiresAt = at.plus(DEFAULT_DURATION),
+            acceptedOperators = acceptedOperators,
         )
     }
 
@@ -51,10 +57,19 @@ class PaymentService @Inject constructor() {
         id = payment.id,
         displayName = profile.displayName,
         amount = payment.amount,
-        receivingMethods = profile.receivingMethods,
+        receivingMethods = acceptedMethods(payment = payment, profile = profile),
         // The URL carries whole seconds: rounded down, so that the payer never sees a later expiry.
         expiresAt = payment.expiresAt.truncatedTo(ChronoUnit.SECONDS),
     )
+
+    /**
+     * The receiving methods of [profile] for the operators accepted by [payment]; all of them when it accepts every
+     * operator, or when the profile no longer has any of its operators.
+     */
+    private fun acceptedMethods(payment: Payment, profile: ReceivingProfile): Map<Operator, ReceivingMethod> {
+        val accepted = payment.acceptedOperators ?: return profile.receivingMethods
+        return profile.receivingMethods.filterKeys { it in accepted }.ifEmpty { profile.receivingMethods }
+    }
 
     /** The status at [now]: a PENDING payment past its expiry is EXPIRED, even before it is stored as such. */
     fun statusAt(payment: Payment, now: Instant): PaymentStatus =

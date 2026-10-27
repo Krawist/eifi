@@ -27,12 +27,12 @@ internal class AmountEntryViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             receivingProfileRepository.profile.first()?.let { profile ->
+                val operators = Operator.entries.filter { it in profile.receivingMethods }
                 _uiState.update {
                     it.copy(
                         displayName = profile.displayName,
-                        acceptedOperators = Operator.entries.filter { operator ->
-                            operator in profile.receivingMethods
-                        },
+                        acceptedOperators = operators,
+                        selectedOperators = operators,
                     )
                 }
             }
@@ -59,6 +59,33 @@ internal class AmountEntryViewModel @Inject constructor(
         _uiState.update { it.copy(amount = 0, maximumReached = false) }
     }
 
+    /** Turns [operator] on or off for this payment; the last selected operator stays on. */
+    fun toggleOperator(operator: Operator) {
+        _uiState.update {
+            val selected = operator in it.selectedOperators
+            when {
+                selected && it.selectedOperators.size == 1 -> it.copy(
+                    operatorNotice = OperatorNotice.LastKept(operator),
+                )
+                selected -> it.copy(
+                    selectedOperators = it.selectedOperators - operator,
+                    operatorNotice = OperatorNotice.TurnedOff(operator),
+                )
+                else -> it.copy(
+                    selectedOperators = it.acceptedOperators.filter { accepted ->
+                        accepted == operator || accepted in it.selectedOperators
+                    },
+                    operatorNotice = OperatorNotice.TurnedOn(operator),
+                )
+            }
+        }
+    }
+
+    /** The message about the operators is shown: it is not shown again. */
+    fun onOperatorNoticeShown() {
+        _uiState.update { it.copy(operatorNotice = null) }
+    }
+
     fun showLabel() {
         _uiState.update { it.copy(labelShown = true) }
     }
@@ -67,7 +94,7 @@ internal class AmountEntryViewModel @Inject constructor(
         _uiState.update { it.copy(label = label.take(MAX_LABEL_LENGTH)) }
     }
 
-    /** Opens a new payment of the amount; the one still pending for it is cancelled (EIFI-112). */
+    /** Opens a new payment of the amount, offered with the selected operators (all of them: `null`). */
     fun collect() {
         val state = _uiState.value
         if (!state.canCollect) return
@@ -75,6 +102,7 @@ internal class AmountEntryViewModel @Inject constructor(
             val payment = paymentRepository.openReceived(
                 amount = state.amount,
                 label = state.label.trim().ifEmpty { null },
+                acceptedOperators = state.selectedOperators.takeIf { it.size < state.acceptedOperators.size },
             )
             _uiState.update { it.copy(openedPaymentId = payment.id) }
         }

@@ -7,6 +7,9 @@
     <string name="amount_entry_manual_confirmation">Confirmation manuelle</string>
     <string name="amount_entry_maximum">Montant maximum\u00A0: %1$s FCFA</string>
     <string name="amount_entry_minimum">Montant minimum\u00A0: %1$s FCFA</string>
+    <string name="amount_entry_operator_last">Gardez au moins un opérateur pour encaisser.</string>
+    <string name="amount_entry_operator_off">%1$s désactivé\u00A0: le client ne pourra pas payer avec.</string>
+    <string name="amount_entry_operator_on">%1$s activé\u00A0: le client pourra payer avec.</string>
     <string name="operator_mtn_momo" translatable="false">MTN MoMo</string>
     <string name="operator_mtn_momo_short" translatable="false">MoMo</string>
     <string name="operator_orange_money" translatable="false">Orange Money</string>

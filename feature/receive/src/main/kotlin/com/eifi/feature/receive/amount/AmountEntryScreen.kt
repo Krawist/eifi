@@ -1,5 +1,6 @@
 package com.eifi.feature.receive.amount
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -9,16 +10,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
@@ -74,7 +81,11 @@ internal fun AmountEntryScreen(
                 AmountDisplay(amount = uiState.amount, modifier = Modifier.fillMaxWidth())
                 AmountLimit(uiState = uiState)
                 LabelInput(uiState = uiState, actions = actions)
-                AcceptedOperators(operators = uiState.acceptedOperators, automaticConfirmation = automaticConfirmation)
+                AcceptedOperators(
+                    uiState = uiState,
+                    automaticConfirmation = automaticConfirmation,
+                    actions = actions,
+                )
             }
             NumericKeypad(onDigits = actions.onDigits, onDelete = actions.onDelete, onClear = actions.onClear)
             EifiPrimaryButton(
@@ -119,21 +130,59 @@ private fun LabelInput(uiState: AmountEntryUiState, actions: AmountEntryActions)
     }
 }
 
-/** Operators of the receiving profile, and the manual confirmation when notifications cannot be read. */
+/**
+ * Operators of the receiving profile, each turned on or off for this payment when the profile has several, with a
+ * short message on the consequence; and the manual confirmation when notifications cannot be read.
+ */
 @Composable
-private fun AcceptedOperators(operators: List<Operator>, automaticConfirmation: Boolean) {
+private fun AcceptedOperators(
+    uiState: AmountEntryUiState,
+    automaticConfirmation: Boolean,
+    actions: AmountEntryActions,
+) {
+    OperatorNoticeToast(notice = uiState.operatorNotice, onShown = actions.onOperatorNoticeShown)
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(EifiSpacing.Small, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(EifiSpacing.Small),
     ) {
-        operators.forEach { operator ->
+        uiState.acceptedOperators.forEach { operator ->
+            val selected = operator in uiState.selectedOperators
             EifiPill(
                 text = stringResource(operator.displayName),
-                icon = painterResource(DesignR.drawable.ic_eifi_check),
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .toggleable(
+                        value = selected,
+                        enabled = uiState.acceptedOperators.size > 1,
+                        role = Role.Switch,
+                        onValueChange = { actions.onToggleOperator(operator) },
+                    ),
+                tone = if (selected) EifiPillTone.Soft else EifiPillTone.Neutral,
+                icon = if (selected) painterResource(DesignR.drawable.ic_eifi_check) else null,
             )
         }
         if (!automaticConfirmation) {
             EifiPill(text = stringResource(R.string.amount_entry_manual_confirmation), tone = EifiPillTone.Accent)
+        }
+    }
+}
+
+/** Shows [notice] once as a toast. */
+@Composable
+private fun OperatorNoticeToast(notice: OperatorNotice?, onShown: () -> Unit) {
+    val context = LocalContext.current
+    val message = notice?.let {
+        val operator = stringResource(it.operator.displayName)
+        when (it) {
+            is OperatorNotice.TurnedOn -> stringResource(R.string.amount_entry_operator_on, operator)
+            is OperatorNotice.TurnedOff -> stringResource(R.string.amount_entry_operator_off, operator)
+            is OperatorNotice.LastKept -> stringResource(R.string.amount_entry_operator_last, operator)
+        }
+    }
+    LaunchedEffect(notice) {
+        if (message != null) {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            onShown()
         }
     }
 }
@@ -146,6 +195,7 @@ private fun AmountEntryScreenPreview() {
             uiState = AmountEntryUiState(
                 displayName = "Boutique Mama Ngono",
                 acceptedOperators = listOf(Operator.OrangeMoney, Operator.MtnMomo),
+                selectedOperators = listOf(Operator.OrangeMoney),
                 amount = 2_500,
             ),
             automaticConfirmation = false,

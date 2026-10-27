@@ -7,6 +7,8 @@ import com.eifi.core.payload.Operator
  *
  * @property displayName name of the receiving profile, shown above the amount.
  * @property acceptedOperators operators of the receiving profile, shown as pills.
+ * @property selectedOperators the operators offered to the payer for this payment, at least one (EIFI-111).
+ * @property operatorNotice what the last change of [selectedOperators] did, shown once; `null` once shown.
  * @property amount amount typed on the keypad, in FCFA; 0 while nothing is typed.
  * @property label optional note of the payment, which stays on the phone.
  * @property labelShown whether the user asked to add a label, which shows its field.
@@ -16,6 +18,8 @@ import com.eifi.core.payload.Operator
 internal data class AmountEntryUiState(
     val displayName: String = "",
     val acceptedOperators: List<Operator> = emptyList(),
+    val selectedOperators: List<Operator> = emptyList(),
+    val operatorNotice: OperatorNotice? = null,
     val amount: Long = 0,
     val label: String = "",
     val labelShown: Boolean = false,

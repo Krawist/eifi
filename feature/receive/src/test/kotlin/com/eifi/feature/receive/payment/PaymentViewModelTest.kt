@@ -72,7 +72,7 @@ internal class PaymentViewModelTest {
     private var opened: Pair<Long, String?>? = null
 
     private val repository = object : PaymentRepository {
-        override suspend fun openReceived(amount: Long, label: String?): Payment {
+        override suspend fun openReceived(amount: Long, label: String?, acceptedOperators: List<Operator>?): Payment {
             opened = amount to label
             return stored.value.copy(id = "a1b2c3d4e5f6")
         }

@@ -7,6 +7,9 @@
     <string name="amount_entry_manual_confirmation">Manual confirmation</string>
     <string name="amount_entry_maximum">Maximum amount: %1$s FCFA</string>
     <string name="amount_entry_minimum">Minimum amount: %1$s FCFA</string>
+    <string name="amount_entry_operator_last">Keep at least one operator to collect.</string>
+    <string name="amount_entry_operator_off">%1$s off: the customer cannot pay with it.</string>
+    <string name="amount_entry_operator_on">%1$s on: the customer can pay with it.</string>
     <string name="payment_amount_title">Amount to pay</string>
     <string name="payment_back">Back</string>
     <string name="payment_cancel">Cancel the collection</string>

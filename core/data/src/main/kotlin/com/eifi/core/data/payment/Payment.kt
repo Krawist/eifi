@@ -18,6 +18,8 @@ import java.time.Instant
  * @property endedAt when the payment left PENDING.
  * @property counterpartyName the other party: the payee of a sent payment; `null` when unknown.
  * @property operator the operator the money goes through; `null` when unknown.
+ * @property acceptedOperators for a received payment, the operators offered to the payer (EIFI-111); `null` for all
+ * those of the receiving profile.
  */
 data class Payment(
     val id: String,
@@ -31,4 +33,5 @@ data class Payment(
     val endedAt: Instant? = null,
     val counterpartyName: String? = null,
     val operator: Operator? = null,
+    val acceptedOperators: List<Operator>? = null,
 )

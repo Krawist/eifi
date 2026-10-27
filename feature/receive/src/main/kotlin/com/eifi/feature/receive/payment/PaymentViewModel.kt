@@ -100,12 +100,18 @@ internal class PaymentViewModel @Inject constructor(
         viewModelScope.launch { paymentRepository.cancel(paymentId) }
     }
 
-    /** Opens a new payment with the same amount and label, once this one has expired. */
+    /** Opens a new payment with the same amount, label and operators, once this one has expired. */
     fun restart() {
         val state = uiState.value ?: return
         if (state.status != PaymentStatus.Expired) return
         viewModelScope.launch {
-            restartedPaymentId.value = paymentRepository.openReceived(amount = state.amount, label = state.label).id
+            val accepted = payment.first().acceptedOperators
+            restartedPaymentId.value =
+                paymentRepository.openReceived(
+                    amount = state.amount,
+                    label = state.label,
+                    acceptedOperators = accepted,
+                ).id
         }
     }
 
