@@ -76,7 +76,7 @@ internal fun AmountEntryScreen(
                 LabelInput(uiState = uiState, actions = actions)
                 AcceptedOperators(operators = uiState.acceptedOperators, automaticConfirmation = automaticConfirmation)
             }
-            NumericKeypad(onDigits = actions.onDigits, onDelete = actions.onDelete)
+            NumericKeypad(onDigits = actions.onDigits, onDelete = actions.onDelete, onClear = actions.onClear)
             EifiPrimaryButton(
                 text = if (uiState.amount > 0) {
                     stringResource(R.string.amount_entry_collect_amount, formatFcfa(uiState.amount))

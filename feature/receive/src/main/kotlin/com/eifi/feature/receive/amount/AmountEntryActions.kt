@@ -4,6 +4,7 @@ package com.eifi.feature.receive.amount
 internal data class AmountEntryActions(
     val onDigits: (String) -> Unit = {},
     val onDelete: () -> Unit = {},
+    val onClear: () -> Unit = {},
     val onShowLabel: () -> Unit = {},
     val onLabelChange: (String) -> Unit = {},
     val onCollect: () -> Unit = {},

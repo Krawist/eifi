@@ -79,7 +79,7 @@ private fun DesignSystemCatalogPreview() {
                     )
                 }
             }
-            Section("Pavé numérique") { NumericKeypad(onDigits = {}, onDelete = {}) }
+            Section("Pavé numérique") { NumericKeypad(onDigits = {}, onDelete = {}, onClear = {}) }
         }
     }
 }

@@ -199,6 +199,21 @@ internal class AmountEntryViewModelTest {
     }
 
     @Nested
+    inner class OnClear {
+        @Test
+        fun `should clear the whole amount`() {
+            // given
+            listOf("2", "5", "00").forEach(viewModel::onDigits)
+
+            // when
+            viewModel.onClear()
+
+            // then
+            viewModel.uiState.value.amount shouldBe 0
+        }
+    }
+
+    @Nested
     inner class OnDelete {
         @Test
         fun `should remove the last digit`() {

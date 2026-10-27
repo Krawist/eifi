@@ -54,6 +54,11 @@ internal class AmountEntryViewModel @Inject constructor(
         _uiState.update { it.copy(amount = AmountInput.delete(it.amount), maximumReached = false) }
     }
 
+    /** Long press on the delete key: clears the whole amount (EIFI-014). */
+    fun onClear() {
+        _uiState.update { it.copy(amount = 0, maximumReached = false) }
+    }
+
     fun showLabel() {
         _uiState.update { it.copy(labelShown = true) }
     }
