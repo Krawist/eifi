@@ -145,6 +145,9 @@ been chosen yet.
   (`UserPreferencesRepository`: the app reopens on the last chosen mode), Room plugin wired in
   `:core:data` (the `EifiDatabase` class comes with its first entity in EIFI-102), French default
   and English locales. Leaving a mode returns to the mode choice until the home screen (EIFI-031).
+- [x] **EIFI-013** — iOS-style slide transitions (`EifiTransitions` in `:core:design`): defaults of the
+  `NavHost`, so every new screen gets them; `EifiTransitions.step()` with `AnimatedContent` for steps
+  shown inside a screen; fade between loading and content. 350 ms at most.
 - [x] **EIFI-020** — payment URL in `:core:payload`: `PaymentRequest`, `PaymentUrlCodec` (base URL
   injected until the domain is chosen in EIFI-021, `Clock` injected), compact binary `PayloadV1`
   with CRC-32, typed `PaymentUrlDecodingResult` (`Valid`, `Expired`, `UnknownVersion`, `Malformed`). QR:

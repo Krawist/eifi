@@ -75,6 +75,15 @@ Install Hilt, Navigation Compose, Room, DataStore and French and English resourc
 
 Size: M. Dependencies: EIFI-010.
 
+### EIFI-013 · Animate the transitions between screens
+
+Opening a screen slides it in from the right while the previous one moves slightly to the left and fades, as on iOS; going back plays the same movement in reverse. The onboarding screens slide from one to the next, and the steps shown inside a screen (permission explanations, Pay placeholder) use the same movement. The transitions are defined once in the design system.
+
+- Every navigation between existing screens is animated, forward and back.
+- A transition lasts at most 350 ms, so that it never slows the payment down.
+
+Size: S. Dependencies: EIFI-012, EIFI-030.
+
 ## Payment format
 
 ### EIFI-020 · Specify and code the payment URL format

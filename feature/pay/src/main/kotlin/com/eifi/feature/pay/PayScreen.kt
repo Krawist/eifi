@@ -1,5 +1,6 @@
 package com.eifi.feature.pay
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import com.eifi.core.design.component.EifiSecondaryButton
 import com.eifi.core.design.theme.EifiColors
 import com.eifi.core.design.theme.EifiSpacing
 import com.eifi.core.design.theme.EifiTheme
+import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.core.permission.PermissionStep
 
 /** Placeholder of the Pay mode (EIFI-010), with the permission steps of the payment and the scan (EIFI-032). */
@@ -32,12 +34,23 @@ internal fun PayScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val permission = uiState.activePermission
-    if (permission != null) {
-        PermissionStep(permission = permission, onDone = onPermissionDone, modifier = modifier)
-        return
+    AnimatedContent(
+        targetState = uiState.activePermission,
+        transitionSpec = { EifiTransitions.step(forward = targetState != null) },
+        label = "pay",
+        modifier = modifier,
+    ) { permission ->
+        if (permission != null) {
+            PermissionStep(permission = permission, onDone = onPermissionDone)
+        } else {
+            PayContent(uiState = uiState, onPay = onPay, onScan = onScan, onBack = onBack)
+        }
     }
-    Surface(modifier = modifier.fillMaxSize(), color = EifiColors.Background) {
+}
+
+@Composable
+private fun PayContent(uiState: PayUiState, onPay: () -> Unit, onScan: () -> Unit, onBack: () -> Unit) {
+    Surface(modifier = Modifier.fillMaxSize(), color = EifiColors.Background) {
         Column(
             modifier = Modifier.safeDrawingPadding().padding(EifiSpacing.Gutter),
             verticalArrangement = Arrangement.spacedBy(EifiSpacing.Medium, Alignment.CenterVertically),

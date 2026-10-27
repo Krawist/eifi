@@ -1,5 +1,6 @@
 package com.eifi
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.eifi.core.data.AppMode
+import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.feature.onboarding.OnboardingGraph
 import com.eifi.feature.onboarding.home.HomeGraph
 import com.eifi.feature.onboarding.home.homeGraph
@@ -22,16 +24,27 @@ import com.eifi.feature.receive.receiveGraph
 /** Root of the app: the onboarding on first launch, then the home screen, which opens the two modes. */
 @Composable
 internal fun EifiApp(uiState: MainUiState) {
-    when (uiState) {
-        // Blank background while the preferences load (a few milliseconds).
-        MainUiState.Loading -> Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
-        is MainUiState.Ready -> EifiNavHost(onboardingCompleted = uiState.onboardingCompleted)
+    AnimatedContent(targetState = uiState, transitionSpec = { EifiTransitions.Fade }, label = "app") { state ->
+        when (state) {
+            // Blank background while the preferences load (a few milliseconds).
+            MainUiState.Loading -> Box(
+                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+            )
+            is MainUiState.Ready -> EifiNavHost(onboardingCompleted = state.onboardingCompleted)
+        }
     }
 }
 
 @Composable
 private fun EifiNavHost(onboardingCompleted: Boolean, navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = if (onboardingCompleted) HomeGraph else OnboardingGraph) {
+    NavHost(
+        navController = navController,
+        startDestination = if (onboardingCompleted) HomeGraph else OnboardingGraph,
+        enterTransition = { EifiTransitions.Enter },
+        exitTransition = { EifiTransitions.Exit },
+        popEnterTransition = { EifiTransitions.PopEnter },
+        popExitTransition = { EifiTransitions.PopExit },
+    ) {
         onboardingGraph(
             navController = navController,
             onCompleted = { mode ->

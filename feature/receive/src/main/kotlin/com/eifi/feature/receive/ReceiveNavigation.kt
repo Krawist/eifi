@@ -1,5 +1,7 @@
 package com.eifi.feature.receive
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
@@ -11,6 +13,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.eifi.core.design.component.PlaceholderScreen
+import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.core.permission.PermissionStep
 import kotlinx.serialization.Serializable
 
@@ -64,27 +67,39 @@ fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Uni
             )
         }
         composable<ReceivePermissionsRoute> {
-            val viewModel: ReceivePermissionsViewModel = hiltViewModel(
-                checkNotNull(LocalViewModelStoreOwner.current) {
-                    "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
-                },
-                null,
-            )
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            when (val state = uiState) {
-                ReceivePermissionsUiState.Loading -> Unit
-                is ReceivePermissionsUiState.Asking -> PermissionStep(
-                    permission = state.permission,
-                    onDone = { granted -> viewModel.onStepDone(state.permission, granted) },
-                    onBack = onBack,
-                )
-                ReceivePermissionsUiState.Done -> LaunchedEffect(Unit) {
-                    navController.navigate(ReceiveRoute) {
-                        popUpTo(ReceivePermissionsRoute) { inclusive = true }
-                    }
-                }
-            }
+            ReceivePermissionsDestination(navController = navController, onBack = onBack)
         }
         composable<ReceiveRoute> { ReceiveScreen(onBack = onBack) }
+    }
+}
+
+/** Notification access, then battery, sliding from one step to the next. */
+@Composable
+private fun ReceivePermissionsDestination(navController: NavController, onBack: () -> Unit) {
+    val viewModel: ReceivePermissionsViewModel = hiltViewModel(
+        checkNotNull(LocalViewModelStoreOwner.current) {
+            "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+        },
+        null,
+    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    when (val state = uiState) {
+        ReceivePermissionsUiState.Loading -> Unit
+        is ReceivePermissionsUiState.Asking -> AnimatedContent(
+            targetState = state.permission,
+            transitionSpec = { EifiTransitions.step(forward = true) },
+            label = "receive permissions",
+        ) { permission ->
+            PermissionStep(
+                permission = permission,
+                onDone = { granted -> viewModel.onStepDone(permission, granted) },
+                onBack = onBack,
+            )
+        }
+        ReceivePermissionsUiState.Done -> LaunchedEffect(Unit) {
+            navController.navigate(ReceiveRoute) {
+                popUpTo(ReceivePermissionsRoute) { inclusive = true }
+            }
+        }
     }
 }
