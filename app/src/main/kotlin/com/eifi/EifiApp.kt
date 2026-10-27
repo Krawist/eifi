@@ -19,6 +19,7 @@ import com.eifi.feature.onboarding.onboardingGraph
 import com.eifi.feature.pay.PayGraph
 import com.eifi.feature.pay.payGraph
 import com.eifi.feature.receive.ReceiveGraph
+import com.eifi.feature.receive.navigateToReceivingProfile
 import com.eifi.feature.receive.receiveGraph
 
 /** Root of the app: the onboarding on first launch, then the home screen, which opens the two modes. */
@@ -59,6 +60,7 @@ private fun EifiNavHost(onboardingCompleted: Boolean, navController: NavHostCont
             navController = navController,
             onPay = { navController.navigate(PayGraph) },
             onReceive = { navController.navigate(ReceiveGraph) },
+            onEditReceivingProfile = { navController.navigateToReceivingProfile() },
         )
         payGraph(onBack = { navController.popBackStack() })
         receiveGraph(navController = navController, onBack = { navController.popBackStack() })

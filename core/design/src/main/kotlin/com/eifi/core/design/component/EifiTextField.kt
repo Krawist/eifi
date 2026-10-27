@@ -19,7 +19,10 @@ import com.eifi.core.design.theme.EifiRadius
 import com.eifi.core.design.theme.EifiSpacing
 import com.eifi.core.design.theme.EifiTheme
 
-/** Single-line white field with a floating label, without underline. */
+/**
+ * Single-line white field with a floating label, without underline.
+ * [containerColor] is grey inside a white card.
+ */
 @Composable
 fun EifiTextField(
     value: String,
@@ -27,6 +30,7 @@ fun EifiTextField(
     label: String,
     modifier: Modifier = Modifier,
     supportingText: String? = null,
+    containerColor: Color = EifiColors.Surface,
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
@@ -41,8 +45,8 @@ fun EifiTextField(
         shape = EifiRadius.Button,
         textStyle = MaterialTheme.typography.bodyLarge,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = EifiColors.Surface,
-            unfocusedContainerColor = EifiColors.Surface,
+            focusedContainerColor = containerColor,
+            unfocusedContainerColor = containerColor,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedLabelColor = EifiColors.OnPrimary,

@@ -1,10 +1,16 @@
 package com.eifi.core.payload
 
-/** How the payee receives money with one operator. */
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+/** How the payee receives money with one operator. Serializable for the receiving profile stored locally. */
+@Serializable
 sealed interface ReceivingMethod {
     val value: String
 
     /** Merchant payment, free for the payer. The exact code format is only known after EIFI-001. */
+    @Serializable
+    @SerialName("merchantCode")
     data class MerchantCode(override val value: String) : ReceivingMethod {
         init {
             require(value.isNotBlank() && value.length <= MAX_VALUE_LENGTH) {
@@ -13,19 +19,22 @@ sealed interface ReceivingMethod {
         }
     }
 
-    /** Person-to-person transfer to a phone number, digits only. Fees are paid by the payer. */
+    /**
+     * Person-to-person transfer to a phone number in E.164 format ("+237690123456"), whatever the country.
+     * Fees are paid by the payer.
+     */
+    @Serializable
+    @SerialName("phoneNumber")
     data class PhoneNumber(override val value: String) : ReceivingMethod {
         init {
-            require(value.length in 1..MAX_PHONE_DIGITS && value.all { it in '0'..'9' }) {
-                "A phone number must have 1 to $MAX_PHONE_DIGITS digits"
-            }
+            require(E164.matches(value)) { "A phone number must be in E.164 format, e.g. +237690123456" }
         }
     }
 
     private companion object {
         const val MAX_VALUE_LENGTH = 32
 
-        /** E.164 limit. */
-        const val MAX_PHONE_DIGITS = 15
+        /** "+", then the country code and the national number: 15 digits at most, never starting with 0. */
+        val E164 = Regex("\\+[1-9]\\d{1,14}")
     }
 }

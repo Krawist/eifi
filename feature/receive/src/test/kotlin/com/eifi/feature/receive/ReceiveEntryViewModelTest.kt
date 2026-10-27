@@ -1,6 +1,9 @@
 package com.eifi.feature.receive
 
+import com.eifi.core.data.ReceivingProfile
 import com.eifi.core.data.ReceivingProfileRepository
+import com.eifi.core.payload.Operator
+import com.eifi.core.payload.ReceivingMethod
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +49,13 @@ internal class ReceiveEntryViewModelTest {
     }
 
     private fun repository(configured: Boolean) = object : ReceivingProfileRepository {
-        override val isConfigured = flowOf(configured)
+        override val profile = flowOf(
+            ReceivingProfile(
+                displayName = "Kiosque",
+                receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.MerchantCode("482913")),
+            ).takeIf { configured },
+        )
+
+        override suspend fun saveProfile(profile: ReceivingProfile) = Unit
     }
 }

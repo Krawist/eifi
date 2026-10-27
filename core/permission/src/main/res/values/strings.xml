@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="battery_guide_autostart_infinix">Ouvrez Phone Master, puis «\u00A0Lancement automatique\u00A0», et autorisez Eifi.</string>
+    <string name="battery_guide_autostart_itel">Ouvrez Phone Master (ou «\u00A0Gestionnaire du téléphone\u00A0»), puis «\u00A0Démarrage automatique\u00A0», et autorisez Eifi.</string>
+    <string name="battery_guide_autostart_tecno">Ouvrez Phone Master, puis «\u00A0Gestion du démarrage automatique\u00A0», et autorisez Eifi.</string>
+    <string name="battery_guide_brand_infinix" translatable="false">Infinix</string>
+    <string name="battery_guide_brand_itel" translatable="false">itel</string>
+    <string name="battery_guide_brand_tecno" translatable="false">Tecno</string>
+    <string name="battery_guide_lock_recents">Dans les applications récentes, verrouillez Eifi (cadenas) pour qu\'il ne soit pas fermé.</string>
+    <string name="battery_guide_no_restriction">Dans Paramètres, Batterie, choisissez Eifi puis «\u00A0Pas de restriction\u00A0».</string>
+    <string name="battery_guide_title">Sur votre %1$s</string>
     <string name="permission_battery_allow">Ouvrir les réglages</string>
     <string name="permission_battery_body">Sinon, certains téléphones arrêtent Eifi et des paiements ne sont pas confirmés.</string>
     <string name="permission_battery_later">Plus tard</string>

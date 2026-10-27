@@ -234,7 +234,7 @@ internal class PaymentUrlCodecTest {
                     id = "a1b2c3d4e5f6",
                     displayName = "Paul",
                     amount = 15_000,
-                    receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.PhoneNumber("690123456")),
+                    receivingMethods = mapOf(Operator.OrangeMoney to ReceivingMethod.PhoneNumber("+237690123456")),
                     expiresAt = expiresAt,
                 ),
             ),
@@ -245,7 +245,7 @@ internal class PaymentUrlCodecTest {
                     displayName = "Boutique Mama Ngono",
                     amount = 2_000_000,
                     receivingMethods = mapOf(
-                        Operator.OrangeMoney to ReceivingMethod.PhoneNumber("690123456"),
+                        Operator.OrangeMoney to ReceivingMethod.PhoneNumber("+237690123456"),
                         Operator.MtnMomo to ReceivingMethod.MerchantCode("730154"),
                     ),
                     expiresAt = expiresAt,

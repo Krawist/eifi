@@ -15,7 +15,7 @@ import java.util.zip.CRC32
  * - display name: 1-byte length + UTF-8;
  * - receiving methods: 1-byte count, then for each a header byte (operator wire code in bits 4 to 7,
  *   method wire code in bits 1 to 3, numeric flag in bit 0) and the value, as 1-byte digit count + packed
- *   digits when numeric, 1-byte length + UTF-8 otherwise;
+ *   digits when numeric, 1-byte length + UTF-8 otherwise; a phone number is written without its leading "+";
  * - CRC-32 of everything before it, unsigned 32-bit big-endian.
  */
 internal object PayloadV1 {
@@ -71,11 +71,12 @@ internal object PayloadV1 {
     }
 
     private fun ByteArrayOutputStream.writeMethod(operator: Operator, method: ReceivingMethod) {
-        val numeric = method.value.length <= MAX_LENGTH && method.value.all { it in '0'..'9' }
+        val value = if (method is ReceivingMethod.PhoneNumber) method.value.removePrefix(E164_PREFIX) else method.value
+        val numeric = value.length <= MAX_LENGTH && value.all { it in '0'..'9' }
         var header = (operator.wireCode shl NIBBLE_SHIFT) or (method.wireCode shl METHOD_SHIFT)
         if (numeric) header = header or NUMERIC_FLAG
         write(header)
-        if (numeric) writeDigits(method.value) else writeText(method.value)
+        if (numeric) writeDigits(value) else writeText(value)
     }
 
     /** Two digits per byte, the last low nibble filled with [DIGIT_FILLER] when the count is odd. */
@@ -114,7 +115,7 @@ internal object PayloadV1 {
             val method = content {
                 when (methodCode) {
                     MERCHANT_CODE -> ReceivingMethod.MerchantCode(value)
-                    PHONE_NUMBER -> ReceivingMethod.PhoneNumber(value)
+                    PHONE_NUMBER -> ReceivingMethod.PhoneNumber(E164_PREFIX + value)
                     else -> invalidContent()
                 }
             }
@@ -186,6 +187,7 @@ internal object PayloadV1 {
     private const val METHOD_MASK = 0x07
     private const val MERCHANT_CODE = 1
     private const val PHONE_NUMBER = 2
+    private const val E164_PREFIX = "+"
     private const val NUMERIC_FLAG = 0x01
     private const val DIGIT_FILLER = 0x0F
     private const val MAX_DIGIT = 9

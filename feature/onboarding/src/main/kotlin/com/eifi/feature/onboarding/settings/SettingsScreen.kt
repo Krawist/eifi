@@ -27,9 +27,14 @@ import com.eifi.core.design.theme.EifiTheme
 import com.eifi.core.permission.PermissionSettingsRow
 import com.eifi.feature.onboarding.R
 
-/** Settings: status of each permission, with a way to change it, and the introduction to view again. */
+/** Settings: status of each permission, with a way to change it, the receiving profile, and the introduction. */
 @Composable
-internal fun SettingsScreen(onReplayIntroduction: () -> Unit, onBack: () -> Unit, modifier: Modifier = Modifier) {
+internal fun SettingsScreen(
+    onEditReceivingProfile: () -> Unit,
+    onReplayIntroduction: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Surface(modifier = modifier.fillMaxSize(), color = EifiColors.Background) {
         Column(
             modifier = Modifier
@@ -57,6 +62,11 @@ internal fun SettingsScreen(onReplayIntroduction: () -> Unit, onBack: () -> Unit
                 }
             }
             EifiSecondaryButton(
+                text = stringResource(R.string.settings_edit_receiving_profile),
+                onClick = onEditReceivingProfile,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            EifiSecondaryButton(
                 text = stringResource(R.string.settings_replay_introduction),
                 onClick = onReplayIntroduction,
                 modifier = Modifier.fillMaxWidth(),
@@ -68,5 +78,5 @@ internal fun SettingsScreen(onReplayIntroduction: () -> Unit, onBack: () -> Unit
 @Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun SettingsScreenPreview() {
-    EifiTheme { SettingsScreen(onReplayIntroduction = {}, onBack = {}) }
+    EifiTheme { SettingsScreen(onEditReceivingProfile = {}, onReplayIntroduction = {}, onBack = {}) }
 }

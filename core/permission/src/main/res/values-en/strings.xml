@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="battery_guide_autostart_infinix">Open Phone Master, then "Auto-start", and allow Eifi.</string>
+    <string name="battery_guide_autostart_itel">Open Phone Master (or "Phone manager"), then "Auto-start", and allow Eifi.</string>
+    <string name="battery_guide_autostart_tecno">Open Phone Master, then "Auto-start management", and allow Eifi.</string>
+    <string name="battery_guide_lock_recents">In the recent apps, lock Eifi (padlock) so that it is not closed.</string>
+    <string name="battery_guide_no_restriction">In Settings, Battery, choose Eifi, then "No restriction".</string>
+    <string name="battery_guide_title">On your %1$s</string>
     <string name="permission_battery_allow">Open the settings</string>
     <string name="permission_battery_body">Otherwise, some phones stop Eifi and payments are not confirmed.</string>
     <string name="permission_battery_later">Later</string>

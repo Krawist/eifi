@@ -31,6 +31,7 @@
     <string name="names_personal">Your name</string>
     <string name="names_subtitle">Your name, your business name, or both. If you have a business, its name is shown.</string>
     <string name="names_title">What should we call you?</string>
+    <string name="settings_edit_receiving_profile">Edit where to receive the money</string>
     <string name="settings_permissions">Permissions</string>
     <string name="settings_replay_introduction">View the introduction again</string>
     <string name="settings_title">Settings</string>

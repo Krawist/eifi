@@ -17,7 +17,7 @@ internal class ReceiveEntryViewModel @Inject constructor(receivingProfileReposit
     ViewModel() {
 
     val profileConfigured: StateFlow<Boolean?> = flow<Boolean?> {
-        emit(receivingProfileRepository.isConfigured.first())
+        emit(receivingProfileRepository.profile.first() != null)
     }
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = null)
 }

@@ -29,8 +29,13 @@ internal data object ActivityHistoryRoute
 @Serializable
 internal data object SettingsRoute
 
-/** Adds the home graph; [onPay] and [onReceive] open the modes. */
-fun NavGraphBuilder.homeGraph(navController: NavController, onPay: () -> Unit, onReceive: () -> Unit) {
+/** Adds the home graph; [onPay] and [onReceive] open the modes, [onEditReceivingProfile] the receiving profile. */
+fun NavGraphBuilder.homeGraph(
+    navController: NavController,
+    onPay: () -> Unit,
+    onReceive: () -> Unit,
+    onEditReceivingProfile: () -> Unit,
+) {
     navigation<HomeGraph>(startDestination = HomeRoute) {
         composable<HomeRoute> {
             val viewModel: HomeViewModel = hiltViewModel(
@@ -63,6 +68,7 @@ fun NavGraphBuilder.homeGraph(navController: NavController, onPay: () -> Unit, o
         }
         composable<SettingsRoute> {
             SettingsScreen(
+                onEditReceivingProfile = onEditReceivingProfile,
                 onReplayIntroduction = { navController.navigateToOnboarding() },
                 onBack = { navController.popBackStack() },
             )

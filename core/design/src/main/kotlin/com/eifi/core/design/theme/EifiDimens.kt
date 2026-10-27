@@ -7,6 +7,7 @@ object EifiDimens {
     /** Minimum touch target of any interactive element. */
     val MinTouchTarget = 44.dp
     val ButtonHeight = 58.dp
+    val TextFieldHeight = 56.dp
     val KeypadKeyHeight = 62.dp
     val KeypadGap = 6.dp
     val PillHeight = 28.dp

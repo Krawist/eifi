@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -12,9 +11,12 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.eifi.core.design.component.PlaceholderScreen
+import androidx.navigation.toRoute
 import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.core.permission.PermissionStep
+import com.eifi.feature.receive.profile.ReceivingProfileActions
+import com.eifi.feature.receive.profile.ReceivingProfileScreen
+import com.eifi.feature.receive.profile.ReceivingProfileViewModel
 import kotlinx.serialization.Serializable
 
 /** Navigation graph of the Receive mode. */
@@ -25,8 +27,9 @@ data object ReceiveGraph
 @Serializable
 internal data object ReceiveEntryRoute
 
+/** "Où recevoir l'argent"; [editing] when opened from the settings, which it goes back to once saved. */
 @Serializable
-internal data object ReceivingProfileRoute
+internal data class ReceivingProfileRoute(val editing: Boolean = false)
 
 /** Notification access and battery optimisation, asked the first time the mode is used (EIFI-032). */
 @Serializable
@@ -48,22 +51,16 @@ fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Uni
             val profileConfigured by viewModel.profileConfigured.collectAsStateWithLifecycle()
             LaunchedEffect(profileConfigured) {
                 val configured = profileConfigured ?: return@LaunchedEffect
-                navController.navigate(if (configured) ReceivePermissionsRoute else ReceivingProfileRoute) {
+                navController.navigate(if (configured) ReceivePermissionsRoute else ReceivingProfileRoute()) {
                     popUpTo(ReceiveEntryRoute) { inclusive = true }
                 }
             }
         }
-        // TODO(EIFI-100): receiving profile, then notification access and battery optimisation.
-        composable<ReceivingProfileRoute> {
-            PlaceholderScreen(
-                title = stringResource(R.string.receiving_profile_title),
-                subtitle = stringResource(R.string.receiving_profile_subtitle),
-                actionLabel = stringResource(R.string.receiving_profile_continue),
-                onAction = {
-                    navController.navigate(ReceivePermissionsRoute) {
-                        popUpTo(ReceivingProfileRoute) { inclusive = true }
-                    }
-                },
+        composable<ReceivingProfileRoute> { entry ->
+            ReceivingProfileDestination(
+                navController = navController,
+                editing = entry.toRoute<ReceivingProfileRoute>().editing,
+                onBack = onBack,
             )
         }
         composable<ReceivePermissionsRoute> {
@@ -102,4 +99,45 @@ private fun ReceivePermissionsDestination(navController: NavController, onBack: 
             }
         }
     }
+}
+
+/** Edits the receiving profile from the settings. */
+fun NavController.navigateToReceivingProfile() {
+    navigate(ReceivingProfileRoute(editing = true))
+}
+
+/** First use: the permissions follow once saved. Editing: back to the settings once saved. */
+@Composable
+private fun ReceivingProfileDestination(navController: NavController, editing: Boolean, onBack: () -> Unit) {
+    val viewModel: ReceivingProfileViewModel = hiltViewModel(
+        checkNotNull(LocalViewModelStoreOwner.current) {
+            "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+        },
+        null,
+    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val leave: () -> Unit = if (editing) ({ navController.popBackStack() }) else onBack
+    LaunchedEffect(uiState.saved) {
+        when {
+            !uiState.saved -> Unit
+            editing -> navController.popBackStack()
+            else -> navController.navigate(ReceivePermissionsRoute) {
+                popUpTo<ReceivingProfileRoute> { inclusive = true }
+            }
+        }
+    }
+    ReceivingProfileScreen(
+        uiState = uiState,
+        editing = editing,
+        actions = ReceivingProfileActions(
+            onDisplayNameChange = viewModel::onDisplayNameChange,
+            onKindChange = viewModel::onKindChange,
+            onCountryChange = viewModel::onCountryChange,
+            onValueChange = viewModel::onValueChange,
+            onAddOperator = viewModel::addOperator,
+            onRemoveOperator = viewModel::removeOperator,
+            onSave = viewModel::save,
+            onBack = leave,
+        ),
+    )
 }

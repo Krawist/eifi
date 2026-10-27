@@ -151,6 +151,8 @@ The first time Receive mode is used, the user enters the name shown to those who
 - If notification access is refused, the app works with manual confirmation and says so.
 - The battery optimisation guide covers at least Tecno, Infinix and itel.
 
+Decided on October 27, 2026: the phone number must be a valid Cameroonian mobile number according to Google's libphonenumber (the country is picked with its flag and calling code, Cameroon only for now; the number is stored and carried in the payment URL in E.164 format, e.g. +237690123456; no check of the operator behind the prefix before EIFI-001); the display name is prefilled with the business name, otherwise the personal name, given in the onboarding. The brand is detected from `Build`, and the guide gives the most likely menu paths of HiOS, XOS and itel OS; they are to verify on real phones in EIFI-300. The "SIM 1" pill of the mockup comes with SIM detection (EIFI-202).
+
 Size: M. Dependencies: EIFI-031, EIFI-032.
 
 ### EIFI-101 · Amount entry screen

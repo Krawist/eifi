@@ -6,13 +6,14 @@ import androidx.datastore.dataStoreFile
 import com.eifi.core.data.ActivityRepository
 import com.eifi.core.data.AppPermission
 import com.eifi.core.data.DataStorePermissionRequestHistory
+import com.eifi.core.data.DataStoreReceivingProfileRepository
 import com.eifi.core.data.DataStoreUserPreferencesRepository
 import com.eifi.core.data.PermissionRequestHistory
+import com.eifi.core.data.ReceivingProfile
 import com.eifi.core.data.ReceivingProfileRepository
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
 import com.eifi.core.data.fake.FakeActivityRepository
-import com.eifi.core.data.fake.FakeReceivingProfileRepository
 import com.eifi.core.data.jsonDataStore
 import dagger.Binds
 import dagger.Module
@@ -38,7 +39,7 @@ internal abstract class DataModule {
     abstract fun bindActivityRepository(impl: FakeActivityRepository): ActivityRepository
 
     @Binds
-    abstract fun bindReceivingProfileRepository(impl: FakeReceivingProfileRepository): ReceivingProfileRepository
+    abstract fun bindReceivingProfileRepository(impl: DataStoreReceivingProfileRepository): ReceivingProfileRepository
 
     companion object {
         @Provides
@@ -46,6 +47,13 @@ internal abstract class DataModule {
         fun provideUserProfileStore(@ApplicationContext context: Context): DataStore<UserProfile?> =
             jsonDataStore(serializer = UserProfile.serializer().nullable, defaultValue = null) {
                 context.dataStoreFile("user_profile.json")
+            }
+
+        @Provides
+        @Singleton
+        fun provideReceivingProfileStore(@ApplicationContext context: Context): DataStore<ReceivingProfile?> =
+            jsonDataStore(serializer = ReceivingProfile.serializer().nullable, defaultValue = null) {
+                context.dataStoreFile("receiving_profile.json")
             }
 
         @Provides
