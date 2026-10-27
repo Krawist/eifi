@@ -21,7 +21,7 @@ internal sealed interface PaymentSummaryUiState {
      * @property activePermission the permission being explained, `null` when none is.
      * @property choosingAccount whether the "Choisissez votre compte" screen shows.
      * @property rememberChoice whether the account is offered first on the next payments.
-     * @property confirmed whether the payer has confirmed; the biometric prompt comes with EIFI-203.
+     * @property confirmationStep where the confirmation stands: biometric prompt, missing screen lock, authenticated.
      */
     data class Ready(
         val displayName: String,
@@ -34,7 +34,7 @@ internal sealed interface PaymentSummaryUiState {
         val activePermission: AppPermission? = null,
         val choosingAccount: Boolean = false,
         val rememberChoice: Boolean = true,
-        val confirmed: Boolean = false,
+        val confirmationStep: ConfirmationStep = ConfirmationStep.None,
     ) : PaymentSummaryUiState
 
     /** The payee's code has expired, before or while the summary shows: they must show a new one. */

@@ -4,8 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,7 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.eifi.core.design.R as DesignR
 import com.eifi.core.design.component.AmountDisplay
-import com.eifi.core.design.component.EifiCard
 import com.eifi.core.design.component.EifiCloseButton
 import com.eifi.core.design.component.EifiIconTile
 import com.eifi.core.design.component.EifiPill
@@ -47,9 +43,9 @@ import com.eifi.feature.pay.R
 import com.eifi.feature.pay.displayName
 
 /**
- * "Récapitulatif": the payee, the amount, the payer's account, the fees and the confirmation, while the payee's
- * code is valid, after the phone calls permission step the first time; "Choisissez votre compte" on "Changer";
- * otherwise why the URL cannot be paid.
+ * "Récapitulatif": the payee, the amount, the payer's account, the fees and the confirmation through the biometric
+ * prompt, while the payee's code is valid, after the phone calls permission step the first time; "Choisissez votre
+ * compte" on "Changer"; otherwise why the URL cannot be paid.
  */
 @Composable
 internal fun PaymentSummaryScreen(
@@ -58,14 +54,29 @@ internal fun PaymentSummaryScreen(
     modifier: Modifier = Modifier,
 ) {
     when (uiState) {
-        is PaymentSummaryUiState.Ready -> uiState.activePermission?.let {
-            PermissionStep(
-                permission = it,
-                onDone = actions.onPermissionDone,
-                modifier = modifier,
-                onBack = actions.onClose,
-            )
-        } ?: AnimatedContent(
+        is PaymentSummaryUiState.Ready -> ReadyContent(uiState = uiState, actions = actions, modifier = modifier)
+        PaymentSummaryUiState.Expired ->
+            Problem(R.string.summary_expired_title, R.string.summary_expired_body, actions.onClose, modifier)
+        PaymentSummaryUiState.UpdateNeeded ->
+            Problem(R.string.summary_update_title, R.string.summary_update_body, actions.onClose, modifier)
+        PaymentSummaryUiState.Invalid ->
+            Problem(R.string.summary_invalid_title, R.string.summary_invalid_body, actions.onClose, modifier)
+    }
+}
+
+/** The permission step, the screen lock explanation, "Choisissez votre compte" or the summary. */
+@Composable
+private fun ReadyContent(uiState: PaymentSummaryUiState.Ready, actions: PaymentSummaryActions, modifier: Modifier) {
+    when {
+        uiState.activePermission != null -> PermissionStep(
+            permission = uiState.activePermission,
+            onDone = actions.onPermissionDone,
+            modifier = modifier,
+            onBack = actions.onClose,
+        )
+        uiState.confirmationStep == ConfirmationStep.ScreenLockNeeded ->
+            ScreenLockNeededScreen(onBack = actions.onCloseScreenLockNeeded, modifier = modifier)
+        else -> AnimatedContent(
             targetState = uiState.choosingAccount,
             transitionSpec = { EifiTransitions.step(forward = targetState) },
             label = "account choice",
@@ -81,12 +92,15 @@ internal fun PaymentSummaryScreen(
                 Summary(uiState = uiState, actions = actions, modifier = modifier)
             }
         }
-        PaymentSummaryUiState.Expired ->
-            Problem(R.string.summary_expired_title, R.string.summary_expired_body, actions.onClose, modifier)
-        PaymentSummaryUiState.UpdateNeeded ->
-            Problem(R.string.summary_update_title, R.string.summary_update_body, actions.onClose, modifier)
-        PaymentSummaryUiState.Invalid ->
-            Problem(R.string.summary_invalid_title, R.string.summary_invalid_body, actions.onClose, modifier)
+    }
+    if (uiState.confirmationStep == ConfirmationStep.Authenticating) {
+        BiometricConfirmation(
+            title = stringResource(ReceivingMethodUi.of(uiState.receivingMethod).action, formatFcfa(uiState.amount)),
+            subtitle = stringResource(R.string.summary_prompt_to, uiState.displayName),
+            onAuthenticated = actions.onAuthenticated,
+            onCancelled = actions.onAuthenticationCancelled,
+            onScreenLockMissing = actions.onScreenLockMissing,
+        )
     }
 }
 
@@ -121,9 +135,9 @@ private fun Summary(
                 }
             }
             if (uiState.account != null) {
-                if (uiState.confirmed) {
+                if (uiState.confirmationStep == ConfirmationStep.Authenticated) {
                     Text(
-                        text = stringResource(R.string.summary_confirm_soon),
+                        text = stringResource(R.string.summary_authenticated),
                         modifier = Modifier.fillMaxWidth().padding(bottom = EifiSpacing.Medium),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -186,37 +200,6 @@ private fun Payee(uiState: PaymentSummaryUiState.Ready, methodUi: ReceivingMetho
         )
         EifiPill(text = stringResource(methodUi.badge), tone = EifiPillTone.Neutral)
         AmountDisplay(amount = uiState.amount, modifier = Modifier.fillMaxWidth())
-    }
-}
-
-@Composable
-private fun Fees(methodUi: ReceivingMethodUi, operatorName: String) {
-    EifiCard(
-        modifier = Modifier.fillMaxWidth(),
-        color = methodUi.feesColor,
-        contentPadding = PaddingValues(EifiSpacing.Large),
-    ) {
-        Text(text = stringResource(methodUi.fees), style = MaterialTheme.typography.titleMedium)
-        methodUi.feesDetail?.let {
-            Text(
-                text = stringResource(it, operatorName),
-                modifier = Modifier.padding(top = EifiSpacing.XSmall),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
-}
-
-@Composable
-private fun Note(icon: Int, text: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(EifiSpacing.Medium)) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(EifiDimens.PointIcon),
-            tint = EifiColors.Muted,
-        )
-        Text(text = text, style = MaterialTheme.typography.bodyMedium, color = EifiColors.Muted)
     }
 }
 

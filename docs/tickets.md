@@ -292,6 +292,8 @@ Confirming triggers a mandatory `BiometricPrompt`: fingerprint, face or phone un
 - A failure or cancellation returns to the summary without placing a call.
 - On a phone without a configured screen lock, the app asks the user to set one up.
 
+Decided on October 27, 2026: before Android 11, the unlock code can only be combined with any biometrics (BIOMETRIC_WEAK), not strong biometrics only: the prompt allows BIOMETRIC_WEAK or DEVICE_CREDENTIAL there. Without a screen lock, the payer is sent to the security settings, then confirms again on the summary.
+
 Size: S. Dependencies: EIFI-201.
 
 ### EIFI-204 · Launch the USSD code

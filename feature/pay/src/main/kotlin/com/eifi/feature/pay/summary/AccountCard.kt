@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -15,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.eifi.core.design.component.EifiCard
 import com.eifi.core.design.component.EifiPill
@@ -98,5 +101,36 @@ internal fun OperatorBadge(operator: Operator) {
         Box(contentAlignment = Alignment.Center) {
             Text(text = stringResource(operator.shortName), style = MaterialTheme.typography.labelMedium)
         }
+    }
+}
+
+@Composable
+internal fun Fees(methodUi: ReceivingMethodUi, operatorName: String) {
+    EifiCard(
+        modifier = Modifier.fillMaxWidth(),
+        color = methodUi.feesColor,
+        contentPadding = PaddingValues(EifiSpacing.Large),
+    ) {
+        Text(text = stringResource(methodUi.fees), style = MaterialTheme.typography.titleMedium)
+        methodUi.feesDetail?.let {
+            Text(
+                text = stringResource(it, operatorName),
+                modifier = Modifier.padding(top = EifiSpacing.XSmall),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun Note(icon: Int, text: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(EifiSpacing.Medium)) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            modifier = Modifier.size(EifiDimens.PointIcon),
+            tint = EifiColors.Muted,
+        )
+        Text(text = text, style = MaterialTheme.typography.bodyMedium, color = EifiColors.Muted)
     }
 }

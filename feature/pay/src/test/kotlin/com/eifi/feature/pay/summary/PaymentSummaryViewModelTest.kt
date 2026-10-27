@@ -17,6 +17,7 @@ import io.kotest.matchers.shouldBe
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -388,7 +389,7 @@ internal class PaymentSummaryViewModelTest {
     @Nested
     inner class Confirm {
         @Test
-        fun `should remember the account for the next payment`() = runTest(dispatcher) {
+        fun `should ask for the biometric prompt`() = runTest(dispatcher) {
             // given
             sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
             val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
@@ -397,6 +398,80 @@ internal class PaymentSummaryViewModelTest {
 
             // when
             viewModel.confirm()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).confirmationStep shouldBe
+                ConfirmationStep.Authenticating
+        }
+
+        @Test
+        fun `should not ask for the biometric prompt without compatible account`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 0, operator = null))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+
+            // when
+            viewModel.confirm()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).confirmationStep shouldBe ConfirmationStep.None
+        }
+
+        @Test
+        fun `should not ask for the biometric prompt once the code has expired`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            advanceTimeBy(121_000.milliseconds)
+            runCurrent()
+
+            // when
+            viewModel.confirm()
+            runCurrent()
+
+            // then
+            viewModel.uiState.value shouldBe PaymentSummaryUiState.Expired
+        }
+    }
+
+    @Nested
+    inner class OnAuthenticated {
+        @Test
+        fun `should confirm the payment`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            viewModel.confirm()
+            runCurrent()
+
+            // when
+            viewModel.onAuthenticated()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).confirmationStep shouldBe
+                ConfirmationStep.Authenticated
+        }
+
+        @Test
+        fun `should remember the account for the next payment`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            viewModel.confirm()
+            runCurrent()
+
+            // when
+            viewModel.onAuthenticated()
             runCurrent()
 
             // then
@@ -417,10 +492,11 @@ internal class PaymentSummaryViewModelTest {
                 ),
                 remember = false,
             )
+            viewModel.confirm()
             runCurrent()
 
             // when
-            viewModel.confirm()
+            viewModel.onAuthenticated()
             runCurrent()
 
             // then
@@ -428,20 +504,83 @@ internal class PaymentSummaryViewModelTest {
         }
 
         @Test
-        fun `should not confirm once the code has expired`() = runTest(dispatcher) {
+        fun `should ignore an authentication without prompt`() = runTest(dispatcher) {
             // given
             sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
             val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
             backgroundScope.launch { viewModel.uiState.collect {} }
-            advanceTimeBy(121_000)
             runCurrent()
 
             // when
-            viewModel.confirm()
+            viewModel.onAuthenticated()
             runCurrent()
 
             // then
-            payingAccounts.choice.value.shouldBeNull()
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).confirmationStep shouldBe ConfirmationStep.None
+        }
+    }
+
+    @Nested
+    inner class OnAuthenticationCancelled {
+        @Test
+        fun `should go back to the summary without confirming`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            viewModel.confirm()
+            runCurrent()
+
+            // when
+            viewModel.onAuthenticationCancelled()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).confirmationStep shouldBe ConfirmationStep.None
+        }
+
+        @Test
+        fun `should keep a confirmed payment confirmed`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            viewModel.confirm()
+            runCurrent()
+            viewModel.onAuthenticated()
+            runCurrent()
+
+            // when
+            viewModel.onAuthenticationCancelled()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).confirmationStep shouldBe
+                ConfirmationStep.Authenticated
+        }
+    }
+
+    @Nested
+    inner class OnScreenLockMissing {
+        @Test
+        fun `should ask to set up a screen lock`() = runTest(dispatcher) {
+            // given
+            sims = listOf(sim(slotIndex = 1, operator = Operator.MtnMomo))
+            val viewModel = viewModel(url(mapOf(Operator.MtnMomo to ReceivingMethod.MerchantCode("482913"))))
+            backgroundScope.launch { viewModel.uiState.collect {} }
+            runCurrent()
+            viewModel.confirm()
+            runCurrent()
+
+            // when
+            viewModel.onScreenLockMissing()
+            runCurrent()
+
+            // then
+            (viewModel.uiState.value as PaymentSummaryUiState.Ready).confirmationStep shouldBe
+                ConfirmationStep.ScreenLockNeeded
         }
     }
 }

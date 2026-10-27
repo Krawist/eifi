@@ -15,10 +15,13 @@
     <string name="pay_subtitle">Tap or scan to pay.</string>
     <string name="pay_title">Pay</string>
     <string name="scan_hint">Aim at the QR code of the person collecting.</string>
+    <string name="screen_lock_action">Open the settings</string>
+    <string name="screen_lock_body">Before each payment, Eifi asks for your fingerprint, your face or your phone code. Add a screen lock to pay.</string>
+    <string name="screen_lock_title">Protect your phone</string>
     <string name="summary_account_change">Change</string>
     <string name="summary_account_sim">%1$s · SIM %2$d</string>
+    <string name="summary_authenticated">Confirmed. The USSD code will be launched here.</string>
     <string name="summary_back">Back</string>
-    <string name="summary_confirm_soon">Fingerprint confirmation will open here.</string>
     <string name="summary_expired_body">Ask the person collecting to show a new code.</string>
     <string name="summary_expired_title">This code has expired</string>
     <string name="summary_expires_in">Expires in %1$s</string>
@@ -32,6 +35,7 @@
     <string name="summary_no_account_body">None of your SIM cards is with an operator %1$s accepts. A payment only works between two accounts of the same operator.</string>
     <string name="summary_no_account_title">No compatible account</string>
     <string name="summary_pin_reminder">You will then confirm with your secret code in the %1$s prompt. Eifi never sees it.</string>
+    <string name="summary_prompt_to">To %1$s</string>
     <string name="summary_transfer_action">Send %1$s FCFA</string>
     <string name="summary_transfer_badge">Transfer to a person</string>
     <string name="summary_transfer_fees">Transfer fees paid by you</string>

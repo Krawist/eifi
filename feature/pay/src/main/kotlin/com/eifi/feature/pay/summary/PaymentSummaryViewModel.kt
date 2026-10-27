@@ -29,7 +29,8 @@ import kotlinx.coroutines.launch
 /**
  * Summary of the payment URL read by NFC, the scanner or an App Link, decoded once when the summary opens: the
  * payer's account among their SIMs (the phone calls permission is asked once, at the first summary), a countdown
- * refreshed every second, and the confirmation, refused once the code has expired or without compatible account.
+ * refreshed every second, and the confirmation through the biometric prompt, refused once the code has expired or
+ * without compatible account.
  */
 @HiltViewModel
 internal class PaymentSummaryViewModel @Inject constructor(
@@ -48,7 +49,7 @@ internal class PaymentSummaryViewModel @Inject constructor(
      * @property activePermission the permission being explained, `null` when none is.
      * @property choosingAccount whether "Choisissez votre compte" shows.
      * @property rememberChoice whether the account is offered first on the next payments.
-     * @property confirmed whether the payer has confirmed.
+     * @property confirmationStep where the confirmation stands.
      * @property permissionChecked whether the phone calls permission was checked, so that the summary does not show
      * before its permission step.
      */
@@ -57,7 +58,7 @@ internal class PaymentSummaryViewModel @Inject constructor(
         val activePermission: AppPermission? = null,
         val choosingAccount: Boolean = false,
         val rememberChoice: Boolean = true,
-        val confirmed: Boolean = false,
+        val confirmationStep: ConfirmationStep = ConfirmationStep.None,
         val permissionChecked: Boolean = false,
     )
 
@@ -133,13 +134,44 @@ internal class PaymentSummaryViewModel @Inject constructor(
         if (remember) viewModelScope.launch { payingAccountService.remember(account) }
     }
 
-    /** Confirms the payment while the code is valid, and remembers the account unless the payer opted out. */
+    /** Asks for the biometric prompt while the code is valid and an account is compatible. */
     fun confirm() {
         val state = uiState.value as? PaymentSummaryUiState.Ready ?: return
+        if (state.account == null) return
+        interaction.update { it.copy(confirmationStep = ConfirmationStep.Authenticating) }
+    }
+
+    /** The payer is authenticated: remembers the account unless they opted out. */
+    fun onAuthenticated() {
+        val state = (uiState.value as? PaymentSummaryUiState.Ready)
+            ?.takeIf { it.confirmationStep == ConfirmationStep.Authenticating } ?: return
         val account = state.account ?: return
-        interaction.update { it.copy(confirmed = true) }
-        // TODO(EIFI-203): biometric prompt, then the USSD code on the SIM of the account (EIFI-204).
+        interaction.update { it.copy(confirmationStep = ConfirmationStep.Authenticated) }
+        // TODO(EIFI-204): the USSD code on the SIM of the account.
         if (state.rememberChoice) viewModelScope.launch { payingAccountService.remember(account) }
+    }
+
+    /** The prompt was cancelled or failed: back to the summary, nothing launched. */
+    fun onAuthenticationCancelled() {
+        interaction.update {
+            if (it.confirmationStep ==
+                ConfirmationStep.Authenticating
+            ) {
+                it.copy(confirmationStep = ConfirmationStep.None)
+            } else {
+                it
+            }
+        }
+    }
+
+    /** The phone has no screen lock: explains how to set one up. */
+    fun onScreenLockMissing() {
+        interaction.update { it.copy(confirmationStep = ConfirmationStep.ScreenLockNeeded) }
+    }
+
+    /** Back to the summary from the screen lock explanation. */
+    fun closeScreenLockNeeded() {
+        interaction.update { it.copy(confirmationStep = ConfirmationStep.None) }
     }
 
     /** [PaymentSummaryUiState.Ready] while the code is valid, [PaymentSummaryUiState.Expired] after. */
@@ -167,7 +199,7 @@ internal class PaymentSummaryViewModel @Inject constructor(
             activePermission = interaction.activePermission,
             choosingAccount = interaction.choosingAccount,
             rememberChoice = interaction.rememberChoice,
-            confirmed = interaction.confirmed,
+            confirmationStep = interaction.confirmationStep,
         )
     }
 

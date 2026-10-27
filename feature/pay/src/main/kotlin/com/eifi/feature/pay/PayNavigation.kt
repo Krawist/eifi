@@ -103,6 +103,10 @@ private fun PaymentSummaryDestination(onClose: () -> Unit) {
                 onChooseAccount = viewModel::chooseAccount,
                 onCloseAccountChoice = viewModel::closeAccountChoice,
                 onConfirm = viewModel::confirm,
+                onAuthenticated = viewModel::onAuthenticated,
+                onAuthenticationCancelled = viewModel::onAuthenticationCancelled,
+                onScreenLockMissing = viewModel::onScreenLockMissing,
+                onCloseScreenLockNeeded = viewModel::closeScreenLockNeeded,
                 onClose = onClose,
             ),
         )
