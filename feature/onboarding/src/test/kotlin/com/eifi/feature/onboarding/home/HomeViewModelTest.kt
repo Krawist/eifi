@@ -5,6 +5,7 @@ import com.eifi.core.data.ActivityRepository
 import com.eifi.core.data.PaymentDirection
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
+import com.eifi.core.data.UserProfileService
 import com.eifi.core.nfc.NfcPaymentReader
 import com.eifi.core.nfc.NfcStatus
 import com.eifi.core.nfc.NfcStatusProvider
@@ -12,6 +13,7 @@ import com.eifi.core.payload.Operator
 import io.kotest.matchers.shouldBe
 import java.time.Instant
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class HomeViewModelTest {
     private val userPreferencesRepository = object : UserPreferencesRepository {
         override val profile = MutableStateFlow<UserProfile?>(null)
@@ -86,5 +89,6 @@ internal class HomeViewModelTest {
         nfcPaymentReader = object : NfcPaymentReader {
             override val paymentUrls = emptyFlow<String>()
         },
+        userProfileService = UserProfileService(),
     )
 }

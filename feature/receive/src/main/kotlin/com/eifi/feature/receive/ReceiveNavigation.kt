@@ -35,7 +35,11 @@ data object ReceiveGraph
 @Serializable
 internal data object ReceiveEntryRoute
 
-/** "Où recevoir l'argent"; [editing] when opened from the settings, which it goes back to once saved. */
+/**
+ * "Où recevoir l'argent".
+ *
+ * @property editing whether it was opened from the settings, which it goes back to once saved.
+ */
 @Serializable
 internal data class ReceivingProfileRoute(val editing: Boolean = false)
 

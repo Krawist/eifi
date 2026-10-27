@@ -5,6 +5,7 @@ import com.eifi.core.payload.ReceivingMethod
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import java.io.File
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -14,7 +15,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class DataStoreReceivingProfileRepositoryTest(@TempDir private val folder: File) {
+
     private val scope = TestScope(UnconfinedTestDispatcher())
 
     private val file = File(folder, "receiving_profile.json")
@@ -23,6 +26,7 @@ internal class DataStoreReceivingProfileRepositoryTest(@TempDir private val fold
         jsonDataStore(
             serializer = ReceivingProfile.serializer().nullable,
             defaultValue = null,
+            validate = { it?.let(ReceivingProfileService()::validate) },
             scope = scope.backgroundScope,
         ) { file },
     )

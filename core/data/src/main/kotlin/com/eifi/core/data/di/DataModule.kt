@@ -11,8 +11,10 @@ import com.eifi.core.data.DataStoreUserPreferencesRepository
 import com.eifi.core.data.PermissionRequestHistory
 import com.eifi.core.data.ReceivingProfile
 import com.eifi.core.data.ReceivingProfileRepository
+import com.eifi.core.data.ReceivingProfileService
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
+import com.eifi.core.data.UserProfileService
 import com.eifi.core.data.fake.FakeActivityRepository
 import com.eifi.core.data.jsonDataStore
 import dagger.Binds
@@ -44,17 +46,29 @@ internal abstract class DataModule {
     companion object {
         @Provides
         @Singleton
-        fun provideUserProfileStore(@ApplicationContext context: Context): DataStore<UserProfile?> =
-            jsonDataStore(serializer = UserProfile.serializer().nullable, defaultValue = null) {
-                context.dataStoreFile("user_profile.json")
-            }
+        fun provideUserProfileStore(
+            @ApplicationContext context: Context,
+            userProfileService: UserProfileService,
+        ): DataStore<UserProfile?> = jsonDataStore(
+            serializer = UserProfile.serializer().nullable,
+            defaultValue = null,
+            validate = { it?.let(userProfileService::validate) },
+        ) {
+            context.dataStoreFile("user_profile.json")
+        }
 
         @Provides
         @Singleton
-        fun provideReceivingProfileStore(@ApplicationContext context: Context): DataStore<ReceivingProfile?> =
-            jsonDataStore(serializer = ReceivingProfile.serializer().nullable, defaultValue = null) {
-                context.dataStoreFile("receiving_profile.json")
-            }
+        fun provideReceivingProfileStore(
+            @ApplicationContext context: Context,
+            receivingProfileService: ReceivingProfileService,
+        ): DataStore<ReceivingProfile?> = jsonDataStore(
+            serializer = ReceivingProfile.serializer().nullable,
+            defaultValue = null,
+            validate = { it?.let(receivingProfileService::validate) },
+        ) {
+            context.dataStoreFile("receiving_profile.json")
+        }
 
         @Provides
         @Singleton

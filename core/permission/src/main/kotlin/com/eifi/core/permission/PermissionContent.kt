@@ -5,7 +5,17 @@ import androidx.annotation.StringRes
 import com.eifi.core.data.AppPermission
 import com.eifi.core.design.R as DesignR
 
-/** Texts of a permission: explanation screen and settings row. */
+/**
+ * Texts of a permission: explanation screen and settings row.
+ *
+ * @property name short name of the permission, in the settings row.
+ * @property title title of the explanation screen.
+ * @property body paragraph under the title.
+ * @property points string resources of the bullet points: what the permission is used for, and what it is not.
+ * @property allow label of the button that opens the system dialog or settings.
+ * @property later label of the button that skips the permission for now.
+ * @property icon illustration of the explanation screen and icon of the settings row.
+ */
 internal data class PermissionContent(
     @StringRes val name: Int,
     @StringRes val title: Int,

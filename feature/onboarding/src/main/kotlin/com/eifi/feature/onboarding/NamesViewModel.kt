@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
+import com.eifi.core.data.UserProfileService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +16,10 @@ import kotlinx.coroutines.launch
 
 /** Last onboarding step: the personal and business names, prefilled when the onboarding is replayed. */
 @HiltViewModel
-internal class NamesViewModel @Inject constructor(private val userPreferencesRepository: UserPreferencesRepository) :
-    ViewModel() {
+internal class NamesViewModel @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val userProfileService: UserProfileService,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NamesUiState())
     val uiState: StateFlow<NamesUiState> = _uiState.asStateFlow()
@@ -35,11 +38,11 @@ internal class NamesViewModel @Inject constructor(private val userPreferencesRep
     }
 
     fun onPersonalNameChange(name: String) {
-        _uiState.update { it.copy(personalName = name.take(UserProfile.MAX_NAME_LENGTH)) }
+        _uiState.update { it.copy(personalName = name.take(UserProfileService.MAX_NAME_LENGTH)) }
     }
 
     fun onBusinessNameChange(name: String) {
-        _uiState.update { it.copy(businessName = name.take(UserProfile.MAX_NAME_LENGTH)) }
+        _uiState.update { it.copy(businessName = name.take(UserProfileService.MAX_NAME_LENGTH)) }
     }
 
     /** Saves the profile, which completes the onboarding; without any name, shows why it cannot. */
@@ -49,13 +52,13 @@ internal class NamesViewModel @Inject constructor(private val userPreferencesRep
             _uiState.update { it.copy(showErrors = true) }
             return
         }
+        val profile = UserProfile(
+            personalName = state.personalName.trim().ifEmpty { null },
+            businessName = state.businessName.trim().ifEmpty { null },
+        )
+        userProfileService.validate(profile)
         viewModelScope.launch {
-            userPreferencesRepository.saveProfile(
-                UserProfile(
-                    personalName = state.personalName.trim().ifEmpty { null },
-                    businessName = state.businessName.trim().ifEmpty { null },
-                ),
-            )
+            userPreferencesRepository.saveProfile(profile)
             _uiState.update { it.copy(completed = true) }
         }
     }

@@ -1,8 +1,12 @@
 package com.eifi.feature.onboarding
 
 /**
- * [showErrors] is set when the user tried to finish without any name, so that the screen says why;
- * [completed] is set once the profile is saved, so that the screen only navigates away afterwards.
+ * State of the names screen, the last onboarding step.
+ *
+ * @property personalName personal name, as typed.
+ * @property businessName business name, as typed.
+ * @property showErrors set when the user tried to finish without any name, so that the screen says why.
+ * @property completed set once the profile is saved, so that the screen only navigates away afterwards.
  */
 internal data class NamesUiState(
     val personalName: String = "",

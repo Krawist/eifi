@@ -18,8 +18,11 @@ class PaymentUrlCodec(baseUrl: String, private val clock: Clock) {
 
     private val prefix = "$baseUrl/p#"
 
-    fun encode(request: PaymentRequest): String =
-        "$prefix$VERSION.${Base64.getUrlEncoder().withoutPadding().encodeToString(PayloadV1.write(request))}"
+    /** @throws IllegalArgumentException when [request] is not valid (see [PaymentRequestService.validate]). */
+    fun encode(request: PaymentRequest): String {
+        PaymentRequestService.validate(request)
+        return "$prefix$VERSION.${Base64.getUrlEncoder().withoutPadding().encodeToString(PayloadV1.write(request))}"
+    }
 
     /** Decodes [url]; an expired request is never returned as [PaymentUrlDecodingResult.Valid]. */
     fun decode(url: String): PaymentUrlDecodingResult {

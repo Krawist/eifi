@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eifi.core.data.ActivityRepository
 import com.eifi.core.data.UserPreferencesRepository
+import com.eifi.core.data.UserProfileService
 import com.eifi.core.nfc.NfcPaymentReader
 import com.eifi.core.nfc.NfcStatusProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,7 @@ internal class HomeViewModel @Inject constructor(
     activityRepository: ActivityRepository,
     nfcStatusProvider: NfcStatusProvider,
     nfcPaymentReader: NfcPaymentReader,
+    userProfileService: UserProfileService,
 ) : ViewModel() {
 
     val uiState: StateFlow<HomeUiState> = combine(
@@ -27,7 +29,11 @@ internal class HomeViewModel @Inject constructor(
         nfcStatusProvider.status,
         activityRepository.recentActivities,
     ) { profile, nfcStatus, activity ->
-        HomeUiState(greetingName = profile?.greetingName, nfcStatus = nfcStatus, recentActivity = activity)
+        HomeUiState(
+            greetingName = profile?.let(userProfileService::greetingName),
+            nfcStatus = nfcStatus,
+            recentActivity = activity,
+        )
     }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
 
     /** Payment URLs read by NFC while the home screen is shown: each one starts the Pay flow. */

@@ -23,6 +23,7 @@ internal class DataStoreUserPreferencesRepositoryTest(@TempDir private val folde
         jsonDataStore(
             serializer = UserProfile.serializer().nullable,
             defaultValue = null,
+            validate = { it?.let(UserProfileService()::validate) },
             scope = scope.backgroundScope,
         ) { file },
     )

@@ -1,8 +1,10 @@
 package com.eifi.core.payload
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
+import io.kotest.matchers.throwable.shouldHaveMessage
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
@@ -50,6 +52,14 @@ internal class PaymentUrlCodecTest {
 
             // then
             url.encodeToByteArray().size shouldBeLessThanOrEqual QR_VERSION_8_Q_BYTES
+        }
+
+        @Test
+        fun `should refuse an invalid request`() {
+            // when & then
+            shouldThrow<IllegalArgumentException> {
+                codec.encode(request(displayName = " "))
+            } shouldHaveMessage "The display name must have 1 to 30 characters"
         }
     }
 

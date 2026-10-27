@@ -8,14 +8,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-internal class UserProfileTest {
+internal class UserProfileServiceTest {
+    private val service = UserProfileService()
+
     @Nested
-    inner class Init {
+    inner class Validate {
         @Test
         fun `should require a personal or business name`() {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                UserProfile(personalName = null, businessName = null)
+                service.validate(UserProfile(personalName = null, businessName = null))
             } shouldHaveMessage "A personal or business name is required"
         }
 
@@ -24,7 +26,7 @@ internal class UserProfileTest {
         fun `should reject a blank name or a name longer than 30 characters`(name: String) {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                UserProfile(personalName = name, businessName = "Kiosque Ndé")
+                service.validate(UserProfile(personalName = name, businessName = "Kiosque Ndé"))
             } shouldHaveMessage "A name must have 1 to 30 characters"
         }
 
@@ -32,7 +34,7 @@ internal class UserProfileTest {
         fun `should count a blank name as missing`() {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                UserProfile(personalName = " ", businessName = null)
+                service.validate(UserProfile(personalName = " ", businessName = null))
             } shouldHaveMessage "A personal or business name is required"
         }
     }
@@ -45,7 +47,7 @@ internal class UserProfileTest {
             val profile = UserProfile(personalName = "Paul", businessName = "Boutique Mama Ngono")
 
             // when
-            val name = profile.greetingName
+            val name = service.greetingName(profile)
 
             // then
             name shouldBe "Boutique Mama Ngono"
@@ -57,7 +59,7 @@ internal class UserProfileTest {
             val profile = UserProfile(personalName = "Paul", businessName = null)
 
             // when
-            val name = profile.greetingName
+            val name = service.greetingName(profile)
 
             // then
             name shouldBe "Paul"

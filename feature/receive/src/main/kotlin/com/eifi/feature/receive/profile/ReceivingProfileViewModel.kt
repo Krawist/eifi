@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eifi.core.data.ReceivingProfile
 import com.eifi.core.data.ReceivingProfileRepository
+import com.eifi.core.data.ReceivingProfileService
 import com.eifi.core.data.UserPreferencesRepository
+import com.eifi.core.data.UserProfileService
 import com.eifi.core.payload.Operator
-import com.eifi.core.payload.PaymentRequest
+import com.eifi.core.payload.PaymentRequestService
+import com.eifi.core.payload.ReceivingMethodService
 import com.eifi.feature.receive.profile.phone.CameroonPhoneCountry
 import com.eifi.feature.receive.profile.phone.PhoneCountry
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +30,8 @@ import kotlinx.coroutines.launch
 internal class ReceivingProfileViewModel @Inject constructor(
     private val receivingProfileRepository: ReceivingProfileRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val receivingProfileService: ReceivingProfileService,
+    private val userProfileService: UserProfileService,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -40,7 +45,9 @@ internal class ReceivingProfileViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val saved = receivingProfileRepository.profile.first()
-            val greetingName = userPreferencesRepository.profile.first()?.greetingName.orEmpty()
+            val greetingName = userPreferencesRepository.profile.first()?.let(
+                userProfileService::greetingName,
+            ).orEmpty()
             _uiState.update { state ->
                 if (saved != null) {
                     state.copy(
@@ -50,14 +57,14 @@ internal class ReceivingProfileViewModel @Inject constructor(
                         },
                     )
                 } else {
-                    state.copy(displayName = greetingName.take(PaymentRequest.MAX_DISPLAY_NAME_LENGTH))
+                    state.copy(displayName = greetingName.take(PaymentRequestService.MAX_DISPLAY_NAME_LENGTH))
                 }
             }
         }
     }
 
     fun onDisplayNameChange(name: String) {
-        _uiState.update { it.copy(displayName = name.take(PaymentRequest.MAX_DISPLAY_NAME_LENGTH)) }
+        _uiState.update { it.copy(displayName = name.take(PaymentRequestService.MAX_DISPLAY_NAME_LENGTH)) }
     }
 
     /** Switching between phone number and merchant code starts the value again. */
@@ -75,7 +82,7 @@ internal class ReceivingProfileViewModel @Inject constructor(
         updateOperator(operator) { form ->
             val cleaned = when (form.kind) {
                 ReceivingMethodKind.PhoneNumber -> form.country.normalize(value)
-                ReceivingMethodKind.MerchantCode -> value.take(MAX_MERCHANT_CODE_LENGTH)
+                ReceivingMethodKind.MerchantCode -> value.take(ReceivingMethodService.MAX_MERCHANT_CODE_LENGTH)
             }
             form.copy(value = cleaned)
         }
@@ -105,10 +112,10 @@ internal class ReceivingProfileViewModel @Inject constructor(
         val methods = state.operators.mapNotNull { (operator, form) ->
             form.receivingMethod?.let { operator to it }
         }.toMap()
+        val profile = ReceivingProfile(displayName = state.displayName.trim(), receivingMethods = methods)
+        receivingProfileService.validate(profile)
         viewModelScope.launch {
-            receivingProfileRepository.saveProfile(
-                ReceivingProfile(displayName = state.displayName.trim(), receivingMethods = methods),
-            )
+            receivingProfileRepository.saveProfile(profile)
             _uiState.update { it.copy(saved = true) }
         }
     }
@@ -121,9 +128,6 @@ internal class ReceivingProfileViewModel @Inject constructor(
     }
 
     private companion object {
-        /** Same limit as [com.eifi.core.payload.ReceivingMethod.MerchantCode]. */
-        const val MAX_MERCHANT_CODE_LENGTH = 32
-
         /** Countries a phone number can belong to; the first one is selected by default. */
         val PHONE_COUNTRIES: List<PhoneCountry> = listOf(CameroonPhoneCountry)
     }

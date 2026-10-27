@@ -93,14 +93,16 @@ internal object PayloadV1 {
         private var position = 0
 
         fun readRequest(): PaymentRequest {
-            val id = readBytes(PaymentRequest.ID_BYTES).joinToString(separator = "") { "%02x".format(it) }
+            val id = readBytes(PaymentRequestService.ID_BYTES).joinToString(separator = "") { "%02x".format(it) }
             val expiresAt = Instant.ofEpochSecond(readUInt32())
             val amount = readVarint()
             val displayName = readText()
             val count = readByte()
             val methods = List(count) { readMethod() }.toMap()
             if (methods.size != count || position != bytes.size) invalidContent()
-            return content { PaymentRequest(id, displayName, amount, methods, expiresAt) }
+            return content {
+                PaymentRequest(id, displayName, amount, methods, expiresAt).also(PaymentRequestService::validate)
+            }
         }
 
         fun readUInt32(): Long = readBytes(UINT32_BYTES).fold(0L) { value, byte ->
@@ -112,12 +114,10 @@ internal object PayloadV1 {
             val operator = Operator.entries.firstOrNull { it.wireCode == header shr NIBBLE_SHIFT } ?: invalidContent()
             val methodCode = (header shr METHOD_SHIFT) and METHOD_MASK
             val value = if (header and NUMERIC_FLAG != 0) readDigits() else readText()
-            val method = content {
-                when (methodCode) {
-                    MERCHANT_CODE -> ReceivingMethod.MerchantCode(value)
-                    PHONE_NUMBER -> ReceivingMethod.PhoneNumber(E164_PREFIX + value)
-                    else -> invalidContent()
-                }
+            val method = when (methodCode) {
+                MERCHANT_CODE -> ReceivingMethod.MerchantCode(value)
+                PHONE_NUMBER -> ReceivingMethod.PhoneNumber(E164_PREFIX + value)
+                else -> invalidContent()
             }
             return operator to method
         }
@@ -162,7 +162,7 @@ internal object PayloadV1 {
             return bytes.copyOfRange(position, position + count).also { position += count }
         }
 
-        /** Maps the validation of the model to [MalformedReason.InvalidContent]. */
+        /** Maps the validation of [PaymentRequestService] to [MalformedReason.InvalidContent]. */
         private fun <T> content(build: () -> T): T = try {
             build()
         } catch (e: IllegalArgumentException) {

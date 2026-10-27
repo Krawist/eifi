@@ -2,6 +2,7 @@ package com.eifi.feature.onboarding
 
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
+import com.eifi.core.data.UserProfileService
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldBeNull
@@ -43,7 +44,8 @@ internal class NamesViewModelTest {
             repository.profile.value = UserProfile(personalName = "Paul", businessName = "Kiosque Ndé")
 
             // when
-            val viewModel = NamesViewModel(repository)
+            val viewModel =
+                NamesViewModel(userPreferencesRepository = repository, userProfileService = UserProfileService())
 
             // then
             viewModel.uiState.value shouldBe NamesUiState(personalName = "Paul", businessName = "Kiosque Ndé")
@@ -52,7 +54,8 @@ internal class NamesViewModelTest {
         @Test
         fun `should not allow to finish without any name`() {
             // when
-            val viewModel = NamesViewModel(repository)
+            val viewModel =
+                NamesViewModel(userPreferencesRepository = repository, userProfileService = UserProfileService())
 
             // then
             viewModel.uiState.value.canFinish.shouldBeFalse()
@@ -64,7 +67,8 @@ internal class NamesViewModelTest {
         @Test
         fun `should allow to finish with the business name only`() {
             // given
-            val viewModel = NamesViewModel(repository)
+            val viewModel =
+                NamesViewModel(userPreferencesRepository = repository, userProfileService = UserProfileService())
 
             // when
             viewModel.onBusinessNameChange("Kiosque Ndé")
@@ -76,7 +80,8 @@ internal class NamesViewModelTest {
         @Test
         fun `should cut a name after 30 characters`() {
             // given
-            val viewModel = NamesViewModel(repository)
+            val viewModel =
+                NamesViewModel(userPreferencesRepository = repository, userProfileService = UserProfileService())
 
             // when
             viewModel.onBusinessNameChange("B".repeat(40))
@@ -91,7 +96,8 @@ internal class NamesViewModelTest {
         @Test
         fun `should save the trimmed names, a blank one as missing`() {
             // given
-            val viewModel = NamesViewModel(repository)
+            val viewModel =
+                NamesViewModel(userPreferencesRepository = repository, userProfileService = UserProfileService())
             viewModel.onPersonalNameChange("  Paul ")
             viewModel.onBusinessNameChange("   ")
 
@@ -105,7 +111,8 @@ internal class NamesViewModelTest {
         @Test
         fun `should complete the onboarding once the profile is saved`() {
             // given
-            val viewModel = NamesViewModel(repository)
+            val viewModel =
+                NamesViewModel(userPreferencesRepository = repository, userProfileService = UserProfileService())
             viewModel.onPersonalNameChange("Paul")
 
             // when
@@ -118,7 +125,8 @@ internal class NamesViewModelTest {
         @Test
         fun `should show why it cannot finish without any name`() {
             // given
-            val viewModel = NamesViewModel(repository)
+            val viewModel =
+                NamesViewModel(userPreferencesRepository = repository, userProfileService = UserProfileService())
 
             // when
             viewModel.finish()
@@ -130,7 +138,8 @@ internal class NamesViewModelTest {
         @Test
         fun `should save nothing without any name`() {
             // given
-            val viewModel = NamesViewModel(repository)
+            val viewModel =
+                NamesViewModel(userPreferencesRepository = repository, userProfileService = UserProfileService())
 
             // when
             viewModel.finish()

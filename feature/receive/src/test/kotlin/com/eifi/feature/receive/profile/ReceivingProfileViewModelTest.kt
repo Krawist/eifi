@@ -2,8 +2,10 @@ package com.eifi.feature.receive.profile
 
 import com.eifi.core.data.ReceivingProfile
 import com.eifi.core.data.ReceivingProfileRepository
+import com.eifi.core.data.ReceivingProfileService
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
+import com.eifi.core.data.UserProfileService
 import com.eifi.core.payload.Operator
 import com.eifi.core.payload.ReceivingMethod
 import com.eifi.feature.receive.profile.phone.CameroonPhoneCountry
@@ -38,7 +40,14 @@ internal class ReceivingProfileViewModelTest {
         override suspend fun saveProfile(profile: UserProfile) = Unit
     }
 
-    private val viewModel by lazy { ReceivingProfileViewModel(receivingProfiles, userPreferences) }
+    private val viewModel by lazy {
+        ReceivingProfileViewModel(
+            receivingProfileRepository = receivingProfiles,
+            userPreferencesRepository = userPreferences,
+            receivingProfileService = ReceivingProfileService(),
+            userProfileService = UserProfileService(),
+        )
+    }
 
     @BeforeEach
     fun setUp() {

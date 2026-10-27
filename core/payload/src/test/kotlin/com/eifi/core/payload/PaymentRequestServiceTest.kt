@@ -7,28 +7,28 @@ import java.time.Instant
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-internal class PaymentRequestTest {
+internal class PaymentRequestServiceTest {
     @Nested
-    inner class Init {
+    inner class Validate {
         @Test
         fun `should reject a display name longer than 30 characters`() {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                request(displayName = "B".repeat(31))
+                PaymentRequestService.validate(request(displayName = "B".repeat(31)))
             } shouldHaveMessage "The display name must have 1 to 30 characters"
         }
 
         @Test
         fun `should accept 30 accented characters`() {
             // when & then
-            request(displayName = "é".repeat(30))
+            PaymentRequestService.validate(request(displayName = "é".repeat(30)))
         }
 
         @Test
         fun `should reject an amount that is not positive`() {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                request(amount = 0)
+                PaymentRequestService.validate(request(amount = 0))
             } shouldHaveMessage "The amount must be positive"
         }
 
@@ -36,15 +36,25 @@ internal class PaymentRequestTest {
         fun `should reject a request without receiving method`() {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                request(receivingMethods = emptyMap())
+                PaymentRequestService.validate(request(receivingMethods = emptyMap()))
             } shouldHaveMessage "At least one receiving method is required"
+        }
+
+        @Test
+        fun `should reject an invalid receiving method`() {
+            // when & then
+            shouldThrow<IllegalArgumentException> {
+                PaymentRequestService.validate(
+                    request(receivingMethods = mapOf(Operator.MtnMomo to ReceivingMethod.PhoneNumber("690123456"))),
+                )
+            } shouldHaveMessage "A phone number must be in E.164 format, e.g. +237690123456"
         }
 
         @Test
         fun `should reject an expiry with fractions of a second`() {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                request(expiresAt = Instant.parse("2026-10-27T10:02:00.500Z"))
+                PaymentRequestService.validate(request(expiresAt = Instant.parse("2026-10-27T10:02:00.500Z")))
             } shouldHaveMessage "The expiry must be in whole seconds"
         }
 
@@ -52,7 +62,7 @@ internal class PaymentRequestTest {
         fun `should reject an id that is not 12 lowercase hexadecimal characters`() {
             // when & then
             shouldThrow<IllegalArgumentException> {
-                request(id = "0A1B2C3D4E5F")
+                PaymentRequestService.validate(request(id = "0A1B2C3D4E5F"))
             } shouldHaveMessage "The id must be 12 lowercase hexadecimal characters"
         }
     }
@@ -62,7 +72,7 @@ internal class PaymentRequestTest {
         @Test
         fun `should generate 12 lowercase hexadecimal characters`() {
             // when
-            val id = PaymentRequest.newId()
+            val id = PaymentRequestService.newId()
 
             // then
             id shouldMatch "[0-9a-f]{12}"

@@ -3,8 +3,14 @@ package com.eifi.feature.receive.amount
 import com.eifi.core.payload.Operator
 
 /**
- * [labelShown] once the user asked to add a label, which is optional and stays on the phone.
- * [maximumReached] when the last key was ignored because the amount would go past [AmountInput.MAX].
+ * State of the "Saisie du montant" screen.
+ *
+ * @property displayName name of the receiving profile, shown above the amount.
+ * @property acceptedOperators operators of the receiving profile, shown as pills.
+ * @property amount amount typed on the keypad, in FCFA; 0 while nothing is typed.
+ * @property label optional note of the payment, which stays on the phone.
+ * @property labelShown whether the user asked to add a label, which shows its field.
+ * @property maximumReached whether the last key was ignored because the amount would go past [AmountInput.MAX].
  */
 internal data class AmountEntryUiState(
     val displayName: String = "",

@@ -24,7 +24,11 @@ internal data object WelcomeRoute
 @Serializable
 internal data object ModeChoiceRoute
 
-/** [mode] is the mode chosen on the previous screen, opened once the names are saved. */
+/**
+ * Names step, the last of the onboarding.
+ *
+ * @property mode the mode chosen on the previous screen, opened once the names are saved.
+ */
 @Serializable
 internal data class NamesRoute(val mode: AppMode)
 

@@ -80,6 +80,9 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
       (pure Kotlin).
 - Kotlin sources in `src/main/kotlin` and `src/test/kotlin`.
 - Type-safe module accessors: `implementation(projects.core.design)`.
+- Models hold data only: their validations and rules are in a `XxxService` (`PaymentRequestService`,
+  `ReceivingMethodService`, `UserProfileService`, `ReceivingProfileService`), used before saving or encoding, and
+  when reading a JSON store.
 - Pure business logic (payload, parsers, matching, templates) in Kotlin without Android
   dependencies whenever possible, covered by JVM tests.
 - User-facing texts: `strings.xml` resources in French (default) **and** English (`values-en`).
