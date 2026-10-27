@@ -78,7 +78,7 @@ internal class RoomPaymentRepositoryTest {
         }
 
         @Test
-        fun `should reopen the payment already pending for the same amount`() = runTest {
+        fun `should open a new payment rather than reopen the one pending for the same amount`() = runTest {
             // given
             val first = repository.openReceived(amount = 2_500, label = "Pain")
             now = now.plusSeconds(30)
@@ -87,7 +87,20 @@ internal class RoomPaymentRepositoryTest {
             val second = repository.openReceived(amount = 2_500, label = "Lait")
 
             // then
-            second shouldBe first
+            (second.id == first.id) shouldBe false
+        }
+
+        @Test
+        fun `should cancel the payment still pending for the same amount`() = runTest {
+            // given
+            val first = repository.openReceived(amount = 2_500, label = "Pain")
+            now = now.plusSeconds(30)
+
+            // when
+            repository.openReceived(amount = 2_500, label = "Lait")
+
+            // then
+            stored(first.id).status shouldBe PaymentStatus.Cancelled
         }
 
         @Test

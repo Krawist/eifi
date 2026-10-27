@@ -4,7 +4,10 @@ import kotlinx.coroutines.flow.Flow
 
 /** Payments received and sent, stored on the phone (EIFI-102). */
 interface PaymentRepository {
-    /** A new PENDING received payment of [amount], or the one already pending for this amount, whatever its label. */
+    /**
+     * A new PENDING received payment of [amount] (see [PaymentService.newReceived]); the one still pending for this
+     * amount is cancelled, so that only one payment per amount is PENDING (EIFI-112).
+     */
     suspend fun openReceived(amount: Long, label: String?): Payment
 
     /**

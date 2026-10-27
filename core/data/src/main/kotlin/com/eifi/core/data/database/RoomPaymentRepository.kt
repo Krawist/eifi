@@ -26,10 +26,10 @@ internal class RoomPaymentRepository @Inject constructor(
     override suspend fun openReceived(amount: Long, label: String?): Payment = inTransaction {
         val now = clock.instant()
         dao.expireOverdue(now.toEpochMilli())
-        dao.getPendingReceivedByAmount(amount)?.toPayment()
-            ?: paymentService.newReceived(amount = amount, label = label, at = now).also {
-                dao.insert(PaymentEntity.of(it))
-            }
+        dao.getPendingReceivedByAmount(amount)?.let {
+            dao.update(PaymentEntity.of(paymentService.cancel(payment = it.toPayment(), at = now)))
+        }
+        paymentService.newReceived(amount = amount, label = label, at = now).also { dao.insert(PaymentEntity.of(it)) }
     }
 
     override suspend fun openSent(payment: Payment): Boolean = inTransaction {

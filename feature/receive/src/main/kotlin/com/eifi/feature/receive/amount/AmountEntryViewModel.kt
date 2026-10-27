@@ -67,7 +67,7 @@ internal class AmountEntryViewModel @Inject constructor(
         _uiState.update { it.copy(label = label.take(MAX_LABEL_LENGTH)) }
     }
 
-    /** Opens the payment of the amount, or reopens the one already pending for it. */
+    /** Opens a new payment of the amount; the one still pending for it is cancelled (EIFI-112). */
     fun collect() {
         val state = _uiState.value
         if (!state.canCollect) return
