@@ -103,8 +103,11 @@ manufacturers.
 ## QR code and payment URL
 
 The QR code and the NFC tag carry exactly the same URL. The URL of a typical case must fit in a QR
-code of version 6 at most, so it stays easy to scan on a mid-range screen in full sunlight; this is
-why the display name is limited to 30 characters.
+code of version 8 at most, with error correction Q so that the Eifi icon can sit in the centre, so
+it stays easy to scan on a mid-range screen in full sunlight; this is why the display name is
+limited to 30 characters. The data is a compact binary layout (see `PayloadV1` in `:core:payload`)
+ending with a CRC-32, which detects altered data but is not a signature. A typical URL takes about
+90 bytes.
 
 The QR code is always shown on the payee's screen and changes with each session, which makes it hard
 to replace with a fake. The payer sees the name and the receiving method before confirming. Signing

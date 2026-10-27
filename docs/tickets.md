@@ -83,7 +83,7 @@ The URL carries the whole session in its fragment, never sent to a server: `http
 
 - The encode-then-decode round trip is covered by tests, including edge cases (accented name, a single operator, a number instead of a merchant code).
 - An expired, malformed or unknown-version URL is rejected with an explicit error.
-- The URL of a typical case fits in a QR code of version 6 at most.
+- The URL of a typical case fits in a QR code of version 8 at most with error correction Q, which the centred icon of EIFI-103 needs (decided on October 27, 2026; the reference document still says version 6).
 
 Size: M. Dependencies: EIFI-010.
 
@@ -159,7 +159,7 @@ Size: M. Dependencies: EIFI-020, EIFI-012.
 
 ### EIFI-103 · Show the payment QR code
 
-"QR et NFC actifs" screen: QR code of the payment URL with the Eifi icon in the centre, amount, countdown and cancel button.
+"QR et NFC actifs" screen: QR code of the payment URL with the Eifi icon in the centre (error correction Q, see EIFI-020), amount, countdown and cancel button.
 
 - The QR code can be read by the camera of an Android phone and an iPhone at 30 cm.
 - Brightness goes to maximum while it is shown, then returns to its initial value.

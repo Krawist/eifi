@@ -144,7 +144,11 @@ been chosen yet.
   (`UserPreferencesRepository`: the app reopens on the last chosen mode), Room plugin wired in
   `:core:data` (the `EifiDatabase` class comes with its first entity in EIFI-102), French default
   and English locales. Leaving a mode returns to the mode choice until the home screen (EIFI-031).
-- [ ] **Next ticket: EIFI-020**, then EIFI-030… (order in `docs/tickets.md`).
+- [x] **EIFI-020** — payment URL in `:core:payload`: `PaymentRequest`, `PaymentUrlCodec` (base URL
+  injected until the domain is chosen in EIFI-021, `Clock` injected), compact binary `PayloadV1`
+  with CRC-32, typed `PaymentUrlDecodingResult` (`Valid`, `Expired`, `UnknownVersion`, `Malformed`). QR:
+  version 8 at most with error correction Q, for the centred icon (about 90 bytes for a typical URL).
+- [ ] **Next ticket: EIFI-030**, then EIFI-031… (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
   invented.
