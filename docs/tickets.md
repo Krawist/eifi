@@ -307,6 +307,12 @@ When the recipient receives on a phone number, the payment is a person-to-person
 - A transfer shows "Frais de transfert à votre charge" (Transfer fees paid by you) before confirmation, with the embedded fee schedule from EIFI-001.
 - If none of the payer's accounts is compatible with the recipient's, the payment is blocked with an explanation.
 
+Design note (October 27, 2026): the screens must not know each receiving method. Three levels:
+
+- `ReceivingMethod` (`:core:payload`) only carries what travels in the URL: the method and its value. Fees and rules never come from the URL, so a payee cannot forge a URL announcing "no fees" for a paid transfer.
+- A specification per operator and method, embedded in the payer's app (pure Kotlin module, for example `:core:operator`): fees (none, or schedule + 0.2% tax), same-operator constraint, USSD operation, SMS parsers.
+- A `ReceivingMethodUi` built from the specification (Android module, string resources): button label ("Payer" or "Envoyer"), fee notice, icon. Screens only display it, so a new method needs a specification, its strings and a URL wire code (free codes: 0 and 3 to 7), but no screen change.
+
 Size: M. Dependencies: EIFI-001, EIFI-201, EIFI-202.
 
 ## Quality and pilot launch
