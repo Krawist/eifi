@@ -29,10 +29,14 @@ internal data object ActivityHistoryRoute
 @Serializable
 internal data object SettingsRoute
 
-/** Adds the home graph; [onPay] and [onReceive] open the modes, [onEditReceivingProfile] the receiving profile. */
+/**
+ * Adds the home graph; [onPay] and [onReceive] open the modes, [onPaymentUrl] the summary of a payment read by NFC,
+ * [onEditReceivingProfile] the receiving profile.
+ */
 fun NavGraphBuilder.homeGraph(
     navController: NavController,
     onPay: () -> Unit,
+    onPaymentUrl: (String) -> Unit,
     onReceive: () -> Unit,
     onEditReceivingProfile: () -> Unit,
 ) {
@@ -46,8 +50,7 @@ fun NavGraphBuilder.homeGraph(
             )
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             LaunchedEffect(viewModel) {
-                // TODO(EIFI-200): pass the URL to the Pay flow.
-                viewModel.paymentUrls.collect { onPay() }
+                viewModel.paymentUrls.collect(onPaymentUrl)
             }
             HomeScreen(
                 uiState = uiState,

@@ -2,9 +2,11 @@ package com.eifi.feature.pay
 
 import com.eifi.core.data.AppPermission
 import com.eifi.core.data.PermissionRequestHistory
+import com.eifi.core.nfc.NfcPaymentReader
 import com.eifi.core.permission.PermissionChecker
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -29,6 +31,9 @@ internal class PayViewModelTest {
                 override suspend fun markRequested(permission: AppPermission) {
                     requested += permission
                 }
+            },
+            nfcPaymentReader = object : NfcPaymentReader {
+                override val paymentUrls = emptyFlow<String>()
             },
         )
     }
@@ -89,6 +94,18 @@ internal class PayViewModelTest {
             // then
             viewModel.uiState.value shouldBe PayUiState(activePermission = AppPermission.Camera)
         }
+
+        @Test
+        fun `should open the scanner when the camera is allowed`() {
+            // given
+            granted += AppPermission.Camera
+
+            // when
+            viewModel.onScan()
+
+            // then
+            viewModel.uiState.value shouldBe PayUiState(openScanner = true)
+        }
     }
 
     @Nested
@@ -106,6 +123,18 @@ internal class PayViewModelTest {
         }
 
         @Test
+        fun `should open the scanner once the camera is allowed`() {
+            // given
+            viewModel.onScan()
+
+            // when
+            viewModel.onStepDone(AppPermission.Camera, granted = true)
+
+            // then
+            viewModel.uiState.value shouldBe PayUiState(openScanner = true)
+        }
+
+        @Test
         fun `should launch the USSD code once the phone calls permission is granted`() {
             // given
             viewModel.onPay()
@@ -115,6 +144,22 @@ internal class PayViewModelTest {
 
             // then
             viewModel.uiState.value shouldBe PayUiState(outcome = PayOutcome.UssdReady)
+        }
+    }
+
+    @Nested
+    inner class OnScannerOpened {
+        @Test
+        fun `should not open the scanner again`() {
+            // given
+            granted += AppPermission.Camera
+            viewModel.onScan()
+
+            // when
+            viewModel.onScannerOpened()
+
+            // then
+            viewModel.uiState.value shouldBe PayUiState()
         }
     }
 }

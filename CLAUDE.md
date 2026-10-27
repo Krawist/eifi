@@ -197,7 +197,12 @@ been chosen yet.
   enabled only while `NfcPaymentEmitter` emits a pending payment, preferred over Samsung's built-in tag while the
   QR screen is resumed (`NfcPaymentPriority`). `PaymentChannelService` gives the QR screen its
   URL and NFC status; banner "NFC actif" / "NFC désactivé" / "Pas de NFC". Tap to test on real phones (EIFI-003).
-- [ ] **Next ticket: EIFI-105**, then EIFI-106… (order in `docs/tickets.md`).
+- [x] **EIFI-200** — reading the payment URL: `AndroidNfcPaymentReader` (reader mode on the resumed activity, while
+  collected, on the home screen and the Pay entry), built-in scanner `ScanRoute` (CameraX + ML Kit bundled), App Link
+  and NDEF intent filters on the placeholder host (`paymentHost` manifest placeholder, no autoVerify until EIFI-021,
+  `MainViewModel.paymentLink`). All lead to `PaymentSummaryRoute(url)`, which decodes it: payee and amount, or
+  expired / update needed / not recognised. The full summary comes with EIFI-201.
+- [ ] **Next ticket: EIFI-201**, then EIFI-202… EIFI-105 and EIFI-106 wait for the SMS of EIFI-002. (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
   invented.

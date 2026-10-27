@@ -4,9 +4,17 @@
     <string name="pay_action_scan">Scan a QR code</string>
     <string name="pay_back">Back</string>
     <string name="pay_outcome_dial_yourself">Without the call permission, you will dial the USSD code shown yourself.</string>
-    <string name="pay_outcome_scanner_ready">The scanner will open here.</string>
     <string name="pay_outcome_use_nfc">Without the camera, bring your phone close to the payee\'s.</string>
     <string name="pay_outcome_ussd_ready">The USSD code will be launched here.</string>
     <string name="pay_subtitle">Tap or scan to pay.</string>
     <string name="pay_title">Pay</string>
+    <string name="scan_hint">Aim at the QR code of the person collecting.</string>
+    <string name="summary_back">Back</string>
+    <string name="summary_expired_body">Ask the person collecting to show a new code.</string>
+    <string name="summary_expired_title">This code has expired</string>
+    <string name="summary_invalid_body">This code does not come from Eifi or is damaged. Scan again or bring the phones together.</string>
+    <string name="summary_invalid_title">Code not recognised</string>
+    <string name="summary_pay_to">Pay to</string>
+    <string name="summary_update_body">This payment comes from a newer version of Eifi. Update the app to pay.</string>
+    <string name="summary_update_title">Update needed</string>
 </resources>

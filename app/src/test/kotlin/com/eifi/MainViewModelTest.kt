@@ -2,6 +2,7 @@ package com.eifi
 
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,6 +66,34 @@ internal class MainViewModelTest {
 
             // then
             viewModel.uiState.value shouldBe MainUiState.Ready(onboardingCompleted = false)
+        }
+    }
+
+    @Nested
+    inner class PaymentLink {
+        @Test
+        fun `should keep the payment URL of a link until it is opened`() {
+            // given
+            val viewModel = MainViewModel(repository)
+
+            // when
+            viewModel.onPaymentLink("https://pay.eifi.app/p#v1.AAAA")
+
+            // then
+            viewModel.paymentLink.value shouldBe "https://pay.eifi.app/p#v1.AAAA"
+        }
+
+        @Test
+        fun `should forget the payment URL once opened`() {
+            // given
+            val viewModel = MainViewModel(repository)
+            viewModel.onPaymentLink("https://pay.eifi.app/p#v1.AAAA")
+
+            // when
+            viewModel.onPaymentLinkOpened()
+
+            // then
+            viewModel.paymentLink.value.shouldBeNull()
         }
     }
 }

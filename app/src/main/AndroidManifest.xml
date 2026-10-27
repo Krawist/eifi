@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Requested just before the first action that needs them (EIFI-032). The notification listener and its
-         permission are declared by :core:sms; NFC comes with EIFI-104 and EIFI-200. -->
+         permission are declared by :core:sms, NFC by :core:nfc. -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -22,10 +22,31 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Payment URL opened from a browser, a QR code read by the camera app, or a link (EIFI-200).
+                 TODO(EIFI-021): autoVerify once the domain serves assetlinks.json. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="${paymentHost}"
+                    android:pathPrefix="/p"
+                    android:scheme="https" />
+            </intent-filter>
+            <!-- Payment tag read while Eifi is not in the foreground: opens Eifi before the browser. -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:host="${paymentHost}"
+                    android:pathPrefix="/p"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
     </application>

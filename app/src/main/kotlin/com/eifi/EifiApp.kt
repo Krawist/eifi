@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -17,27 +18,45 @@ import com.eifi.feature.onboarding.home.HomeGraph
 import com.eifi.feature.onboarding.home.homeGraph
 import com.eifi.feature.onboarding.onboardingGraph
 import com.eifi.feature.pay.PayGraph
+import com.eifi.feature.pay.navigateToPaymentSummary
 import com.eifi.feature.pay.payGraph
 import com.eifi.feature.receive.ReceiveGraph
 import com.eifi.feature.receive.navigateToReceivingProfile
 import com.eifi.feature.receive.receiveGraph
 
-/** Root of the app: the onboarding on first launch, then the home screen, which opens the two modes. */
+/**
+ * Root of the app: the onboarding on first launch, then the home screen, which opens the two modes. [paymentLink]
+ * opens its summary once the onboarding is done.
+ */
 @Composable
-internal fun EifiApp(uiState: MainUiState) {
+internal fun EifiApp(uiState: MainUiState, paymentLink: String?, onPaymentLinkOpened: () -> Unit) {
     AnimatedContent(targetState = uiState, transitionSpec = { EifiTransitions.Fade }, label = "app") { state ->
         when (state) {
             // Blank background while the preferences load (a few milliseconds).
             MainUiState.Loading -> Box(
                 modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
             )
-            is MainUiState.Ready -> EifiNavHost(onboardingCompleted = state.onboardingCompleted)
+            is MainUiState.Ready -> EifiNavHost(
+                onboardingCompleted = state.onboardingCompleted,
+                paymentLink = paymentLink,
+                onPaymentLinkOpened = onPaymentLinkOpened,
+            )
         }
     }
 }
 
 @Composable
-private fun EifiNavHost(onboardingCompleted: Boolean, navController: NavHostController = rememberNavController()) {
+private fun EifiNavHost(
+    onboardingCompleted: Boolean,
+    paymentLink: String?,
+    onPaymentLinkOpened: () -> Unit,
+    navController: NavHostController = rememberNavController(),
+) {
+    LaunchedEffect(paymentLink) {
+        if (paymentLink == null || !onboardingCompleted) return@LaunchedEffect
+        onPaymentLinkOpened()
+        navController.navigateToPaymentSummary(paymentLink)
+    }
     NavHost(
         navController = navController,
         startDestination = if (onboardingCompleted) HomeGraph else OnboardingGraph,
@@ -59,10 +78,11 @@ private fun EifiNavHost(onboardingCompleted: Boolean, navController: NavHostCont
         homeGraph(
             navController = navController,
             onPay = { navController.navigate(PayGraph) },
+            onPaymentUrl = { navController.navigateToPaymentSummary(it) },
             onReceive = { navController.navigate(ReceiveGraph) },
             onEditReceivingProfile = { navController.navigateToReceivingProfile() },
         )
-        payGraph(onBack = { navController.popBackStack() })
+        payGraph(navController = navController, onBack = { navController.popBackStack() })
         receiveGraph(navController = navController, onBack = { navController.popBackStack() })
     }
 }

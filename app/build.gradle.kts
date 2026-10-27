@@ -20,8 +20,10 @@ android {
         applicationId = "com.eifi"
         versionCode = 1
         versionName = "0.1.0"
-        // TODO(EIFI-021): the domain of the payment page, not chosen yet.
-        buildConfigField("String", "PAYMENT_BASE_URL", "\"https://pay.eifi.app\"")
+        // TODO(EIFI-021): the domain of the payment page, not chosen yet; the App Link is verified with it.
+        val paymentBaseUrl = "https://pay.eifi.app"
+        buildConfigField("String", "PAYMENT_BASE_URL", "\"$paymentBaseUrl\"")
+        manifestPlaceholders["paymentHost"] = paymentBaseUrl.removePrefix("https://")
     }
 
     buildFeatures {

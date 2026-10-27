@@ -1,5 +1,7 @@
 package com.eifi
 
+import android.content.Intent
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,11 +19,30 @@ internal class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // On a recreation (rotation…), the link was already handled.
+        if (savedInstanceState == null) handlePaymentLink(intent)
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val paymentLink by viewModel.paymentLink.collectAsStateWithLifecycle()
             EifiTheme {
-                EifiApp(uiState = uiState)
+                EifiApp(
+                    uiState = uiState,
+                    paymentLink = paymentLink,
+                    onPaymentLinkOpened = viewModel::onPaymentLinkOpened,
+                )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handlePaymentLink(intent)
+    }
+
+    /** A payment URL from a link or from a tag read outside the app; see the intent filters of the manifest. */
+    private fun handlePaymentLink(intent: Intent) {
+        if (intent.action == Intent.ACTION_VIEW || intent.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
+            intent.dataString?.let(viewModel::onPaymentLink)
         }
     }
 }

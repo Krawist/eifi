@@ -24,7 +24,7 @@ import com.eifi.core.design.theme.EifiTheme
 import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.core.permission.PermissionStep
 
-/** Placeholder of the Pay mode (EIFI-010), with the permission steps of the payment and the scan (EIFI-032). */
+/** Entry of the Pay mode: tap a receiving phone or scan its code, with the permission steps (EIFI-032). */
 @Composable
 internal fun PayScreen(
     uiState: PayUiState,
@@ -85,7 +85,6 @@ private val PayOutcome.message: Int
     get() = when (this) {
         PayOutcome.UssdReady -> R.string.pay_outcome_ussd_ready
         PayOutcome.DialYourself -> R.string.pay_outcome_dial_yourself
-        PayOutcome.ScannerReady -> R.string.pay_outcome_scanner_ready
         PayOutcome.UseNfc -> R.string.pay_outcome_use_nfc
     }
 

@@ -258,6 +258,8 @@ Receive the URL in three ways: through the NFC reader (`enableReaderMode`) when 
 - All three entry points lead to the same summary screen.
 - An invalid or expired URL shows a clear message, without launching a payment.
 
+Decided on October 27, 2026: the scanner uses CameraX with ML Kit barcode scanning, model bundled in the app (works without Play services). The App Link is registered on the placeholder host of `PAYMENT_BASE_URL` without `autoVerify`; EIFI-021 switches to the real domain and adds the verification. A tag read while Eifi is not in the foreground opens Eifi through an `NDEF_DISCOVERED` filter. A link opened before the onboarding is done is not kept.
+
 Size: M. Dependencies: EIFI-020, EIFI-021.
 
 ### EIFI-201 · Summary screen

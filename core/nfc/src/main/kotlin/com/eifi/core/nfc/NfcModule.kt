@@ -5,7 +5,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
-/** NFC bindings. Still to come: the real reader on the Pay side (EIFI-200). */
+/** NFC bindings. */
 @Module
 @InstallIn(SingletonComponent::class)
 internal abstract class NfcModule {
@@ -16,5 +16,5 @@ internal abstract class NfcModule {
     abstract fun bindNfcPaymentEmitter(impl: HceNfcPaymentEmitter): NfcPaymentEmitter
 
     @Binds
-    abstract fun bindNfcPaymentReader(impl: FakeNfcPaymentReader): NfcPaymentReader
+    abstract fun bindNfcPaymentReader(impl: AndroidNfcPaymentReader): NfcPaymentReader
 }
