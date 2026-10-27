@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="receive_title">Encaisser</string>
-    <string name="receive_subtitle">Saisissez un montant pour encaisser.</string>
     <string name="receive_back">Retour</string>
-    <string name="receiving_profile_title">Où recevoir l\'argent</string>
-    <string name="receiving_profile_subtitle">Le profil d\'encaissement arrive bientôt.</string>
+    <string name="receive_subtitle">Saisissez un montant pour encaisser.</string>
+    <string name="receive_title">Encaisser</string>
     <string name="receiving_profile_continue">Continuer</string>
+    <string name="receiving_profile_subtitle">Le profil d\'encaissement arrive bientôt.</string>
+    <string name="receiving_profile_title">Où recevoir l\'argent</string>
 </resources>

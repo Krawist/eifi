@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pay_title">Payer</string>
-    <string name="pay_subtitle">Approchez ou scannez pour payer.</string>
     <string name="pay_back">Retour</string>
+    <string name="pay_subtitle">Approchez ou scannez pour payer.</string>
+    <string name="pay_title">Payer</string>
 </resources>
