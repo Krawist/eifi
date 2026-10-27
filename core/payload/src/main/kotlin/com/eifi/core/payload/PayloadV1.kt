@@ -190,7 +190,3 @@ internal object PayloadV1 {
     private const val DIGIT_FILLER = 0x0F
     private const val MAX_DIGIT = 9
 }
-
-/** Internal signal of [PayloadV1.read], turned into [PaymentUrlDecodingResult.Malformed] by [PaymentUrlCodec]. */
-internal class MalformedPayloadException(val reason: MalformedReason, cause: Throwable? = null) :
-    Exception(reason.name, cause)
