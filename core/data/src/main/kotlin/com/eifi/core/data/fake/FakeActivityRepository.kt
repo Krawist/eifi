@@ -2,7 +2,7 @@ package com.eifi.core.data.fake
 
 import com.eifi.core.data.ActivityItem
 import com.eifi.core.data.ActivityRepository
-import com.eifi.core.data.PaymentDirection
+import com.eifi.core.data.payment.TransactionType
 import com.eifi.core.payload.Operator
 import java.time.Clock
 import java.time.Duration
@@ -16,7 +16,7 @@ internal class FakeActivityRepository @Inject constructor(clock: Clock) : Activi
         listOf(
             ActivityItem(
                 id = "fake-received",
-                direction = PaymentDirection.Received,
+                type = TransactionType.Received,
                 counterpart = "+237 6XX XX XX 41",
                 operator = Operator.OrangeMoney,
                 amount = 2_500,
@@ -24,7 +24,7 @@ internal class FakeActivityRepository @Inject constructor(clock: Clock) : Activi
             ),
             ActivityItem(
                 id = "fake-sent",
-                direction = PaymentDirection.Sent,
+                type = TransactionType.Sent,
                 counterpart = "Boutique Mama Ngono",
                 operator = Operator.MtnMomo,
                 amount = 1_000,

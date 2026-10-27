@@ -16,7 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.eifi.core.data.ActivityItem
-import com.eifi.core.data.PaymentDirection
+import com.eifi.core.data.payment.TransactionType
 import com.eifi.core.design.R as DesignR
 import com.eifi.core.design.component.EifiCard
 import com.eifi.core.design.component.EifiIconTile
@@ -68,7 +68,7 @@ internal fun ActivityList(items: List<ActivityItem>) {
 
 @Composable
 private fun ActivityRow(item: ActivityItem, now: ZonedDateTime) {
-    val received = item.direction == PaymentDirection.Received
+    val received = item.type == TransactionType.Received
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(EifiSpacing.Large),

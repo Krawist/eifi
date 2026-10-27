@@ -15,4 +15,5 @@ dependencies {
     api(projects.core.payload)
 
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.sqlite.bundled.jvm)
 }

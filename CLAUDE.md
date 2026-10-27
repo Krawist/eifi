@@ -80,9 +80,9 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
       (pure Kotlin).
 - Kotlin sources in `src/main/kotlin` and `src/test/kotlin`.
 - Type-safe module accessors: `implementation(projects.core.design)`.
-- Models hold data only: their validations and rules are in a `XxxService` (`PaymentRequestService`,
-  `ReceivingMethodService`, `UserProfileService`, `ReceivingProfileService`), used before saving or encoding, and
-  when reading a JSON store.
+- Models hold data only: their validations and rules are in a `XxxService` (`PaymentService`,
+  `PaymentRequestService`, `ReceivingMethodService`, `UserProfileService`, `ReceivingProfileService`), used
+  before saving or encoding, and when reading a JSON store.
 - Pure business logic (payload, parsers, matching, templates) in Kotlin without Android
   dependencies whenever possible, covered by JVM tests.
 - User-facing texts: `strings.xml` resources in French (default) **and** English (`values-en`).
@@ -181,8 +181,13 @@ been chosen yet.
 - [x] **EIFI-101** — amount entry (`feature/receive/.../amount`): `AmountInput` (100 to 2,000,000 FCFA),
   `AmountEntryViewModel`, screen with back button, keypad, optional label, operator pills, manual
   confirmation pill and a line explaining the minimum or maximum.
-  "Encaisser" opens `SessionPlaceholderRoute` (amount, label) until EIFI-102/103. New `EifiLogo`.
-- [ ] **Next ticket: EIFI-102**, then EIFI-103… (order in `docs/tickets.md`).
+  "Encaisser" opens the session (EIFI-102). New `EifiLogo`.
+- [x] **EIFI-102** — payments (`core/data/.../payment`): `Payment`, received or sent (`TransactionType`,
+  also used by the recent activity), its transitions in `PaymentService`; `PaymentRepository` (`RoomPaymentRepository`,
+  opens or reopens the pending received payment of an amount); Room `EifiDatabase` (`payment` table,
+  schemas in `core/data/schemas`), tested on a real in-memory database with the bundled SQLite driver.
+  Waiting screen with countdown and cancel, still without QR code (`PaymentRoute(paymentId)`, EIFI-103).
+- [ ] **Next ticket: EIFI-103**, then EIFI-104… (order in `docs/tickets.md`).
 - Explorations EIFI-001 to 003: done by Krawist on real phones and accounts. Until they are done,
   USSD templates, SMS senders, MNC codes and the fee schedule remain values to be provided, never
   invented.

@@ -2,10 +2,10 @@ package com.eifi.feature.onboarding.home
 
 import com.eifi.core.data.ActivityItem
 import com.eifi.core.data.ActivityRepository
-import com.eifi.core.data.PaymentDirection
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
 import com.eifi.core.data.UserProfileService
+import com.eifi.core.data.payment.TransactionType
 import com.eifi.core.nfc.NfcPaymentReader
 import com.eifi.core.nfc.NfcStatus
 import com.eifi.core.nfc.NfcStatusProvider
@@ -58,7 +58,7 @@ internal class HomeViewModelTest {
             nfcStatus.value = NfcStatus.Disabled
             val item = ActivityItem(
                 id = "1",
-                direction = PaymentDirection.Received,
+                type = TransactionType.Received,
                 counterpart = "+237 6XX XX XX 41",
                 operator = Operator.OrangeMoney,
                 amount = 2_500,

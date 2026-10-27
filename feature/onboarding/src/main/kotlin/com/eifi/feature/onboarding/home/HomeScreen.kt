@@ -26,7 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.eifi.core.data.ActivityItem
-import com.eifi.core.data.PaymentDirection
+import com.eifi.core.data.payment.TransactionType
 import com.eifi.core.design.R as DesignR
 import com.eifi.core.design.component.EifiCard
 import com.eifi.core.design.component.EifiIconTile
@@ -189,7 +189,7 @@ private fun HomeScreenPreview() {
                 recentActivity = listOf(
                     ActivityItem(
                         id = "1",
-                        direction = PaymentDirection.Received,
+                        type = TransactionType.Received,
                         counterpart = "+237 6XX XX XX 41",
                         operator = Operator.OrangeMoney,
                         amount = 2_500,
@@ -197,7 +197,7 @@ private fun HomeScreenPreview() {
                     ),
                     ActivityItem(
                         id = "2",
-                        direction = PaymentDirection.Sent,
+                        type = TransactionType.Sent,
                         counterpart = "Kiosque Ndé",
                         operator = Operator.MtnMomo,
                         amount = 1_000,

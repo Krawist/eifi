@@ -3,6 +3,7 @@ package com.eifi.feature.receive.amount
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eifi.core.data.ReceivingProfileRepository
+import com.eifi.core.data.payment.PaymentRepository
 import com.eifi.core.payload.Operator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -15,8 +16,10 @@ import kotlinx.coroutines.launch
 
 /** "Saisie du montant": the amount typed on the keypad, with the name and operators of the receiving profile. */
 @HiltViewModel
-internal class AmountEntryViewModel @Inject constructor(receivingProfileRepository: ReceivingProfileRepository) :
-    ViewModel() {
+internal class AmountEntryViewModel @Inject constructor(
+    receivingProfileRepository: ReceivingProfileRepository,
+    private val paymentRepository: PaymentRepository,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AmountEntryUiState())
     val uiState: StateFlow<AmountEntryUiState> = _uiState.asStateFlow()
@@ -57,6 +60,24 @@ internal class AmountEntryViewModel @Inject constructor(receivingProfileReposito
 
     fun onLabelChange(label: String) {
         _uiState.update { it.copy(label = label.take(MAX_LABEL_LENGTH)) }
+    }
+
+    /** Opens the payment of the amount, or reopens the one already pending for it. */
+    fun collect() {
+        val state = _uiState.value
+        if (!state.canCollect) return
+        viewModelScope.launch {
+            val payment = paymentRepository.openReceived(
+                amount = state.amount,
+                label = state.label.trim().ifEmpty { null },
+            )
+            _uiState.update { it.copy(openedPaymentId = payment.id) }
+        }
+    }
+
+    /** The payment screen is shown: coming back to this screen must not open it again. */
+    fun onPaymentShown() {
+        _uiState.update { it.copy(openedPaymentId = null) }
     }
 
     private companion object {

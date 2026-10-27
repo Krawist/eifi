@@ -11,6 +11,7 @@ import com.eifi.core.payload.Operator
  * @property label optional note of the payment, which stays on the phone.
  * @property labelShown whether the user asked to add a label, which shows its field.
  * @property maximumReached whether the last key was ignored because the amount would go past [AmountInput.MAX].
+ * @property openedPaymentId set once "Encaisser" has opened the payment, so that the screen shows it.
  */
 internal data class AmountEntryUiState(
     val displayName: String = "",
@@ -19,6 +20,7 @@ internal data class AmountEntryUiState(
     val label: String = "",
     val labelShown: Boolean = false,
     val maximumReached: Boolean = false,
+    val openedPaymentId: String? = null,
 ) {
     /** Below [AmountInput.MIN], which explains why the amount cannot be collected yet. */
     val belowMinimum: Boolean

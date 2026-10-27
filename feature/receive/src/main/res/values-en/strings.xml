@@ -7,6 +7,13 @@
     <string name="amount_entry_manual_confirmation">Manual confirmation</string>
     <string name="amount_entry_maximum">Maximum amount: %1$s FCFA</string>
     <string name="amount_entry_minimum">Minimum amount: %1$s FCFA</string>
+    <string name="payment_back">Back</string>
+    <string name="payment_cancel">Cancel</string>
+    <string name="payment_confirmed">Payment received</string>
+    <string name="payment_expired">Session expired</string>
+    <string name="payment_qr_coming">The QR code and NFC are coming soon.</string>
+    <string name="payment_title">QR and NFC active</string>
+    <string name="payment_waiting">Waiting for the payment · %1$s</string>
     <string name="receiving_profile_add">Add %1$s</string>
     <string name="receiving_profile_code_label">%1$s merchant code</string>
     <string name="receiving_profile_code_required">Enter your merchant code</string>
@@ -24,7 +31,4 @@
     <string name="receiving_profile_save">Save</string>
     <string name="receiving_profile_subtitle">This information stays on your phone.</string>
     <string name="receiving_profile_title">Where to receive the money?</string>
-    <string name="session_placeholder_back">Back</string>
-    <string name="session_placeholder_subtitle">%1$s FCFA · the QR code screen is coming soon.</string>
-    <string name="session_placeholder_title">QR and NFC active</string>
 </resources>

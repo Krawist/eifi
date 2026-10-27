@@ -3,6 +3,7 @@ package com.eifi.core.data.di
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.dataStoreFile
+import androidx.room.Room
 import com.eifi.core.data.ActivityRepository
 import com.eifi.core.data.AppPermission
 import com.eifi.core.data.DataStorePermissionRequestHistory
@@ -15,8 +16,11 @@ import com.eifi.core.data.ReceivingProfileService
 import com.eifi.core.data.UserPreferencesRepository
 import com.eifi.core.data.UserProfile
 import com.eifi.core.data.UserProfileService
+import com.eifi.core.data.database.EifiDatabase
+import com.eifi.core.data.database.RoomPaymentRepository
 import com.eifi.core.data.fake.FakeActivityRepository
 import com.eifi.core.data.jsonDataStore
+import com.eifi.core.data.payment.PaymentRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -36,6 +40,9 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun bindPermissionRequestHistory(impl: DataStorePermissionRequestHistory): PermissionRequestHistory
+
+    @Binds
+    abstract fun bindPaymentRepository(impl: RoomPaymentRepository): PaymentRepository
 
     @Binds
     abstract fun bindActivityRepository(impl: FakeActivityRepository): ActivityRepository
@@ -76,6 +83,11 @@ internal abstract class DataModule {
             jsonDataStore(serializer = SetSerializer(AppPermission.serializer()), defaultValue = emptySet()) {
                 context.dataStoreFile("permission_requests.json")
             }
+
+        @Provides
+        @Singleton
+        fun provideDatabase(@ApplicationContext context: Context): EifiDatabase =
+            Room.databaseBuilder(context, EifiDatabase::class.java, "eifi.db").build()
 
         @Provides
         fun provideClock(): Clock = Clock.systemDefaultZone()

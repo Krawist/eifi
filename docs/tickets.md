@@ -174,6 +174,8 @@ Size: M. Dependencies: EIFI-011.
 - A session expires after two minutes, even if the app is in the background.
 - The transitions are covered by unit tests.
 
+Decided on October 27, 2026: "Encaisser" with an amount already pending reopens that session, with its countdown. CONFIRMED and CANCELLED are final; EXPIRED too, except for the operator's SMS arriving less than 10 minutes after the expiry (EIFI-106), and the manual confirmation only applies to a pending session. The expiry needs no background job: the status follows the expiry time, and the overdue sessions are stored as EXPIRED before each new session and when the countdown ends.
+
 Size: M. Dependencies: EIFI-020, EIFI-012.
 
 ### EIFI-103 · Show the payment QR code

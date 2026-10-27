@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -14,14 +13,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
 import com.eifi.core.data.AppPermission
-import com.eifi.core.design.component.PlaceholderScreen
-import com.eifi.core.design.format.formatFcfa
+import com.eifi.core.data.payment.PaymentStatus
 import com.eifi.core.design.theme.EifiTransitions
 import com.eifi.core.permission.PermissionStep
 import com.eifi.core.permission.rememberPermissionGranted
 import com.eifi.feature.receive.amount.AmountEntryActions
 import com.eifi.feature.receive.amount.AmountEntryScreen
 import com.eifi.feature.receive.amount.AmountEntryViewModel
+import com.eifi.feature.receive.payment.PaymentScreen
+import com.eifi.feature.receive.payment.PaymentViewModel
 import com.eifi.feature.receive.profile.ReceivingProfileActions
 import com.eifi.feature.receive.profile.ReceivingProfileScreen
 import com.eifi.feature.receive.profile.ReceivingProfileViewModel
@@ -51,9 +51,13 @@ internal data object ReceivePermissionsRoute
 @Serializable
 internal data object ReceiveRoute
 
-/** Payment session of [amount]: placeholder of the "QR et NFC actifs" screen until EIFI-102 and EIFI-103. */
+/**
+ * The received payment waiting to be paid: "QR et NFC actifs" screen (EIFI-103).
+ *
+ * @property paymentId id of the [com.eifi.core.data.payment.Payment] to show.
+ */
 @Serializable
-internal data class SessionPlaceholderRoute(val amount: Long, val label: String? = null)
+internal data class PaymentRoute(val paymentId: String)
 
 /** Adds the Receive graph; [onBack] leaves the mode. */
 fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Unit) {
@@ -86,15 +90,9 @@ fun NavGraphBuilder.receiveGraph(navController: NavController, onBack: () -> Uni
         composable<ReceiveRoute> {
             AmountEntryDestination(navController = navController, onBack = onBack)
         }
-        // TODO(EIFI-102, EIFI-103): create the session, then show its QR code and emit it over NFC.
-        composable<SessionPlaceholderRoute> { entry ->
-            val session = entry.toRoute<SessionPlaceholderRoute>()
-            PlaceholderScreen(
-                title = stringResource(R.string.session_placeholder_title),
-                subtitle = stringResource(R.string.session_placeholder_subtitle, formatFcfa(session.amount)),
-                actionLabel = stringResource(R.string.session_placeholder_back),
-                onAction = { navController.popBackStack() },
-            )
+        // TODO(EIFI-103): the QR code and the NFC emission of the payment.
+        composable<PaymentRoute> {
+            PaymentDestination(navController = navController)
         }
     }
 }
@@ -181,6 +179,11 @@ private fun AmountEntryDestination(navController: NavController, onBack: () -> U
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val automaticConfirmation by rememberPermissionGranted(AppPermission.NotificationAccess)
+    LaunchedEffect(uiState.openedPaymentId) {
+        val paymentId = uiState.openedPaymentId ?: return@LaunchedEffect
+        viewModel.onPaymentShown()
+        navController.navigate(PaymentRoute(paymentId))
+    }
     AmountEntryScreen(
         uiState = uiState,
         automaticConfirmation = automaticConfirmation,
@@ -189,17 +192,25 @@ private fun AmountEntryDestination(navController: NavController, onBack: () -> U
             onDelete = viewModel::onDelete,
             onShowLabel = viewModel::showLabel,
             onLabelChange = viewModel::onLabelChange,
-            onCollect = {
-                navController.navigate(
-                    SessionPlaceholderRoute(
-                        amount = uiState.amount,
-                        label = uiState.label.ifBlank {
-                            null
-                        },
-                    ),
-                )
-            },
+            onCollect = viewModel::collect,
             onBack = onBack,
         ),
     )
+}
+
+/** A cancelled payment goes back to the amount, which stays typed for another try. */
+@Composable
+private fun PaymentDestination(navController: NavController) {
+    val viewModel: PaymentViewModel = hiltViewModel(
+        checkNotNull(LocalViewModelStoreOwner.current) {
+            "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+        },
+        null,
+    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state = uiState ?: return
+    LaunchedEffect(state.status) {
+        if (state.status == PaymentStatus.Cancelled) navController.popBackStack()
+    }
+    PaymentScreen(uiState = state, onCancel = viewModel::cancel, onBack = { navController.popBackStack() })
 }
