@@ -101,6 +101,15 @@ At each start, a seeder fills the tables that are still empty: the USSD codes of
 
 Size: S. Dependencies: EIFI-102, EIFI-204.
 
+### EIFI-016 · Move to AGP 9
+
+Eifi moves to the build stack of Cauri and Griot: AGP 9.4 with its built-in Kotlin, Gradle 9.6, Kotlin 2.4.21, Compose BOM 2026.09.00, KSP 2.3.13, Hilt 2.60.1 and compileSdk 37 (target 36 and minSdk 26 kept). It is the step before the app uses the shared kit of the apps (convention plugins and version catalog).
+
+- The app builds and launches as before; ktlint, detekt and the unit tests pass.
+- ktlint checks the sources of the Android modules again (AGP 9 no longer applies the Kotlin plugin it looked for).
+
+Size: S. Dependencies: EIFI-010.
+
 ## Payment format
 
 ### EIFI-020 · Specify and code the payment URL format

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal class DataStorePayingAccountRepositoryTest(@TempDir private val folder: File) {
+internal class DataStorePayingAccountRepositoryTest(@param:TempDir private val folder: File) {
     private val scope = TestScope(UnconfinedTestDispatcher())
 
     private val repository = DataStorePayingAccountRepository(

@@ -67,7 +67,8 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
 
 ## Stack and conventions
 
-- Kotlin, Jetpack Compose, themed Material 3. minSdk 26, compile/target 36. JDK 17.
+- Kotlin, Jetpack Compose, themed Material 3. minSdk 26, compile 37, target 36. JDK 17. AGP 9.4 (Kotlin built
+  in: no `kotlin.android` plugin), Gradle 9.6, Kotlin 2.4.21, Compose BOM 2026.09.00, KSP 2.3, as Cauri and Griot.
 - UDF architecture: `@HiltViewModel` + state in `StateFlow`, coroutines. Hilt (KSP), Room,
   DataStore and type-safe Navigation Compose (`@Serializable` routes).
 - Navigation: each feature exposes its graph object (`OnboardingGraph`, `PayGraph`,

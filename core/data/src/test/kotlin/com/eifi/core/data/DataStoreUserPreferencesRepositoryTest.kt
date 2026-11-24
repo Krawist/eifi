@@ -14,7 +14,7 @@ import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-internal class DataStoreUserPreferencesRepositoryTest(@TempDir private val folder: File) {
+internal class DataStoreUserPreferencesRepositoryTest(@param:TempDir private val folder: File) {
     private val scope = TestScope(UnconfinedTestDispatcher())
 
     private val file = File(folder, "user_profile.json")

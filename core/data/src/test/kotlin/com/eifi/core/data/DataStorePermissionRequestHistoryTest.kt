@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
-internal class DataStorePermissionRequestHistoryTest(@TempDir private val folder: File) {
+internal class DataStorePermissionRequestHistoryTest(@param:TempDir private val folder: File) {
     private val scope = TestScope(UnconfinedTestDispatcher())
 
     private val history = DataStorePermissionRequestHistory(

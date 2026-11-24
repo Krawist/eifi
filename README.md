@@ -6,7 +6,7 @@ The documentation is in [`docs/`](docs/) and the context for Claude Code in [`CL
 
 ## Requirements
 
-- A recent Android Studio (compatible with AGP 8.13), JDK 17
+- A recent Android Studio (compatible with AGP 9.4), JDK 17
 - An Android 8.0+ phone (NFC recommended)
 
 ## Getting started
@@ -33,10 +33,6 @@ Create the key once:
 mkdir -p keystore
 keytool -genkeypair -v -keystore keystore/eifi-release.jks -alias eifi -keyalg RSA -keysize 4096 -validity 10000
 ```
-
-## First sync
-
-The versions in `gradle/libs.versions.toml` were pinned without access to the Maven repositories. If the sync fails on a missing or incompatible version (AGP, Kotlin, Compose BOM, ktlint, detekt), adjust the catalog: Android Studio suggests the available versions.
 
 ## Structure
 

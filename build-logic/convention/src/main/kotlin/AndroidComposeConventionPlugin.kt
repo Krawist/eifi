@@ -1,5 +1,4 @@
 import com.android.build.api.dsl.ApplicationExtension
-import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -10,10 +9,12 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
-            val android: CommonExtension<*, *, *, *, *, *> =
-                extensions.findByType(ApplicationExtension::class.java)
-                    ?: extensions.getByType(LibraryExtension::class.java)
-            android.buildFeatures.compose = true
+            val application = extensions.findByType(ApplicationExtension::class.java)
+            if (application != null) {
+                application.buildFeatures.compose = true
+            } else {
+                extensions.getByType(LibraryExtension::class.java).buildFeatures.compose = true
+            }
 
             dependencies {
                 val bom = libs.findLibrary("compose-bom").get()

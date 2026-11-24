@@ -1,4 +1,5 @@
-import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
@@ -14,21 +15,26 @@ internal val Project.libs: VersionCatalog
 
 internal fun VersionCatalog.version(alias: String): String = findVersion(alias).get().requiredVersion
 
-internal fun Project.configureKotlinAndroid(extension: CommonExtension<*, *, *, *, *, *>) {
+// AGP 9's CommonExtension holds none of these: the application and the libraries are configured alike, each on its
+// own extension.
+internal fun Project.configureKotlinAndroid(extension: ApplicationExtension) {
     extension.apply {
         compileSdk = libs.version("compileSdk").toInt()
-        defaultConfig {
-            minSdk = libs.version("minSdk").toInt()
-        }
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
-        }
+        defaultConfig.minSdk = libs.version("minSdk").toInt()
+        compileOptions.sourceCompatibility = JavaVersion.VERSION_17
+        compileOptions.targetCompatibility = JavaVersion.VERSION_17
         testOptions.unitTests.all { it.useJUnitPlatform() }
-        // Kotlin sources in src/main/kotlin, as for JVM modules.
-        sourceSets.configureEach {
-            java.srcDir("src/$name/kotlin")
-        }
+    }
+    configureKotlinJvmTarget()
+}
+
+internal fun Project.configureKotlinAndroid(extension: LibraryExtension) {
+    extension.apply {
+        compileSdk = libs.version("compileSdk").toInt()
+        defaultConfig.minSdk = libs.version("minSdk").toInt()
+        compileOptions.sourceCompatibility = JavaVersion.VERSION_17
+        compileOptions.targetCompatibility = JavaVersion.VERSION_17
+        testOptions.unitTests.all { it.useJUnitPlatform() }
     }
     configureKotlinJvmTarget()
 }
