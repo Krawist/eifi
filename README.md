@@ -7,6 +7,7 @@ The documentation is in [`docs/`](docs/) and the context for Claude Code in [`CL
 ## Requirements
 
 - A recent Android Studio (compatible with AGP 9.4), JDK 17
+- The kit checked out next to this repository (`../Kit`): it holds the version catalog and the convention plugins. See its README.
 - An Android 8.0+ phone (NFC recommended)
 
 ## Getting started
@@ -46,6 +47,5 @@ core/payload          payment URL format (pure Kotlin)
 core/nfc              Type 4 HCE and NDEF reader
 core/ussd             USSD templates and launch on the right SIM
 core/sms              SMS notification reading
-build-logic/          Gradle convention plugins
 docs/                 product requirements, technical design, tickets, mockups
 ```

@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.eifi.android.library)
-    alias(libs.plugins.eifi.android.compose)
-    alias(libs.plugins.eifi.android.hilt)
+    alias(libs.plugins.krawist.android.library)
+    alias(libs.plugins.krawist.android.compose)
+    alias(libs.plugins.krawist.android.hilt)
 }
 
 android {

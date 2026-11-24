@@ -74,11 +74,12 @@ brackets `[ ]` in the mockups mark real content to be provided; amounts and time
 - Navigation: each feature exposes its graph object (`OnboardingGraph`, `PayGraph`,
   `ReceiveGraph`) and a `NavGraphBuilder.xxxGraph(...)` extension; `:app` (`EifiApp.kt`) wires
   them. Features never navigate to each other directly: they take callbacks.
-- Gradle Kotlin DSL, `gradle/libs.versions.toml` catalog, convention plugins in `build-logic/`:
-    - `eifi.android.application`, `eifi.android.library`, `eifi.android.compose`,
-      `eifi.android.feature` (library + compose + Hilt + navigation + `:core:design`),
-      `eifi.android.hilt`, `eifi.android.room` (schemas in `schemas/`), `eifi.jvm.library`
-      (pure Kotlin).
+- Gradle Kotlin DSL. The version catalog and the convention plugins come from the kit, checked out
+  next to this repository (`../Kit`, see its README): `io.github.krawist.android.application`,
+  `…android.library`, `…android.compose`, `…android.feature` (library + compose + Hilt + navigation +
+  `:core:design`), `…android.hilt`, `…android.room` (schemas in `schemas/`),
+  `io.github.krawist.jvm.library` (pure Kotlin). A new library goes in the catalog of the kit;
+  `krawist.minSdk=26` in `gradle.properties` keeps Android 8.0.
 - Kotlin sources in `src/main/kotlin` and `src/test/kotlin`.
 - Type-safe module accessors: `implementation(projects.core.design)`.
 - Models hold data only: their validations and rules are in a `XxxService` (`PaymentService`,

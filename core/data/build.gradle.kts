@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.eifi.android.library)
-    alias(libs.plugins.eifi.android.hilt)
-    alias(libs.plugins.eifi.android.room)
+    alias(libs.plugins.krawist.android.library)
+    alias(libs.plugins.krawist.android.hilt)
+    alias(libs.plugins.krawist.android.room)
     alias(libs.plugins.kotlin.serialization)
 }
 

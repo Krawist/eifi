@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.eifi.jvm.library)
+    alias(libs.plugins.krawist.jvm.library)
     alias(libs.plugins.kotlin.serialization)
 }
 

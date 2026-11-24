@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.eifi.android.library)
+    alias(libs.plugins.krawist.android.library)
 }
 
 android {
